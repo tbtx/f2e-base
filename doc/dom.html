@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>dom</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h2 id="api">API</h2>
+
+<ul>
+<li><a href="#loadCss">loadCss(url, callback, charset)</a> 
+    <p>加载css文件</p>
+</li>
+<li><a href="#loadScript">loadScript(url, callback, charset)</a> 
+    <p>加载js, 可指定成功的回调函数</p>
+</li>
+<li><a href="">pageHeight()/pageWidth()</a> 
+    <p>返回页面总的宽高， 相当于$(window).width()/height()</p></li>
+<li><a href="">scrollX/scrollY</a>
+    <p>返回页面滚动的距离, 相当于$(window).scrollTop()/scrollLeft()</p>
+</li>
+<li><a href="">viewportHeight/viewportWidth</a> 
+    <p>返回视口的宽高，相当于$(document).width()/height()</p>
+</li>
+<li><a href="">isInView(selector)</a>
+    <p>判断元素是否出现在视口内，在则返回true</p>
+</li>
+<li><a href="">adjust(selector, [isAbsolute, [top])</a>
+    <p>调整元素位置到页面居中或者据顶端top的位置，top为数字或者"center" 如果是固定定位则元素top值加上页面滚动的距离,fixed定位则不用</p>
+</li>
+<li>
+    <a href="">initWangWang()</a>
+    <p>初始化旺旺点灯, 加载旺旺和KISSY（如果KISSY没有加载的话）</p>
+</li>
+</ul>
+
+<h2 id="loadcss">loadCss</h2>
+
+charset可指定为某一函数
+</body>
+</html>
