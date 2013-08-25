@@ -40,6 +40,8 @@
   }
 
   // http://blog.alexmaccaw.com/css-transitions
+  // 模拟transitionend
+  // 在duration后触发元素上的transitionend事件
   $.fn.emulateTransitionEnd = function (duration) {
     var called = false, $el = this
     $(this).one($.support.transition.end, function () { called = true })
@@ -64,10 +66,12 @@
     this.$element    = $(element)
     this.$indicators = this.$element.find('.carousel-indicators')
     this.options     = options
-    // 是否暂停
+    // boolean, 是否暂停
     this.paused      =
-    // 是否正在切换
+    // boolean, 是否正在切换
     this.sliding     =
+
+    // timer
     this.interval    =
     // jQuery element
     this.$active     =
@@ -82,12 +86,18 @@
   Carousel.DEFAULTS = {
     interval: 5000
   , pause: 'hover'
-  , wrap: true    // 是否持续循环？
+  , wrap: true    // 是否无限循环，否则只能在一个方向上进行一次
   }
 
+  // 鼠标移出$element时事件传递e参数
+  // 进行interval， 每隔一段时间执行next
+  // paused false 时进行循环
   Carousel.prototype.cycle =  function (e) {
+    // 没有event不改变pause状态
+    // 有event
     e || (this.paused = false)
-
+    // console.log(e);
+    // console.log(this.paused)
     this.interval && clearInterval(this.interval)
 
     this.options.interval
@@ -97,9 +107,13 @@
     return this
   }
 
+  // 一开始一定要有active的item
   Carousel.prototype.getActiveIndex = function () {
+    // .item.active 在indicators里也有active
     this.$active = this.$element.find('.item.active')
-    this.$items  = this.$active.parent().children()
+    // 其实不用每次都去获取
+    // this.$items  = this.$items || this.$active.parent().children() 
+    this.$items  = this.$active.parent().children() 
 
     return this.$items.index(this.$active)
   }
@@ -139,6 +153,9 @@
     return this.slide('prev')
   }
 
+  // 核心函数
+  // $element有slide的类时才进行滑动，否则只是单纯切换active
+  // type -- prev, next
   Carousel.prototype.slide = function (type, next) {
     var $active   = this.$element.find('.item.active')
     var $next     = next || $active[type]()
@@ -147,6 +164,7 @@
     var fallback  = type == 'next' ? 'first' : 'last'
     var that      = this
 
+    // 没有找到next就是处于临界值，需要额外判断
     if (!$next.length) {
       if (!this.options.wrap) return
       $next = this.$element.find('.item')[fallback]()
@@ -204,18 +222,28 @@
   var old = $.fn.carousel
 
   // add to jQuery.fn
+  // 提供prev/next/paused/cycle, number等多种调用方式
   $.fn.carousel = function (option) {
     return this.each(function () {
       var $this   = $(this)
+
+      // instance
       var data    = $this.data('bs.carousel')
       var options = $.extend({}, Carousel.DEFAULTS, $this.data(), typeof option == 'object' && option)
+      // options.slide = prev or next
       var action  = typeof option == 'string' ? option : options.slide
 
       // 在元素上附加实例
+      // 实例并不执行任何方法
       if (!data) $this.data('bs.carousel', (data = new Carousel(this, options)))
+      // to(number)
       if (typeof option == 'number') data.to(option)
-      else if (action) data[action]()
-      else if (options.interval) data.pause().cycle()
+      // instance.prev/next
+      else if (action) data[action]()     
+      // 通过cycle()来开始
+      else if (options.interval) {
+        data.pause().cycle()
+      }
     })
   }
 
@@ -232,17 +260,24 @@
 
 
   // CAROUSEL DATA-API
+  // 从jQuery 1.4.3起， HTML 5 data- 属性 将自动被引用到jQuery的数据对象中
   // =================
 
+  // prev, next, data-slide-to=0
+  // 实质上是绑定click事件，但是添加了命名空间，可以在触发的时候不影响其他的click
   $(document).on('click.bs.carousel.data-api', '[data-slide], [data-slide-to]', function (e) {
     var $this   = $(this), href
+    // 通过data-target或者href=#id来获取target
     var $target = $($this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')) //strip for ie7
+
     var options = $.extend({}, $target.data(), $this.data())
     var slideIndex = $this.attr('data-slide-to')
     if (slideIndex) options.interval = false
 
     $target.carousel(options)
 
+
+    // 同时有slide和slide-to？
     if (slideIndex = $this.attr('data-slide-to')) {
       $target.data('bs.carousel').to(slideIndex)
     }
@@ -250,6 +285,7 @@
     e.preventDefault()
   })
 
+  // 一开始默认data-ride="carousel" 的将自动执行
   $(window).on('load', function () {
     $('[data-ride="carousel"]').each(function () {
       var $carousel = $(this)

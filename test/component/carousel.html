@@ -6,70 +6,95 @@
     <title>carousel</title>
     <link rel="stylesheet" href="http://a.tbcdn.cn/apps/tbtx/miiee/css/order/base.css">
     <style>
-    .carousel, .carousel-inner, .carousel-inner .item {
+    .carousel {
         position: relative;
     }
     .carousel-inner {
+        position: relative;
         width: 100%;
         overflow: hidden;
     }
-    
-    .carousel-inner .item img {
-        display: block;
-        height: auto;
-        line-height: 1;
-    }
-
-    /* item 和 active 顺序不能乱 */
-    .carousel-inner .item {
+    .carousel-inner > .item {
         position: relative;
         display: none;
         -webkit-transition: 0.6s ease-in-out left;
-          transition: 0.6s ease-in-out left;
+        transition: 0.6s ease-in-out left;
     }
-    .carousel-inner .active, .carousel-inner .next, .carousel-inner .prev{
+    .carousel-inner > .item > img, .carousel-inner > .item > a > img {
+        display: block;
+        height: auto;
+        max-width: 100%;
+        line-height: 1;
+    }
+    .carousel-inner > .active, .carousel-inner > .next, .carousel-inner > .prev {
         display: block;
     }
-    .carousel-inner .next, .carousel-inner .prev {
+    .carousel-inner > .active {
+        left: 0;
+    }
+    .carousel-inner > .next, .carousel-inner > .prev {
         position: absolute;
         top: 0;
         width: 100%;
     }
-    .carousel-inner .next {
+    .carousel-inner > .next {
         left: 100%;
     }
-
-    .carousel-inner .prev {
+    .carousel-inner > .prev {
         left: -100%;
     }
-
-    .carousel-inner .next.left, .carousel-inner .prev.right {
+    .carousel-inner > .next.left, .carousel-inner > .prev.right {
         left: 0;
     }
-
-    .carousel-inner .active.left {
+    .carousel-inner > .active.left {
         left: -100%;
     }
-
-    .carousel-inner .active.right {
+    .carousel-inner > .active.right {
         left: 100%;
+    }
+    .carousel-indicators {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        z-index: 15;
+        width: 60%;
+        padding-left: 0;
+        margin-left: -30%;
+        text-align: center;
+        list-style: none;
+    }
+    .carousel-indicators li {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin: 1px;
+        text-indent: -999px;
+        cursor: pointer;
+        border: 1px solid #ffffff;
+        border-radius: 10px;
+    }
+    .carousel-indicators .active {
+        width: 12px;
+        height: 12px;
+        margin: 0;
+        background-color: #ffffff;
     }
     </style>
 
     <style>
-    #myCarousel {
+   /* #myCarousel {
         width: 320px;
         margin: 0 auto;
-    }
-    #myCarousel .carousel-inner {
-        height: 236px;
+    }*/
+    .carousel-indicators {
+        line-height: 50px;
     }
     </style>
 </head>
 
 <body>
 
-    <div id="myCarousel" class="carousel slide">
+    <div id="myCarousel" data-ride="carousel" data-interval="1000" class="carousel slide">
         <!-- Indicators -->
         <ol class="carousel-indicators">
             <li data-target="#myCarousel" data-slide-to="0" class="active">1</li>
@@ -79,7 +104,9 @@
 
         <div class="carousel-inner">
             <div class="item active">
-                <a href="http://miiee.taobao.com"><img src="http://img01.taobaocdn.com/tps/i1/T15bl7FldbXXcA55co-320-146.jpg"></a>
+                <a href="http://miiee.taobao.com">
+                    <img src="http://img01.taobaocdn.com/tps/i1/T15bl7FldbXXcA55co-320-146.jpg">
+                </a>
                 <div class="container">
                     <div class="carousel-caption">
                         <h1>Example headline.</h1>
@@ -113,11 +140,18 @@
             </div>
         </div>
 
-        <a class="carousel-control" href="#myCarousel" data-slide="prev">
+        <a href="#myCarousel" data-slide="prev">
             prev
         </a>
-        <a class="carousel-control" href="#myCarousel" data-slide="next">
+        <a href="#myCarousel" data-slide="next">
             next
+        </a>
+
+        <a href="#myCarousel" data-slide="pause">
+        pause
+        </a>
+        <a href="#myCarousel" data-slide="cycle">
+            cycle
         </a>
     </div>
     <!-- /.carousel -->
@@ -127,34 +161,24 @@
     <script src="../../component/carousel.js"></script>
 
     <script>
-    $('.carousel').carousel({
-        interval: 1000
-    });
-    var slideMap = {
-        ".next.left": 0,
-        ".prev.right": 0,
-        ".active.left": "-100%",
-        ".active.right": "100%"
-    }
-    $('#myCarousel').on('slide.bs.carousel', function (event, params) {
-        // var $context = $('#myCarousel').find('.carousel-inner');
-        // var $carousel = $('#myCarousel').data('bs.carousel');
-        // console.log($carousel);
-        // console.log(params);
-        // for (selector in slideMap) {
-        //     console.log($context.find(selector));
-        // }
-      // do something…
-      // 
-      // console.log('carousel start');
+    // $('.carousel').carousel({
+    //     interval: 1000
+    // });
+
+    $('#myCarousel').on('slide.bs.carousel', function(event, params) {
+        // do something…
+        // 
+        // console.log('carousel start');
     });
 
-    $('#myCarousel').on('slid.bs.carousel', function () {
-         $('#myCarousel').carousel('cycle');
-      // do something…
-      // 
-      // console.log('carousel finish');
+    $('#myCarousel').on('slid.bs.carousel', function() {
+        // do something…
+        // console.log('carousel finish');
     });
+
+    // setInterval(function() {
+    //     console.log($('#myCarousel').data('bs.carousel').paused);
+    // }, 200)
     </script>
 </body>
 
