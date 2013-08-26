@@ -19,6 +19,7 @@
             // 是否延迟加载图片
             isLazyload: false,
             // 移动方向
+            // x, y, or none
             direction: 'x'
         }
     });

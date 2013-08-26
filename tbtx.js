@@ -632,7 +632,7 @@
         ["meego", /\bmeego\b/],
         ["blackberry", "blackberry"]
     ];
-    /*
+    /**
      * 解析使用 Trident 内核的浏览器的 `浏览器模式` 和 `文档模式` 信息。
      * @param {String} ua, userAgent string.
      * @return {Object}

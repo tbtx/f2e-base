@@ -132,10 +132,15 @@
 
   Carousel.prototype.pause = function (e) {
     e || (this.paused = true)
+    console.log(this.paused);
 
+    // 正在动画时按下停止
+    // 停止之后需要触发end事件
     if (this.$element.find('.next, .prev').length && $.support.transition.end) {
       this.$element.trigger($.support.transition.end)
       this.cycle(true)
+
+      // console.log('paused when transition')
     }
 
     this.interval = clearInterval(this.interval)
