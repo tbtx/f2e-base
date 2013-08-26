@@ -45,6 +45,7 @@
   $.fn.emulateTransitionEnd = function (duration) {
     var called = false, $el = this
     $(this).one($.support.transition.end, function () { called = true })
+    // 如果触发了原生的end事件就不再触发了
     var callback = function () { if (!called) $($el).trigger($.support.transition.end) }
     setTimeout(callback, duration)
     return this
@@ -86,25 +87,7 @@
   Carousel.DEFAULTS = {
     interval: 5000
   , pause: 'hover'
-  , wrap: true    // 是否无限循环，否则只能在一个方向上进行一次
-  }
-
-  // 鼠标移出$element时事件传递e参数
-  // 进行interval， 每隔一段时间执行next
-  // paused false 时进行循环
-  Carousel.prototype.cycle =  function (e) {
-    // 没有event不改变pause状态
-    // 有event
-    e || (this.paused = false)
-    // console.log(e);
-    // console.log(this.paused)
-    this.interval && clearInterval(this.interval)
-
-    this.options.interval
-      && !this.paused
-      && (this.interval = setInterval($.proxy(this.next, this), this.options.interval))
-
-    return this
+  , wrap: true    // 是否无限循环，否则只能在一个方向上到头则无法进行
   }
 
   // 一开始一定要有active的item
@@ -118,6 +101,41 @@
     return this.$items.index(this.$active)
   }
 
+  // 鼠标移出$element时事件传递e参数
+  // 进行interval， 每隔一段时间执行next
+  // paused false 时进行循环
+  Carousel.prototype.cycle =  function (e) {
+    // 没有event不改变pause状态
+    // 有event
+    e || (this.paused = false)
+    // console.log(e);
+    console.log(this.paused)
+    this.interval && clearInterval(this.interval)
+
+    // paused 为 false才执行interval
+    this.options.interval
+      && !this.paused
+      && (this.interval = setInterval($.proxy(this.next, this), this.options.interval))
+
+    return this
+  }
+
+  Carousel.prototype.pause = function (e) {
+    e || (this.paused = true)
+    console.log(this.paused + 'in pause')
+    // 正在动画时按下停止
+    // 停止之后需要触发end事件
+    if (this.$element.find('.next, .prev').length && $.support.transition.end) {
+      this.$element.trigger($.support.transition.end)
+      this.cycle(true)
+
+      console.log('paused when transition')
+    }
+
+    this.interval = clearInterval(this.interval)
+    return this
+  }
+
   Carousel.prototype.to = function (pos) {
     var that        = this
     var activeIndex = this.getActiveIndex()
@@ -128,24 +146,6 @@
     if (activeIndex == pos) return this.pause().cycle()
 
     return this.slide(pos > activeIndex ? 'next' : 'prev', $(this.$items[pos]))
-  }
-
-  Carousel.prototype.pause = function (e) {
-    e || (this.paused = true)
-    console.log(this.paused);
-
-    // 正在动画时按下停止
-    // 停止之后需要触发end事件
-    if (this.$element.find('.next, .prev').length && $.support.transition.end) {
-      this.$element.trigger($.support.transition.end)
-      this.cycle(true)
-
-      // console.log('paused when transition')
-    }
-
-    this.interval = clearInterval(this.interval)
-
-    return this
   }
 
   Carousel.prototype.next = function () {
@@ -163,9 +163,9 @@
   // type -- prev, next
   Carousel.prototype.slide = function (type, next) {
     var $active   = this.$element.find('.item.active')
-    var $next     = next || $active[type]()
+    var $next     = next || $active[type]()   // 不指定next时（在to方法里会指定）会调用prev或者next去获取
     var isCycling = this.interval
-    var direction = type == 'next' ? 'left' : 'right'
+    var direction = type == 'next' ? 'left' : 'right'     // 下一个向左滑动
     var fallback  = type == 'next' ? 'first' : 'last'
     var that      = this
 

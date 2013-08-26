@@ -26,6 +26,8 @@
         max-width: 100%;
         line-height: 1;
     }
+
+    /*prev, next时都是显示的*/
     .carousel-inner > .active, .carousel-inner > .next, .carousel-inner > .prev {
         display: block;
     }
@@ -37,15 +39,19 @@
         top: 0;
         width: 100%;
     }
+    /* next在右边 */
     .carousel-inner > .next {
         left: 100%;
     }
+    /* prev在左边 */
     .carousel-inner > .prev {
         left: -100%;
     }
+    /*next向左滑动，prev向右滑动时会到active的位置*/
     .carousel-inner > .next.left, .carousel-inner > .prev.right {
         left: 0;
     }
+    /*把active的向左推*/
     .carousel-inner > .active.left {
         left: -100%;
     }
