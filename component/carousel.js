@@ -40,13 +40,16 @@
   }
 
   // http://blog.alexmaccaw.com/css-transitions
-  // 模拟transitionend
-  // 在duration后触发元素上的transitionend事件
+  // 模拟触发transitionend
+  // 在duration后触发元素上的transitionend事件，如果之前已经触发了就不再触发
   $.fn.emulateTransitionEnd = function (duration) {
     var called = false, $el = this
     $(this).one($.support.transition.end, function () { called = true })
     // 如果触发了原生的end事件就不再触发了
-    var callback = function () { if (!called) $($el).trigger($.support.transition.end) }
+    var callback = function () { 
+      if (!called) $($el).trigger($.support.transition.end) 
+      // console.log('callback')
+    }
     setTimeout(callback, duration)
     return this
   }
@@ -65,7 +68,8 @@
 
   var Carousel = function (element, options) {
     this.$element    = $(element)
-    this.$indicators = this.$element.find('.carousel-indicators')
+    // ol
+    this.$indicators = this.$element.find('.carousel-indicators')   
     this.options     = options
     // boolean, 是否暂停
     this.paused      =
@@ -87,7 +91,7 @@
   Carousel.DEFAULTS = {
     interval: 5000
   , pause: 'hover'
-  , wrap: true    // 是否无限循环，否则只能在一个方向上到头则无法进行
+  , wrap: true    // 是否无限循环，否则只能在一个方向上到头则无法继续next/prev
   }
 
   // 一开始一定要有active的item
@@ -101,17 +105,18 @@
     return this.$items.index(this.$active)
   }
 
-  // 鼠标移出$element时事件传递e参数
+  // 鼠标移出$element时事件触发mouseleave传递e参数
   // 进行interval， 每隔一段时间执行next
   // paused false 时进行循环
   Carousel.prototype.cycle =  function (e) {
     // 没有event不改变pause状态
     // 有event
     e || (this.paused = false)
-    // console.log(e);
-    console.log(this.paused)
+    console.log(this.paused + ' in cycle')
     this.interval && clearInterval(this.interval)
 
+    // this.next()
+    // return
     // paused 为 false才执行interval
     this.options.interval
       && !this.paused
@@ -122,9 +127,11 @@
 
   Carousel.prototype.pause = function (e) {
     e || (this.paused = true)
-    console.log(this.paused + 'in pause')
+
+    console.log(this.paused + ' in pause')
+
     // 正在动画时按下停止
-    // 停止之后需要触发end事件
+    // 停止之后需要手动触发end事件
     if (this.$element.find('.next, .prev').length && $.support.transition.end) {
       this.$element.trigger($.support.transition.end)
       this.cycle(true)
@@ -140,9 +147,13 @@
     var that        = this
     var activeIndex = this.getActiveIndex()
 
+    // pos不对
     if (pos > (this.$items.length - 1) || pos < 0) return
 
+    // 正在动画中
+    // 动画结束再调用to
     if (this.sliding)       return this.$element.one('slid', function () { that.to(pos) })
+    // 相等时继续循环
     if (activeIndex == pos) return this.pause().cycle()
 
     return this.slide(pos > activeIndex ? 'next' : 'prev', $(this.$items[pos]))
@@ -159,16 +170,16 @@
   }
 
   // 核心函数
-  // $element有slide的类时才进行滑动，否则只是单纯切换active
+  // $element有slide的类名且支持transition时才进行滑动，否则只是单纯切换active
   // type -- prev, next
   Carousel.prototype.slide = function (type, next) {
     var $active   = this.$element.find('.item.active')
     var $next     = next || $active[type]()   // 不指定next时（在to方法里会指定）会调用prev或者next去获取
     var isCycling = this.interval
     var direction = type == 'next' ? 'left' : 'right'     // 下一个向左滑动
-    var fallback  = type == 'next' ? 'first' : 'last'
     var that      = this
 
+    var fallback  = type == 'next' ? 'first' : 'last'
     // 没有找到next就是处于临界值，需要额外判断
     if (!$next.length) {
       if (!this.options.wrap) return
@@ -176,7 +187,8 @@
     }
 
     this.sliding = true
-
+    console.log(isCycling)
+    // 当在循环的时候，切换要先停止，切换完成之后再循环
     isCycling && this.pause()
 
     var e = $.Event('slide.bs.carousel', { relatedTarget: $next[0], direction: direction })
@@ -185,6 +197,8 @@
 
     if (this.$indicators.length) {
       this.$indicators.find('.active').removeClass('active')
+
+      // slid
       this.$element.one('slid', function () {
         var $nextIndicator = $(that.$indicators.children()[that.getActiveIndex()])
         $nextIndicator && $nextIndicator.addClass('active')
@@ -203,6 +217,8 @@
           $next.removeClass([type, direction].join(' ')).addClass('active')
           $active.removeClass(['active', direction].join(' '))
           that.sliding = false
+
+          // 触发slid
           setTimeout(function () { that.$element.trigger('slid') }, 0)
         })
         .emulateTransitionEnd(600)
@@ -290,7 +306,7 @@
     e.preventDefault()
   })
 
-  // 一开始默认data-ride="carousel" 的将自动执行
+  // 一开始默认data-ride="carousel" 的元素将自动执行
   $(window).on('load', function () {
     $('[data-ride="carousel"]').each(function () {
       var $carousel = $(this)

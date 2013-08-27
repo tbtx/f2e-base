@@ -27,23 +27,33 @@
         margin: 20px;
     }
 
-    #mySlide .slide-item, #mySlide2 .slide-item {
+    .slide-item, .slide {
         width: 320px;
         height: 204px;
     }
-    .slide {
-        width: 320px;
-        height: 204px;
-    }
-    .slide-inner{
 
+    #mySlide2 .slide-inner{
+        width: 320px;
     }
     
-    #mySlide3 .slide {
-        height: 240px;
+    .indicators {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
     }
+    .indicators li {
+        float: left;
+        padding: 10px;
+        background: #FFF;
+        margin: 10px;
+    }
+
     #mySlide3 .slide-item {
         float: none;
+    }
+
+    #mySlide4 .slide {
+        width: 640px;
     }
     </style>
 </head>
@@ -65,10 +75,7 @@
                     </a>
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>Example headline.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Sign up today</a>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -76,10 +83,7 @@
                     <img src="http://img02.taobaocdn.com/tps/i2/T1FlB7FhlXXXcA55co-320-146.jpg">
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>Another example headline.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Learn more</a>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -87,10 +91,7 @@
                     <img src="http://img03.taobaocdn.com/tps/i3/T1RJR7FkpcXXcA55co-320-146.jpg" alt="Third slide">
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>One more for good measure.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Browse gallery</a>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -113,7 +114,7 @@
         </a>
     </div>
     
-    <div id="mySlide2" data-ride="slide" data-interval="3000" data-is-carousel="false" class="slide-wrapper">
+    <div id="mySlide2" data-ride="slide" data-interval="3000" data-direction='x' data-is-carousel="false" class="slide-wrapper">
         <!-- Indicators -->
         <ol class="indicators">
             <li data-target="#mySlide2" data-slide-to="0">1</li>
@@ -128,10 +129,7 @@
                     </a>
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>Example headline.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Sign up today</a>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -139,10 +137,7 @@
                     <img src="http://img02.taobaocdn.com/tps/i2/T1FlB7FhlXXXcA55co-320-146.jpg">
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>Another example headline.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Learn more</a>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -150,10 +145,7 @@
                     <img src="http://img03.taobaocdn.com/tps/i3/T1RJR7FkpcXXcA55co-320-146.jpg" alt="Third slide">
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>One more for good measure.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Browse gallery</a>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -176,7 +168,61 @@
         </a>
     </div>
     
-     <div id="mySlide3" data-ride="slide" data-interval="3000" data-item-size="240" data-direction="y" class="slide-wrapper">
+    <div id="mySlide4" data-ride="slide" data-interval="3000" data-item-size="320" data-view-size="2" class="slide-wrapper">
+        <!-- Indicators -->
+        <ol class="indicators">
+            <li data-target="#mySlide4" data-slide-to="0">1</li>
+            <li data-target="#mySlide4" data-slide-to="1">2</li>
+            <li data-target="#mySlide4" data-slide-to="2">3</li>
+        </ol>
+        <div class="slide">
+            <div class="slide-inner">
+                <div class="slide-item active">
+                    <a href="http://miiee.taobao.com">
+                        <img src="http://img01.taobaocdn.com/tps/i1/T15bl7FldbXXcA55co-320-146.jpg">
+                    </a>
+                    <div class="container">
+                        <div class="carousel-caption">
+                            <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-item">
+                    <img src="http://img02.taobaocdn.com/tps/i2/T1FlB7FhlXXXcA55co-320-146.jpg">
+                    <div class="container">
+                        <div class="carousel-caption">
+                            <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-item">
+                    <img src="http://img03.taobaocdn.com/tps/i3/T1RJR7FkpcXXcA55co-320-146.jpg" alt="Third slide">
+                    <div class="container">
+                        <div class="carousel-caption">
+                            <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+
+        <a href="#mySlide4" data-slide="prev">
+            prev
+        </a>
+        <a href="#mySlide4" data-slide="next">
+            next
+        </a>
+
+        <a href="#mySlide4" data-slide="pause">
+        pause
+        </a>
+        <a href="#mySlide4" data-slide="cycle">
+            cycle
+        </a>
+    </div>
+
+     <div id="mySlide3" data-ride="slide" data-interval="3000" data-direction="y" class="slide-wrapper">
         <!-- Indicators -->
         
         <div class="slide">
@@ -187,10 +233,7 @@
                     </a>
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>Example headline.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Sign up today</a>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -198,10 +241,7 @@
                     <img src="http://img02.taobaocdn.com/tps/i2/T1FlB7FhlXXXcA55co-320-146.jpg">
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>Another example headline.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Learn more</a>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -209,10 +249,7 @@
                     <img src="http://img03.taobaocdn.com/tps/i3/T1RJR7FkpcXXcA55co-320-146.jpg" alt="Third slide">
                     <div class="container">
                         <div class="carousel-caption">
-                            <h1>One more for good measure.</h1>
                             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                            <p><a class="btn btn-large btn-primary" href="#">Browse gallery</a>
-                            </p>
                         </div>
                     </div>
                 </div>

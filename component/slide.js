@@ -5,9 +5,9 @@
 
     Slide.extend({
         defaults: {
-            interval: 3000,		// 切换间隔
-            duration: 600,		// 动画时间
-            steps: 1, // 一次切换几个, 比较鸡肋
+            interval: 3000, // 切换间隔
+            duration: 600, // 动画时间
+            viewSize: 1,        //  在可见区域有几个
             itemSize: 0, // 每个item的size，当x方向滚动时指的是width, y-height
 
             itemSelector: '.slide-item',
@@ -16,8 +16,6 @@
 
             // 是否可以沿一个方向无限循环
             isCarousel: true,
-            // 是否延迟加载图片
-            isLazyload: false,
             // 移动方向
             // x, y, or none
             direction: 'x'
@@ -33,15 +31,19 @@
             this.$items = this.$element.find(this.options.itemSelector);
             // 用来调整margin的元素
             this.$slider = this.$element.find('.slide-inner');
+            // 默认获取宽高的元素
+            this.$slide = this.$element.find('.slide');
 
             this.activeClass = this.options.activeClass;
-            this.steps = this.options.steps;
+            this.viewSize = this.options.viewSize;
 
-            this.itemSize = this.options.itemSize || (this.options.direction == 'x' ? this.$slider.width() : this.$slider.height());
+            this.itemSize = this.options.itemSize || (this.options.direction == 'x' ? this.$slide.width() : this.$slide.height());
+
             // 是否正在切换
             this.sliding = false;
             // timer
-            this.interval = null;
+            this.interval = 0;
+            // 是否处于暂停状态
             this.paused = true;
 
             this.activeIndex = 0;
@@ -49,167 +51,207 @@
 
             // 克隆后length增加
             if (this.options.isCarousel) {
-            	this.clone();
-            	this.length = this.$items.length + this.steps*2;	// 实际的item个数
-            	this.baseOffset = - this.itemSize * this.steps;
+                this.clone();
+                this.length = this.$items.length + this.viewSize * 2; // 实际的item个数
+                this.baseOffset = - (this.itemSize * this.viewSize); // css偏移的基数
             } else {
-            	this.length = this.$items.length;
-            	this.baseOffset = 0;
+                this.length = this.$items.length;
+                this.baseOffset = 0;
             }
 
-            // adjust width or height
+            // 调整$slider 长度，以及位置修复到开始位置（针对克隆过）
             if (this.options.direction == 'x') {
-            	this.$slider.css({
-            		width: this.itemSize * this.length,
-            		marginLeft: this.baseOffset
-            	});
+                this.$slider.css({
+                    width: this.itemSize * this.length,
+                    marginLeft: this.baseOffset
+                });
             } else {
-            	this.$slider.css({
-            		height: this.itemSize * this.length,
-            		marginTop: this.baseOffset
-            	});
+                this.$slider.css({
+                    height: this.itemSize * this.length,
+                    marginTop: this.baseOffset
+                });
             }
 
             this.cycle();
 
             this.$element.on('mouseenter', this.proxy(this.pause))
-		      .on('mouseleave', this.proxy(this.cycle));
+                .on('mouseleave', this.proxy(this.cycle));
         },
 
-        // 通过克隆节点来实现走马灯效果
+        // 通过克隆节点来实现跑马灯效果
+        // step为多少则前后复制多少个元素
         clone: function() {
-        	var $items = this.$items,
-        		steps = this.steps,
-        		activeClass = this.activeClass;
+            var $items = this.$items,
+                number = this.viewSize,
+                activeClass = this.activeClass;
 
             var $parent = $items.parent();
-            var prefix = $items.slice(-steps).clone().prependTo($parent).removeClass(activeClass).addClass('copy');
+            var prefix = $items.slice(-number).clone().prependTo($parent).removeClass(activeClass).addClass('copy');
 
-            var suffix = $items.slice(0, steps).clone().appendTo($parent).removeClass(activeClass).addClass('copy');
+            var suffix = $items.slice(0, number).clone().appendTo($parent).removeClass(activeClass).addClass('copy');
         },
 
-        pause: function() {
+        pause: function(e) {
+            e || (this.paused = true);
+
+            if (this.sliding) {
+                this.cycle(true);
+            }
+
             this.inerval = clearInterval(this.interval);
+            return this;
         },
 
-        cycle: function() {
-        	// 1个就不需要轮播
-        	if (this.$items.length == 1) {
-        		return;
-        	}
+        cycle: function(e) {
+            // 1个就不需要轮播
+            if (this.$items.length == 1) {
+                return;
+            }
+            e || (this.paused = false);
+            this.interval && clearInterval(this.interval);
 
             var time = this.options.interval;
-            this.interval = setInterval(this.proxy(this.next), time);
+            time && !this.paused && (this.interval = setInterval(this.proxy(this.next), time));
 
+            return this;
         },
 
         next: function() {
             if (this.sliding) {
                 return;
             }
-            this.slide('next');
-            // !this.paused && this.cycle();
+            return this.slide('next');
         },
 
         prev: function() {
             if (this.sliding) {
                 return;
             }
-            this.slide('prev');
+            return this.slide('prev');
         },
 
         to: function(pos) {
-        	var type = pos > this.activeIndex ? 'next' : 'prev';
-        	this.slide(type, pos);
+            var self = this;
+            if (pos > (this.$items.length - 1) || pos < 0) {
+                return;
+            }
+            if (this.sliding) {
+                return this.$element.one('slid', function () { 
+                    self.to(pos);
+                });
+            }
+
+            if (this.activeIndex == pos) {
+                return this.pause().cycle();
+            }
+
+            var type = pos > this.activeIndex ? 'next' : 'prev';
+            return this.slide(type, pos);
         },
 
         slide: function(direction, pos) {
-        	this.sliding = true;
+            pos = parseInt(pos, 10);
+            var isCycling = this.interval;
 
-        	var activeIndex = this.activeIndex,
-        		activeClass = this.activeClass,
-        		$items = this.$items,
-        		length = $items.length,
-        		$indicators = this.$indicators,
-        		$slider = this.$slider;
+            this.sliding = true;
+            isCycling && this.pause();
 
-        	var self = this;
-        	if (this.options.isCarousel) {
-        		// next
-        		if (direction == 'next') {
-					this.nextIndex = pos || activeIndex + 1;
-        		} else {
-        			this.nextIndex = pos || activeIndex - 1;
-        		}
-        	} else {
-        		// next
-				if (activeIndex < this.$items.length - 1) {
-					this.nextIndex = pos || activeIndex + 1;
-				} else {
-					this.nextIndex = 0;
-				}
-        	}
-        	// console.log(this.nextIndex);
+            this.$element.trigger('slide');
 
-        	var animateObj = {};
-        	if (this.options.direction == 'x') {
-        		animateObj = {
-        			marginLeft: this.baseOffset - (this.itemSize * this.nextIndex)
-        		}
-        	} else {
-        		animateObj = {
-        			marginTop: this.baseOffset - (this.itemSize * this.nextIndex)
-        		}
-        	}
+            var activeIndex = this.activeIndex,
+                activeClass = this.activeClass,
+                $items = this.$items,
+                length = $items.length,
+                $indicators = this.$indicators,
+                $slider = this.$slider;
 
-			$slider.animate(animateObj, 600, function() {
-            	if (self.options.isCarousel) {
-            		if(direction == 'next') {
-		            	if (self.nextIndex >= length) {
-		            		if (self.options.direction == 'x') {
-		            			$slider.css({
-			            			marginLeft: self.baseOffset
-			            		});
-		            		} else {
-		            			$slider.css({
-			            			marginTop: self.baseOffset
-			            		});
-		            		}
-		            		self.nextIndex = 0;
-		            		self.activeIndex = 0;
-		            	} else {
-		            		self.activeIndex = self.nextIndex;
-		            	}
-		            } else {
-		            	if (self.nextIndex < 0) {
-		            		if (self.options.direction == 'x') {
-			            		$slider.css({
-			            			marginLeft: self.baseOffset - self.itemSize * (length - 1)
-			            		});
-			            	} else {
-			            		$slider.css({
-			            			marginTop: self.baseOffset - self.itemSize * (length - 1)
-			            		});
-			            	}
-		            		self.activeIndex = length - 1;
-		            		self.nextIndex = length - 1;
-		            	} else {
-		            		self.activeIndex = self.nextIndex;
-		            	}
-		            }
-	            } else {
-	            	self.activeIndex = self.nextIndex;
-	            }
+            var self = this;
+            if (this.options.isCarousel) {
+                // next
+                if (direction == 'next') {
+                    this.nextIndex = pos || activeIndex + 1;
+                } else {
+                    this.nextIndex = pos || activeIndex - 1;
+                }
+            } else {
+                // next
+                if (activeIndex < this.$items.length - 1) {
+                    this.nextIndex = pos || activeIndex + 1;
+                } else {
+                    this.nextIndex = 0;
+                }
+            }
 
-	            self.sliding = false;
+            var animateObj;
+            if (this.options.direction == 'x') {
+                animateObj = {
+                    marginLeft: this.baseOffset - (this.itemSize * this.nextIndex)
+                }
+            } else if (this.options.direction == 'y'){
+                animateObj = {
+                    marginTop: this.baseOffset - (this.itemSize * this.nextIndex)
+                }
+            }
+
+            animateObj && $slider.animate(animateObj, this.options.duration, function() {
+                if (self.options.isCarousel) {
+                    if (direction == 'next') {
+                        if (self.nextIndex >= length) {
+                            if (self.options.direction == 'x') {
+                                $slider.css({
+                                    marginLeft: self.baseOffset
+                                });
+                            } else {
+                                $slider.css({
+                                    marginTop: self.baseOffset
+                                });
+                            }
+                            self.nextIndex = 0;
+                            self.activeIndex = 0;
+                        } else {
+                            self.activeIndex = self.nextIndex;
+                        }
+                    } else {
+                        if (self.nextIndex < 0) {
+                            if (self.options.direction == 'x') {
+                                $slider.css({
+                                    marginLeft: self.baseOffset - self.itemSize * (length - 1)
+                                });
+                            } else {
+                                $slider.css({
+                                    marginTop: self.baseOffset - self.itemSize * (length - 1)
+                                });
+                            }
+                            self.activeIndex = length - 1;
+                            self.nextIndex = length - 1;
+                        } else {
+                            self.activeIndex = self.nextIndex;
+                        }
+                    }
+                } else {
+                    self.activeIndex = self.nextIndex;
+                }
+
+                self.sliding = false;
+                setTimeout(function () { self.$element.trigger('slid') }, 0);
+
             });
+            
+            !animateObj && +function() {
+                $items.hide();
+                $items.eq(self.nextIndex).show();
+                self.activeIndex = self.nextIndex;
+                self.sliding = false;
+                setTimeout(function () { self.$element.trigger('slid') }, 0)
+            }();
 
-
-			$items.removeClass(activeClass);
-			$items.eq(this.nextIndex).addClass(activeClass);
-			$indicators.removeClass(activeClass);
-			$indicators.eq(this.nextIndex).addClass(activeClass);
-			// toggleCallback.call(slidePlayer, $slideItems.eq(n), $thumbItems.eq(n));
+            $items.removeClass(activeClass);
+            $items.eq(this.nextIndex).addClass(activeClass);
+            $indicators.removeClass(activeClass);
+            $indicators.eq(this.nextIndex).addClass(activeClass);
+            
+            isCycling && self.cycle();
+            return this;
         }
     });
 
@@ -239,11 +281,11 @@
 
         var data = $target.data('tbtx.slide');
         if (slideIndex) {
-        	data.to(slideIndex);
+            data.to(slideIndex);
         }
 
         if (options.slide) {
-        	data[options.slide]();
+            data[options.slide]();
         }
 
         e.preventDefault();
