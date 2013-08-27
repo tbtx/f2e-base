@@ -46,6 +46,7 @@
 	
 	overlay 覆盖层
 	Popup 弹出
+	Slide 轮播
 
 ## 测试框架jasmine
 
