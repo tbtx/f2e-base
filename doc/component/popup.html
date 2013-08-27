@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>popup</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<p>popup 弹出层</p>
+
+<a href="../../test/component/popup.html" target="_blank">参考</a>
+
+<pre><code>
+    var o = new tbtx.Popup(selector, option);
+    or
+    var o = $(selector).Popup();
+
+    o.show();
+    o.hide()
+</code></pre>
+
+弹出的元素默认隐藏即可，不需要指定position，IE6下使用absolute定位，其余使用fix定位，只需要指定弹出层的z-index即可
+
+<pre><code>
+     var defaults = {
+        withOverlay: true,      // 是否使用遮罩层
+        overlayOption: {        // 遮罩层的配置，参考overlay
+
+        },
+        destoryOnHide: false,   // 隐藏的时候是否删除元素，适用于只需要弹出一次的元素
+        top: "center"           // 位置, 实际调用dom/adjust
+    };
+</code></pre>
+</body>
+</html>

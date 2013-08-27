@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>seed</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2 id="api">API</h2>
+
+<ul>
+<li>
+    <a href="#log">log(msg, cat, src)</a>
+    <p>log函数</p>
+</li>
+<li>
+    global
+    <p>属性，全局对象window</p>
+</li>
+<li>
+    <a href="#data">data</a>
+    <p>存取数据, 存在T._data里</p>
+</li>
+
+<li>
+    noop
+    <p>空函数，在需要填入空函数的地方使用</p>
+</li>
+</ul>
+
+<h3 id="log">log</h3>
+
+<p>只在有log环境的地方输出log</p>
+
+<pre><code>log(msg) =&gt; msg
+
+@param cat 消息类型，如error, info, warm等
+log(msg, cat) 如log('hello', 'error')
+
+@param src: 消息来源
+log(msg, cat, src) 如log('hello', 'info', 'pageA') =&gt; pageA: hello
+</code></pre>
+
+<h3 id="data">data</h3>
+
+<pre><code>     
+    T.data('user', 'name');
+    T.data('user') => name;
+</code></pre>
+</body>
+</html>
