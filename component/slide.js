@@ -298,4 +298,11 @@
             $element.Slide($element.data());
         });
     });
+
+    T.loadCss("a.tbcdn.cn/apps/tbtx/base/css/component/slide.css", function() {
+        
+    });
+    T.mix(T, {
+        Slide: Slide
+    });
 })(tbtx);

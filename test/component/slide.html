@@ -18,7 +18,10 @@
     .slide-item {
         float: left;
     }
-
+    .slide-inner .slide-item img{
+        display: block;
+        line-height: 1;
+    }
     </style>
     
     <style>
@@ -285,20 +288,17 @@
     //     interval: 1000
     // });
 
-    $('#mySlide').on('slide.bs.carousel', function(event, params) {
-        // do something…
-        // 
-        // console.log('carousel start');
-    });
+    // $('#mySlide').on('slide', function() {
+    //     // do something…
+    //     // 
+    //     console.log('carousel start');
+    // });
 
-    $('#mySlide').on('slid.bs.carousel', function() {
-        // do something…
-        // console.log('carousel finish');
-    });
+    // $('#mySlide').on('slid', function() {
+    //     // do something…
+    //     console.log('carousel finish');
+    // });
 
-    // setInterval(function() {
-    //     console.log($('#myCarousel').data('bs.carousel').paused);
-    // }, 200)
     </script>
 </body>
 
