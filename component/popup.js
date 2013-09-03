@@ -16,26 +16,16 @@
     };
 
 	var Popup = new Class;
-    var cache = {};
 
 	Popup.include({
 		init: function(selector, options) {
-            if (typeof selector == "string") {
-                if (cache[selector]) {
-                    return cache[selector];
-                }
-                cache[selector] = this;
-            }
 
 			this.options = $.extend(true, {}, defaults, options);
-			this.element = $(selector);
+			this.$element = $(selector);
 
-			var position = isNotSupportFixed ? 'absolute' : 'fixed';
-			this.element.css({
-				position: position
-				// zIndex: this.options.zindex
-			});
+			this.$element.data('tbtx.pop', this);
 
+			
 			if (this.options.withOverlay) {
 				this.overlay = new Overlay(this.options.overlayOption);
 			}
@@ -45,39 +35,60 @@
             this.hideProxy  = this.proxy(this.hide);
 		},
 
-		show: function() {
+		show: function(effect) {
 			if (this.overlay) {
-				this.overlay.show();
+				this.overlay.show(effect);
 			}
-			this.element.show();
+
+			var position = isNotSupportFixed ? 'absolute' : 'fixed';
+			this.$element.css({
+				position: position
+			});
+			if (effect) {
+				this.$element[effect]();
+			} else {
+				this.$element.show();
+			}
+
+			var self = this;
+			setTimeout(function () { self.$element.trigger('tbtx.popup.show') }, 0);
+
 			this.adjust();
 			this.on();
 		},
 
-		hide: function() {
-			if (this.overlay) {
-				this.overlay.hide();
+		hide: function(effect) {
+			if (effect) {
+				this.$element[effect]();
+			} else {
+				this.$element.hide();
 			}
-			this.element.hide();
+			var self = this;
+			setTimeout(function () { self.$element.trigger('tbtx.popup.hide') }, 0);
+
+			if (this.overlay) {
+				this.overlay.hide(effect);
+			}
+
 			this.off();
 
 			if (this.options.destoryOnHide) {
-				this.element.remove();
+				this.$element.remove();
 			}
 		},
 
 		adjust: function() {
             // absolute才需要调整
-            adjust(this.element, isNotSupportFixed, this.options.top);
+            adjust(this.$element, isNotSupportFixed, this.options.top);
 		},
 
 		on: function() {
-            this.element.on('click', '.close', this.hideProxy);
+            this.$element.on('click', '.close', this.hideProxy);
 			$(window).on('scroll resize', this.adjustProxy);
 		},
 
 		off: function() {
-            this.element.off('click', '.close', this.hideProxy);
+            this.$element.off('click', '.close', this.hideProxy);
 			$(window).off('scroll resize', this.adjustProxy);
 		}
 	});
@@ -85,10 +96,7 @@
 
 
     $.fn.Popup = function(options) {
-    	var selector = this.selector;
-    	
-    	var p = new Popup(selector, options);
-    	return p;
+    	return $(this).data('tbtx.pop') || new Popup(this, options);
     };
 
     T.mix(T, {

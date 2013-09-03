@@ -125,6 +125,13 @@
 
 	});
 	o.show();
+
+	$('body').on('tbtx.overlay.show', function() {
+		console.log('show');
+	});
+	$('body').on('tbtx.overlay.hide', function() {
+		console.log('hide');
+	});
 	</script>
 </body>
 </html>

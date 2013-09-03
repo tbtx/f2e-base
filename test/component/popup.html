@@ -18,7 +18,7 @@
 	#pop {
 		background: #FFF;
 		padding: 20px;
-		z-index: 250;
+		/*z-index: 250;*/
 	}
 	</style>
 </head>
@@ -127,17 +127,21 @@
 	</div>
 	<script src="../../jquery/jquery-1.8.3.min.js"></script>
 	<script src="../../tbtx.js"></script>
-	<script src="../../component/overlay.js"></script>
-	<script src="../../component/popup.js"></script>
+	<script src="../../component/overlay.popup.js"></script>
 	<script>
 	// var p = $('#pop').Popup({
 	// 	top: 50
 	// });
 	
 	var p = new tbtx.Popup('#pop', {
-		top: "center"
 	});
-	p.show();
+	p.show('fadeIn');
+
+	$('#pop').on('tbtx.popup.show', function() {
+		console.log('tbtx.popup.show');
+	}).on('tbtx.popup.hide', function() {
+		console.log('tbtx.popup.hide');
+	});
 	</script>
 </body>
 </html>

@@ -7,20 +7,13 @@
 
     // 最佳实践是添加className而非cssText，但是这里为了减少组件对CSS的依赖
     var template = "<div id='{{ id }}' class='{{ class }}'></div>",
-        cssTemplate = "; display: none; position: absolute; top: 0; left: 0; height: 100%; width: 100%; opacity: {{ opacity }}; filter:alpha(opacity={{ alpha }}); background: {{ color }}; z-index: {{ zindex }};",
+        cssTemplate = "; display: none; position: absolute; top: 0; left: 0; height: 100%; width: 100%; opacity: {{ opacity }}; filter:alpha(opacity={{ alpha }}); background: {{ color }};",
         def = {
             'id': 'overlay',
             'class': 'overlay',
             'opacity': 0.5,
             'color': '#000',
-            'zindex': 200, // 遮罩层z-index
-            'hideOnClick': false, // 点击遮罩层是否关闭
-            onHide: function($overlay) {
-
-            },
-            onShow: function($overlay) {
-                // console.log($overlay);
-            }
+            'hideOnClick': false// 点击遮罩层是否关闭
         };
 
     var Overlay = new Class;
@@ -32,7 +25,7 @@
             // 在事件处理程序中使用this
             this.resizeProxy = this.proxy(throttle(function() {
                 this.resize();
-            }, 150));
+            }));
             // 只有hideOnClick为true时才使用
             this.hideProxy = this.proxy(this.hide); // 
         },
@@ -40,13 +33,16 @@
         // 仅仅加到dom里，不显示
         render: function() {
             var selector = '#' + this.options.id;
-            var $elem = $(selector);
-
-            if (!$elem.length) {    // 没有添加到页面中
-                $('body').append(substitute(template, this.options));
-                this.element = $(selector);
-                this.element[0].style.cssText += substitute(cssTemplate, this.options);
+            if ($(selector).length) {       // overlay已经存在
+                return;
             }
+            this.$element = $(substitute(template, this.options));
+            this.$element[0].style.cssText += substitute(cssTemplate, this.options);
+                
+            this.options.zindex && this.$element.css({
+                zindex: this.options.zindex
+            });
+            this.$element.prependTo($('body'));
         },
 
         config: function(options) {
@@ -55,26 +51,33 @@
         },
 
         remove: function() {
-            this.element.remove();
+            this.$element.remove();
         },
 
-        show: function() {
+        show: function(effect) {
             this.render();      // 每次渲染，因为关闭的时候remove掉了
-            this.element.show();
+            
+            effect && this.$element[effect]();
+            !effect && this.$element.show();
+
             this.resize();
             this.on(); // 只有显示的时候进行事件监听
 
-            this.options.onShow.call(this, this.element);
+            setTimeout(function () { $('body').trigger('tbtx.overlay.show') }, 0);
+            // this.options.onShow.call(this, this.element);
         },
-        hide: function() {
-            this.element.hide();
+        hide: function(effect) {
+            effect && this.$element[effect]();
+            !effect && this.$element.hide();
+            
             this.off();
             this.remove();
 
-            this.options.onHide.call(this, this.element);
+            // this.options.onHide.call(this, this.element);
+            setTimeout(function () { $('body').trigger('tbtx.overlay.hide') }, 0);
         },
         resize: function() {
-            this.element.css({
+            this.$element.css({
                 width: pageWidth(),
                 height: pageHeight()
             });
@@ -85,14 +88,14 @@
             $(window).on('scroll resize', this.resizeProxy);
 
             if (this.options.hideOnClick) {
-                this.element.on('click', this.hideProxy);
+                this.$element.on('click', this.hideProxy);
             }
         },
         off: function() {
             $(window).off('scroll resize', this.resizeProxy);
 
             if (this.options.hideOnClick) {
-                this.element.off('click', this.hideProxy);
+                this.$element.off('click', this.hideProxy);
             }
         }
     });

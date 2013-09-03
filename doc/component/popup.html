@@ -8,18 +8,27 @@
 <body>
 <p>popup 弹出层</p>
 
-<a href="../../test/component/popup.html" target="_blank">参考</a>
+<pre><code>
+    依赖jquery和tbtx.js
+    http://a.tbcdn.cn/apps/tbtx/base/js/component/overlay.popup.js
+
+    如果不使用overlay，可以只引入http://a.tbcdn.cn/apps/tbtx/base/js/component/popup.js，同时指定withOverlay为false
+</code></pre>
+
+<a href="../../test/component/popup.html" target="_blank">参考实例</a>
 
 <pre><code>
     var o = new tbtx.Popup(selector, option);
     or
     var o = $(selector).Popup();
 
-    o.show();
-    o.hide()
+    o.show();   // o.show('fadeIn')
+    o.hide()       // o.show('fadeOut')
 </code></pre>
 
-弹出的元素默认隐藏即可，不需要指定position，IE6下使用absolute定位，其余使用fix定位，只需要指定弹出层的z-index即可
+弹出的元素不需要指定position，只需要指定弹出层的z-index和display: none;即可
+
+IE6下使用absolute定位，其余使用fix定位
 
 <pre><code>
      var defaults = {
@@ -28,8 +37,17 @@
 
         },
         destoryOnHide: false,   // 隐藏的时候是否删除元素，适用于只需要弹出一次的元素
-        top: "center"           // 位置, 实际调用dom/adjust
+        top: "center"           // 位置, 实际调用tbtx.adjust, "center"/50
     };
+</code></pre>
+
+显示跟隐藏后的回调
+<pre><code>
+    $('#pop').on('tbtx.popup.show', function() {
+        console.log('tbtx.popup.show');
+    }).on('tbtx.popup.hide', function() {
+        console.log('tbtx.popup.hide');
+    });
 </code></pre>
 </body>
 </html>

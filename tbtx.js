@@ -1,4 +1,4 @@
-/* tbtx-base-js -- 2013-08-23 */
+/* tbtx-base-js -- 2013-09-03 */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -192,7 +192,7 @@
 
         // 在underscore里面有实现，这个版本借鉴的是kissy
         throttle = function(fn, ms, context) {
-            ms = ms || 150;
+            ms = ms || 100;     // 150 -> 100
 
             if (ms === -1) {
                 return (function() {
@@ -632,7 +632,7 @@
         ["meego", /\bmeego\b/],
         ["blackberry", "blackberry"]
     ];
-    /**
+    /*
      * 解析使用 Trident 内核的浏览器的 `浏览器模式` 和 `文档模式` 信息。
      * @param {String} ua, userAgent string.
      * @return {Object}
@@ -942,7 +942,8 @@
     detector.parse = parse;
 
     T.mix(T, {
-        detector: detector
+        detector: detector,
+        isIE6: detector.browser.ie && detector.browser.version == 6
     });
 
 })(tbtx);
@@ -950,7 +951,6 @@
 
 ;(function(T) {
     var doc = document,
-        body = doc.body,
         de = document.documentElement,
         head = document.getElementsByTagName("head")[0] || de;
 
@@ -1092,33 +1092,37 @@
 
         // $(document).height()
     var pageHeight = function() {
-            return body.scrollHeight;
+            return doc.body.scrollHeight;
         },
         pageWidth = function() {
-            return body.scrollWidth;
+            return doc.body.scrollWidth;
         },
 
         scrollX = function() {
-            return window.pageXOffset || (de && de.scrollLeft) || body.scrollLeft;
+            return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
         },
         // $(window).scrollTop()
         scrollY = function() {
-            return window.pageYOffset || (de && de.scrollTop) || body.scrollTop;
+            return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
         },
 
         // $(window).height()
         viewportHeight = function() {
             // var de = document.documentElement;      //IE67的严格模式
-            return window.innerHeight || (de && de.clientHeight) || body.clientHeight;
+            return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
         },
         viewportWidth = function() {
-            return window.innerWidth || (de && de.clientWidth) || body.clientWidth;
+            return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
         },
 
-        isInView = function(selector) {
+        // 距离top多少px才算inView
+        isInView = function(selector, top) {
+            top = top || 0;
+
             var $elem = $(selector);
             var offset = $elem.offset();
-            if ((viewportHeight() + scrollY()) > offset.top) {
+            // T.log(offset).log(scrollY()).log(viewportHeight()).log(top);     
+            if ((viewportHeight() + scrollY()) > (offset.top + top)) {
                 return true;
             } else {
                 return false;
@@ -1158,6 +1162,24 @@
             });
         },
 
+        limitLength = function(selector, attr, suffix) {
+            var $elements = $(selector);
+            suffix = suffix || '...';
+            attr = attr || 'data-max';
+
+            $elements.each(function() {
+                var $element = $(this);
+                var max = parseInt($element.attr(attr), 10);
+                var conent = $.trim($element.text());
+                if (conent.length <= max) {
+                    return;
+                }
+
+                conent = conent.slice(0, max) + suffix;
+                $element.text(conent);
+            });  
+        },
+
         initWangWang = function(callback) {
             callback = callback || function() {};
             var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
@@ -1184,6 +1206,7 @@
         isInView: isInView,
         adjust: adjust,
 
+        limitLength: limitLength,
         initWangWang: initWangWang
     });
 })(tbtx);
@@ -1269,7 +1292,7 @@
 
         var base = 'http://v.t.sina.com.cn/share/share.php?';
         var params = {
-            appkey: config.miiee. appkey, // appkey
+            appkey: config.miiee.appkey, // appkey
             url: url,
             title: title,
             ralateUid: config.tbtx.uid, // @user
@@ -1283,10 +1306,41 @@
         });
     };
 
+    var addToFavourite = function(title, url) {
+        url = url || document.location.href;
+        title = title || document.title;
+
+        var def = function() {
+            alert('按下 ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D 来收藏本页.');
+        };
+
+        try {
+            // Internet Explorer 
+            window.external.AddFavorite(url, title);
+        } catch (e) {       // 两个e不要一样
+            try {
+                // Mozilla 
+                window.sidebar.addPanel(title, url, "");
+            } catch (ex) {
+                // Opera 
+                // 果断无视opera
+                if (typeof(opera) == "object") {
+                    def();
+                    return true;
+                } else {
+                    // Unknown 
+                    def();
+                }
+            }
+        }
+    };
+
+
     T.mix(T, {
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
 
-        shareToSinaWB: shareToSinaWB
+        shareToSinaWB: shareToSinaWB,
+        addToFavourite: addToFavourite
     });
 })(tbtx);

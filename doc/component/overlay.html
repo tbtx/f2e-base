@@ -7,12 +7,19 @@
 </head>
 <body>
 <p>overlay 背景遮罩层</p>
-<a href="../../test/component/overlay.html" target="_blank">参考</a>
+<a href="../../test/component/overlay.html" target="_blank">参考实例</a>
 
 <pre><code>
+    依赖jquery和tbtx.js
+    http://a.tbcdn.cn/apps/tbtx/base/js/component/overlay.js
+</code></pre>
+
+<pre><code>
+    // 获取overlay实例
     var o = new tbtx.Overlay(option);
-    o.show();
-    o.hide();
+
+    o.show(); // o.show('fadeIn')
+    o.hide(); // o.hide('fadeOut')
     o.config(option);       // 一般一个页面中只需要一个遮罩层，如果需要多个，可通过config改变配置，然后重新show的时候即使用新的配置
 </code></pre>
 
@@ -22,15 +29,19 @@
             'class': 'overlay', 遮罩层class
             'opacity': 0.5,     透明度
             'color': '#000',    背景颜色
-            'zindex': 200, // 遮罩层z-index
+            'zindex': , // 遮罩层z-index, 可以不传
             'hideOnClick': false, // 点击遮罩层是否关闭
-            onHide: function($overlay) {    关闭遮罩层后的回调函数
-                                            
-            },
-            onShow: function($overlay) {        显示遮罩层后的回调函数
-                // console.log($overlay);
-            }
         };
+</code></pre>
+
+显示和隐藏的监听回调
+<pre><code>
+    $('body').on('tbtx.overlay.show', function() {
+        console.log('show');
+    });
+    $('body').on('tbtx.overlay.hide', function() {
+        console.log('hide');
+    });
 </code></pre>
 </body>
 </html>

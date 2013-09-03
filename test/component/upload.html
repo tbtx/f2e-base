@@ -1,0 +1,97 @@
+
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Uploader</title>
+        <style type="text/css">
+          .container {
+            margin: 0 auto;
+            width: 80%;
+            max-width: 680px;
+            padding: 60px 0;
+          }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>Uploader DEMO</h1>
+            <p>This is a project by <a href="http://lepture.com">Hsiaoming Yang</a>.</p>
+
+            <h2>Select and Upload</h2>
+            <div class="cell">
+                <button id="uploader-1" href="#">Upload</button>
+            </div>
+
+            <h2>Select then upload</h2>
+            <div class="cell">
+                <p><button id="uploader-2" href="#">Select</button> <span id="upload-2-text"></span></p>
+                <p><button id="submit-2" href="#">Upload</button></p>
+            </div>
+            <h2>Only upload image</h2>
+            <div class="cell">
+                <button id="uploader-3" href="#">Upload</button>
+            </div>
+        </div>
+        
+        <script src="http://a.tbcdn.cn/apps/tbtx/base/js/jquery/jquery-1.8.3.min.js"></script>
+        <script src="http://a.tbcdn.cn/apps/tbtx/base/js/tbtx.js"></script>
+        <script src="http://a.tbcdn.cn/apps/tbtx/base/js/component/upload.js"></script>
+        <script>
+    (function($) {
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                function getCookie(name) {
+                    var cookieValue = null;
+                    if (document.cookie && document.cookie != '') {
+                        var cookies = document.cookie.split(';');
+                        for (var i = 0; i < cookies.length; i++) {
+                            var cookie = jQuery.trim(cookies[i]);
+                            // Does this cookie string begin with the name we want?
+                            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        });
+    })(jQuery);
+    </script>
+    
+        <script type="text/javascript">
+            var Uploader = tbtx.Uploader;
+                new Uploader({
+                    trigger: '#uploader-1',
+                    action: 'http://127.0.0.1/upload'
+                }).success(function(data) {
+                    alert(data);
+                });
+
+                var uploader = new Uploader({
+                    trigger: '#uploader-2',
+                    action: 'http://127.0.0.1/upload'
+                }).change(function(filename) {
+                    $('#upload-2-text').text(filename);
+                }).success(function(data) {
+                    alert(data);
+                });
+                $('#submit-2').click(function() {
+                    uploader.submit();
+                    return false;
+                });
+
+                new Uploader({
+                    trigger: '#uploader-3',
+                    accept: 'image/*',
+                    action: 'http://127.0.0.1/upload'
+                }).success(function(data) {
+                    alert(data);
+                });
+        </script>
+    </body>
+</html>

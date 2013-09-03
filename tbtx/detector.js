@@ -464,7 +464,8 @@
     detector.parse = parse;
 
     T.mix(T, {
-        detector: detector
+        detector: detector,
+        isIE6: detector.browser.ie && detector.browser.version == 6
     });
 
 })(tbtx);

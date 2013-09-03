@@ -1,6 +1,5 @@
 (function(T) {
     var doc = document,
-        body = doc.body,
         de = document.documentElement,
         head = document.getElementsByTagName("head")[0] || de;
 
@@ -142,33 +141,37 @@
 
         // $(document).height()
     var pageHeight = function() {
-            return body.scrollHeight;
+            return doc.body.scrollHeight;
         },
         pageWidth = function() {
-            return body.scrollWidth;
+            return doc.body.scrollWidth;
         },
 
         scrollX = function() {
-            return window.pageXOffset || (de && de.scrollLeft) || body.scrollLeft;
+            return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
         },
         // $(window).scrollTop()
         scrollY = function() {
-            return window.pageYOffset || (de && de.scrollTop) || body.scrollTop;
+            return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
         },
 
         // $(window).height()
         viewportHeight = function() {
             // var de = document.documentElement;      //IE67的严格模式
-            return window.innerHeight || (de && de.clientHeight) || body.clientHeight;
+            return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
         },
         viewportWidth = function() {
-            return window.innerWidth || (de && de.clientWidth) || body.clientWidth;
+            return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
         },
 
-        isInView = function(selector) {
+        // 距离top多少px才算inView
+        isInView = function(selector, top) {
+            top = top || 0;
+
             var $elem = $(selector);
             var offset = $elem.offset();
-            if ((viewportHeight() + scrollY()) > offset.top) {
+            // T.log(offset).log(scrollY()).log(viewportHeight()).log(top);     
+            if ((viewportHeight() + scrollY()) > (offset.top + top)) {
                 return true;
             } else {
                 return false;
@@ -208,6 +211,24 @@
             });
         },
 
+        limitLength = function(selector, attr, suffix) {
+            var $elements = $(selector);
+            suffix = suffix || '...';
+            attr = attr || 'data-max';
+
+            $elements.each(function() {
+                var $element = $(this);
+                var max = parseInt($element.attr(attr), 10);
+                var conent = $.trim($element.text());
+                if (conent.length <= max) {
+                    return;
+                }
+
+                conent = conent.slice(0, max) + suffix;
+                $element.text(conent);
+            });  
+        },
+
         initWangWang = function(callback) {
             callback = callback || function() {};
             var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
@@ -234,6 +255,7 @@
         isInView: isInView,
         adjust: adjust,
 
+        limitLength: limitLength,
         initWangWang: initWangWang
     });
 })(tbtx);

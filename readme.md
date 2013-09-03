@@ -47,6 +47,7 @@
 	overlay 覆盖层
 	Popup 弹出
 	Slide 轮播
+	scrollspy 滚动侦测
 
 ## 测试框架jasmine
 

@@ -63,8 +63,8 @@
     };
 
     var addToFavourite = function(title, url) {
-        var title = title || document.title,
-            url = url || document.location.href;
+        url = url || document.location.href;
+        title = title || document.title;
 
         var def = function() {
             alert('按下 ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D 来收藏本页.');
@@ -73,7 +73,7 @@
         try {
             // Internet Explorer 
             window.external.AddFavorite(url, title);
-        } catch (ex) {
+        } catch (e) {       // 两个e不要一样
             try {
                 // Mozilla 
                 window.sidebar.addPanel(title, url, "");

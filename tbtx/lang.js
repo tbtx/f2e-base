@@ -130,7 +130,7 @@
 
         // 在underscore里面有实现，这个版本借鉴的是kissy
         throttle = function(fn, ms, context) {
-            ms = ms || 150;
+            ms = ms || 100;     // 150 -> 100
 
             if (ms === -1) {
                 return (function() {
