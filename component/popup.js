@@ -15,6 +15,14 @@
 		top: "center"
     };
 
+    function isType(type) {
+        return function(obj) {
+            return {}.toString.call(obj) == "[object " + type + "]";
+        };
+    }
+
+    var isFunction = isType("Function");
+
 	var Popup = new Class;
 
 	Popup.include({
@@ -35,9 +43,15 @@
             this.hideProxy  = this.proxy(this.hide);
 		},
 
-		show: function(effect) {
+		show: function(effect, callback) {
+			// show(function)
+			if (effect && isFunction(effect)) {
+				callback = effect;
+				effect = undefined;
+			}
+
 			if (this.overlay) {
-				this.overlay.show(effect);
+				this.overlay.show(this.$element);
 			}
 
 			var position = isNotSupportFixed ? 'absolute' : 'fixed';
@@ -45,9 +59,13 @@
 				position: position
 			});
 			if (effect) {
-				this.$element[effect]();
+				this.$element[effect]({
+					complete: callback
+				});
 			} else {
-				this.$element.show();
+				this.$element.show({
+					complete: callback
+				});
 			}
 
 			var self = this;
@@ -57,11 +75,20 @@
 			this.on();
 		},
 
-		hide: function(effect) {
+		hide: function(effect, callback) {
+			if (effect && isFunction(effect)) {
+				callback = effect;
+				effect = undefined;
+			}
+
 			if (effect) {
-				this.$element[effect]();
+				this.$element[effect]({
+					complete: callback
+				});
 			} else {
-				this.$element.hide();
+				this.$element.hide({
+					complete: callback
+				});
 			}
 			var self = this;
 			setTimeout(function () { self.$element.trigger('tbtx.popup.hide') }, 0);

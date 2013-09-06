@@ -1,4 +1,4 @@
-(function(T) {
+(function(global) {
     var toString = Object.prototype.toString,
 
         isString = function(val) {
@@ -71,7 +71,11 @@
         }
     };
 
-    T.mix(T, {
-        cookie: cookie
-    });
-})(tbtx);
+    if (global.tbtx && tbtx.mix) {
+        tbtx.mix(tbtx {
+            cookie: cookie
+        });
+    } else {
+        $.cookie = cookie;
+    }
+})(this);

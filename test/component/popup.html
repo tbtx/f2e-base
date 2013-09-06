@@ -20,6 +20,10 @@
 		padding: 20px;
 		/*z-index: 250;*/
 	}
+
+	#pop-2 {
+		background: #900;
+	}
 	</style>
 </head>
 <body>
@@ -125,6 +129,8 @@
 	<div id="pop">
 		asfasfasfasfasf
 	</div>
+
+	<div id="pop-2">pop-2</div>
 	<script src="../../jquery/jquery-1.8.3.min.js"></script>
 	<script src="../../tbtx.js"></script>
 	<script src="../../component/overlay.popup.js"></script>
@@ -135,8 +141,15 @@
 	
 	var p = new tbtx.Popup('#pop', {
 	});
-	p.show('fadeIn');
+	p.show(function() {
 
+	});
+
+	var p2 = new tbtx.Popup('#pop-2', {
+	});
+	p2.show(function() {
+		// alert(123);
+	});
 	$('#pop').on('tbtx.popup.show', function() {
 		console.log('tbtx.popup.show');
 	}).on('tbtx.popup.hide', function() {

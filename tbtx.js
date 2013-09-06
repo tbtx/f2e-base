@@ -1,4 +1,4 @@
-/* tbtx-base-js -- 2013-09-03 */
+/* tbtx-base-js -- 2013-09-06 */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -476,7 +476,7 @@
 })(tbtx);
 
 
-;(function(T) {
+;(function(global) {
     /*
      * aralejs detector
      * detector.browser.name
@@ -941,12 +941,74 @@
     detector = parse(userAgent + " " + appVersion + " " + vendor);
     detector.parse = parse;
 
-    T.mix(T, {
-        detector: detector,
-        isIE6: detector.browser.ie && detector.browser.version == 6
-    });
 
-})(tbtx);
+
+    var m,
+        ua = userAgent;
+
+    detector.mobile = '';
+    // WebKit
+    if ((m = ua.match(/AppleWebKit\/([\d.]*)/)) && m[1]) {
+        // Apple Mobile
+        if (/ Mobile\//.test(ua) && ua.match(/iPad|iPod|iPhone/)) {
+            detector.mobile = 'apple'; // iPad, iPhone or iPod Touch
+        } else if (/ Android/i.test(ua)) {
+            if (/Mobile/.test(ua)) {
+                detector.mobile = 'android';
+            }
+        }
+        // Other WebKit Mobile Browsers
+        else if ((m = ua.match(/NokiaN[^\/]*|Android \d\.\d|webOS\/\d\.\d/))) {
+            detector.mobile = m[0].toLowerCase(); // Nokia N-series, Android, webOS, ex: NokiaN95
+        }
+    }
+    // NOT WebKit
+    else {
+        // Presto
+        // ref: http://www.useragentstring.com/pages/useragentstring.php
+        if ((m = ua.match(/Presto\/([\d.]*)/)) && m[1]) {
+            // Opera
+            if ((m = ua.match(/Opera\/([\d.]*)/)) && m[1]) {
+
+                // Opera Mini
+                if ((m = ua.match(/Opera Mini[^;]*/)) && m) {
+                    detector.mobile = m[0].toLowerCase(); // ex: Opera Mini/2.0.4509/1316
+                }
+                // Opera Mobile
+                // ex: Opera/9.80 (Windows NT 6.1; Opera Mobi/49; U; en) Presto/2.4.18 Version/10.00
+                // issue: 由于 Opera Mobile 有 Version/ 字段，可能会与 Opera 混淆，同时对于 Opera Mobile 的版本号也比较混乱
+                else if ((m = ua.match(/Opera Mobi[^;]*/)) && m) {
+                    detector.mobile = m[0];
+                }
+            }
+
+        // NOT WebKit or Presto
+        } else {
+
+            // Gecko
+            if ((m = ua.match(/Gecko/))) {
+                if ((m = ua.match(/rv:([\d.]*)/)) && m[1]) {
+                    if (/Mobile|Tablet/.test(ua)) {
+                        detector.mobile = "firefox";
+                    }
+                }
+            }
+        }
+    }
+
+
+    var ret = {
+        detector: detector,
+        isIE6: detector.browser.ie && detector.browser.version == 6,
+        isMobile: !!detector.mobile
+    };
+
+    if (global.tbtx) {
+        tbtx.mix(tbtx, ret);
+    } else {
+        $.extend($, ret);
+    }
+})(this);
 
 
 ;(function(T) {
