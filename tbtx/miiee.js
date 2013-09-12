@@ -31,27 +31,31 @@
 
     var config = {
         miiee: {
-            appkey: "2328604005"
+            appkey: "2328604005",
+            uid: "1644022571"       // 实际上该uid为tbtx
+        },
+        brand: {
+            appkey: "2328604005",       // 暂时使用miiee的appkey
+            uid: "2140361617"
         },
         tbtx: {
             uid: "1644022571"
         }
     };
 
-    var shareToSinaWB = function(selecotr, title, url, pic) {
-        if (!pic) {
-            pic = '';
-        }
-        if (!url) {
-            url = window.location.href;
-        }
+    var shareToSinaWB = function(selecotr, title, url, pic, site, uid) {
+        uid = uid || '';
+        site = site || "miiee";
+        pic = pic || '';
+        url = url || window.location.href;
+        title = title || $('meta[name="description"]').attr("content");
 
         var base = 'http://v.t.sina.com.cn/share/share.php?';
         var params = {
-            appkey: config.miiee.appkey, // appkey
+            appkey: config[site].appkey, // appkey
             url: url,
             title: title,
-            ralateUid: config.tbtx.uid, // @user
+            ralateUid: uid || config[site].uid, // @user
             pic: pic
         };
 

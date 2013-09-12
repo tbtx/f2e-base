@@ -1,4 +1,4 @@
-/* tbtx-base-js -- 2013-09-06 */
+/* tbtx-base-js -- 2013-09-12 */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -397,7 +397,7 @@
 })(tbtx);
 
 
-;(function(T) {
+;(function(global) {
     var toString = Object.prototype.toString,
 
         isString = function(val) {
@@ -470,10 +470,14 @@
         }
     };
 
-    T.mix(T, {
-        cookie: cookie
-    });
-})(tbtx);
+    if (global.tbtx && tbtx.mix) {
+        tbtx.mix(tbtx, {
+            cookie: cookie
+        });
+    } else {
+        $.cookie = cookie;
+    }
+})(this);
 
 
 ;(function(global) {
@@ -943,67 +947,71 @@
 
 
 
-    var m,
-        ua = userAgent;
-
-    detector.mobile = '';
-    // WebKit
-    if ((m = ua.match(/AppleWebKit\/([\d.]*)/)) && m[1]) {
-        // Apple Mobile
-        if (/ Mobile\//.test(ua) && ua.match(/iPad|iPod|iPhone/)) {
-            detector.mobile = 'apple'; // iPad, iPhone or iPod Touch
-        } else if (/ Android/i.test(ua)) {
-            if (/Mobile/.test(ua)) {
-                detector.mobile = 'android';
-            }
-        }
-        // Other WebKit Mobile Browsers
-        else if ((m = ua.match(/NokiaN[^\/]*|Android \d\.\d|webOS\/\d\.\d/))) {
-            detector.mobile = m[0].toLowerCase(); // Nokia N-series, Android, webOS, ex: NokiaN95
-        }
-    }
-    // NOT WebKit
-    else {
-        // Presto
-        // ref: http://www.useragentstring.com/pages/useragentstring.php
-        if ((m = ua.match(/Presto\/([\d.]*)/)) && m[1]) {
-            // Opera
-            if ((m = ua.match(/Opera\/([\d.]*)/)) && m[1]) {
-
-                // Opera Mini
-                if ((m = ua.match(/Opera Mini[^;]*/)) && m) {
-                    detector.mobile = m[0].toLowerCase(); // ex: Opera Mini/2.0.4509/1316
-                }
-                // Opera Mobile
-                // ex: Opera/9.80 (Windows NT 6.1; Opera Mobi/49; U; en) Presto/2.4.18 Version/10.00
-                // issue: 由于 Opera Mobile 有 Version/ 字段，可能会与 Opera 混淆，同时对于 Opera Mobile 的版本号也比较混乱
-                else if ((m = ua.match(/Opera Mobi[^;]*/)) && m) {
-                    detector.mobile = m[0];
+    var decideMobile = function(ua) {
+        var ret = '',
+            m;
+        // WebKit
+        if ((m = ua.match(/AppleWebKit\/([\d.]*)/)) && m[1]) {
+            // Apple Mobile
+            // /iPad|iPod|iPhone/
+            if (/ Mobile\//.test(ua) && ua.match(/iPod|iPhone/)) {
+                ret = 'apple'; // iPad, iPhone or iPod Touch
+            } else if (/ Android/i.test(ua)) {
+                if (/Mobile/.test(ua)) {
+                    ret = 'android';
                 }
             }
+            // Other WebKit Mobile Browsers
+            else if ((m = ua.match(/NokiaN[^\/]*|Android \d\.\d|webOS\/\d\.\d/))) {
+                ret = m[0].toLowerCase(); // Nokia N-series, Android, webOS, ex: NokiaN95
+            }
+        }
+        // NOT WebKit
+        else {
+            // Presto
+            // ref: http://www.useragentstring.com/pages/useragentstring.php
+            if ((m = ua.match(/Presto\/([\d.]*)/)) && m[1]) {
+                // Opera
+                if ((m = ua.match(/Opera\/([\d.]*)/)) && m[1]) {
 
-        // NOT WebKit or Presto
-        } else {
+                    // Opera Mini
+                    if ((m = ua.match(/Opera Mini[^;]*/)) && m) {
+                        ret = m[0].toLowerCase(); // ex: Opera Mini/2.0.4509/1316
+                    }
+                    // Opera Mobile
+                    // ex: Opera/9.80 (Windows NT 6.1; Opera Mobi/49; U; en) Presto/2.4.18 Version/10.00
+                    // issue: 由于 Opera Mobile 有 Version/ 字段，可能会与 Opera 混淆，同时对于 Opera Mobile 的版本号也比较混乱
+                    else if ((m = ua.match(/Opera Mobi[^;]*/)) && m) {
+                        ret = m[0];
+                    }
+                }
 
-            // Gecko
-            if ((m = ua.match(/Gecko/))) {
-                if ((m = ua.match(/rv:([\d.]*)/)) && m[1]) {
-                    if (/Mobile|Tablet/.test(ua)) {
-                        detector.mobile = "firefox";
+                // NOT WebKit or Presto
+            } else {
+
+                // Gecko
+                if ((m = ua.match(/Gecko/))) {
+                    if ((m = ua.match(/rv:([\d.]*)/)) && m[1]) {
+                        if (/Mobile|Tablet/.test(ua)) {
+                            ret = "firefox";
+                        }
                     }
                 }
             }
         }
-    }
+        return ret;
+    };
 
+    detector.mobile = decideMobile(userAgent);
 
     var ret = {
         detector: detector,
+        decideMobile: decideMobile,
         isIE6: detector.browser.ie && detector.browser.version == 6,
-        isMobile: !!detector.mobile
+        isMobile: !! detector.mobile
     };
 
-    if (global.tbtx) {
+    if (global.tbtx && tbtx.mix) {
         tbtx.mix(tbtx, ret);
     } else {
         $.extend($, ret);
@@ -1039,8 +1047,30 @@
     //  - https://developer.mozilla.org/en/HTML/Element/link#Stylesheet_load_events
     var isOldWebKit = (navigator.userAgent.replace(/.*AppleWebKit\/(\d+)\..*/, "$1")) * 1 < 536;
 
+    // 存储每个url的deferred对象
+    var deferredMap = {};
 
     function request(url, callback, charset) {
+        if (/^https?/.test(url)) {
+            // do nothing
+        } else {        // 相对地址转为绝对地址
+            var prefix = "http://a.tbcdn.cn/apps/tbtx";
+            if (T.startsWith(url, '/')) {
+                url = prefix + url;
+            } else {
+                url = prefix + '/' + url;
+            }
+        }
+
+        // 该url已经请求过，直接done
+        if (deferredMap[url]) {
+            deferredMap[url].done(callback);
+            return deferredMap[url].promise();
+        } else {    //
+            deferredMap[url] = jQuery.Deferred();
+            deferredMap[url].done(callback);
+        }
+
         var isCSS = IS_CSS_RE.test(url);
         var node = doc.createElement(isCSS ? "link" : "script");
 
@@ -1051,7 +1081,7 @@
             }
         }
 
-        addOnload(node, callback, isCSS);
+        addOnload(node, callback, isCSS, url);
 
         if (isCSS) {
             node.rel = "stylesheet";
@@ -1074,16 +1104,18 @@
         }
 
         currentlyAddingScript = null;
+
+        return deferredMap[url].promise();
     }
 
-    function addOnload(node, callback, isCSS) {
+    function addOnload(node, callback, isCSS, url) {
         // 不支持 onload事件
         var missingOnload = isCSS && (isOldWebKit || !("onload" in node));
 
         // for Old WebKit and Old Firefox
         if (missingOnload) {
             setTimeout(function() {
-                pollCss(node, callback);
+                pollCss(node, callback, url);
             }, 1); // Begin after node insertion
             return;
         }
@@ -1103,7 +1135,8 @@
                 // Dereference the node
                 node = null;
 
-                callback();
+                deferredMap[url].resolve();
+                // callback();
             }
         };
     }
@@ -1136,8 +1169,9 @@
 
         setTimeout(function() {
             if (isLoaded) {
+                deferredMap[url].resolve();
                 // Place callback here to give time for style rendering
-                callback();
+                // callback();
             } else {
                 pollCss(node, callback);
             }
@@ -1145,11 +1179,11 @@
     }
 
     function loadCss(url, callback, charset) {
-        request(url, callback, charset);
+        return request(url, callback, charset);
     }
 
     function loadScript(url, callback, charset) {
-        request(url, callback, charset);
+        return request(url, callback, charset);
     }
 
         // $(document).height()
@@ -1337,27 +1371,31 @@
 
     var config = {
         miiee: {
-            appkey: "2328604005"
+            appkey: "2328604005",
+            uid: "1644022571"       // 实际上该uid为tbtx
+        },
+        brand: {
+            appkey: "2328604005",       // 暂时使用miiee的appkey
+            uid: "2140361617"
         },
         tbtx: {
             uid: "1644022571"
         }
     };
 
-    var shareToSinaWB = function(selecotr, title, url, pic) {
-        if (!pic) {
-            pic = '';
-        }
-        if (!url) {
-            url = window.location.href;
-        }
+    var shareToSinaWB = function(selecotr, title, url, pic, site, uid) {
+        uid = uid || '';
+        site = site || "miiee";
+        pic = pic || '';
+        url = url || window.location.href;
+        title = title || $('meta[name="description"]').attr("content");
 
         var base = 'http://v.t.sina.com.cn/share/share.php?';
         var params = {
-            appkey: config.miiee.appkey, // appkey
+            appkey: config[site].appkey, // appkey
             url: url,
             title: title,
-            ralateUid: config.tbtx.uid, // @user
+            ralateUid: uid || config[site].uid, // @user
             pic: pic
         };
 

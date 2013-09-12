@@ -26,8 +26,30 @@
     //  - https://developer.mozilla.org/en/HTML/Element/link#Stylesheet_load_events
     var isOldWebKit = (navigator.userAgent.replace(/.*AppleWebKit\/(\d+)\..*/, "$1")) * 1 < 536;
 
+    // 存储每个url的deferred对象
+    var deferredMap = {};
 
     function request(url, callback, charset) {
+        if (/^https?/.test(url)) {
+            // do nothing
+        } else {        // 相对地址转为绝对地址
+            var prefix = "http://a.tbcdn.cn/apps/tbtx";
+            if (T.startsWith(url, '/')) {
+                url = prefix + url;
+            } else {
+                url = prefix + '/' + url;
+            }
+        }
+
+        // 该url已经请求过，直接done
+        if (deferredMap[url]) {
+            deferredMap[url].done(callback);
+            return deferredMap[url].promise();
+        } else {    //
+            deferredMap[url] = jQuery.Deferred();
+            deferredMap[url].done(callback);
+        }
+
         var isCSS = IS_CSS_RE.test(url);
         var node = doc.createElement(isCSS ? "link" : "script");
 
@@ -38,7 +60,7 @@
             }
         }
 
-        addOnload(node, callback, isCSS);
+        addOnload(node, callback, isCSS, url);
 
         if (isCSS) {
             node.rel = "stylesheet";
@@ -61,16 +83,18 @@
         }
 
         currentlyAddingScript = null;
+
+        return deferredMap[url].promise();
     }
 
-    function addOnload(node, callback, isCSS) {
+    function addOnload(node, callback, isCSS, url) {
         // 不支持 onload事件
         var missingOnload = isCSS && (isOldWebKit || !("onload" in node));
 
         // for Old WebKit and Old Firefox
         if (missingOnload) {
             setTimeout(function() {
-                pollCss(node, callback);
+                pollCss(node, callback, url);
             }, 1); // Begin after node insertion
             return;
         }
@@ -90,7 +114,8 @@
                 // Dereference the node
                 node = null;
 
-                callback();
+                deferredMap[url].resolve();
+                // callback();
             }
         };
     }
@@ -123,8 +148,9 @@
 
         setTimeout(function() {
             if (isLoaded) {
+                deferredMap[url].resolve();
                 // Place callback here to give time for style rendering
-                callback();
+                // callback();
             } else {
                 pollCss(node, callback);
             }
@@ -132,11 +158,11 @@
     }
 
     function loadCss(url, callback, charset) {
-        request(url, callback, charset);
+        return request(url, callback, charset);
     }
 
     function loadScript(url, callback, charset) {
-        request(url, callback, charset);
+        return request(url, callback, charset);
     }
 
         // $(document).height()

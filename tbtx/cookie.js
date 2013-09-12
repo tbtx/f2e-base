@@ -72,7 +72,7 @@
     };
 
     if (global.tbtx && tbtx.mix) {
-        tbtx.mix(tbtx {
+        tbtx.mix(tbtx, {
             cookie: cookie
         });
     } else {

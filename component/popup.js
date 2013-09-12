@@ -21,7 +21,8 @@
         };
     }
 
-    var isFunction = isType("Function");
+    var isFunction = isType("Function"),
+    	isString = isType("String");
 
 	var Popup = new Class;
 
@@ -31,9 +32,13 @@
 			this.options = $.extend(true, {}, defaults, options);
 			this.$element = $(selector);
 
+			// html append to body
+			if (!this.$element.parent().length && typeof selector == "string") {
+				this.$element.appendTo('body').hide();
+			}
+
 			this.$element.data('tbtx.pop', this);
 
-			
 			if (this.options.withOverlay) {
 				this.overlay = new Overlay(this.options.overlayOption);
 			}
@@ -50,29 +55,31 @@
 				effect = undefined;
 			}
 
-			if (this.overlay) {
-				this.overlay.show(this.$element);
-			}
-
 			var position = isNotSupportFixed ? 'absolute' : 'fixed';
 			this.$element.css({
 				position: position
 			});
-			if (effect) {
+			// 先显示元素，再显示overlay，否则没有定位获取的高度会偏高
+			if (this.overlay) {
+				this.overlay.show(this.$element);
+			}
+			this.adjust();
+
+
+			if (effect && typeof effect == "string") {
 				this.$element[effect]({
 					complete: callback
 				});
 			} else {
-				this.$element.show({
-					complete: callback
-				});
+				this.$element.show();
+				isFunction(callback) && callback();
 			}
 
 			var self = this;
 			setTimeout(function () { self.$element.trigger('tbtx.popup.show') }, 0);
 
-			this.adjust();
 			this.on();
+
 		},
 
 		hide: function(effect, callback) {
@@ -81,14 +88,13 @@
 				effect = undefined;
 			}
 
-			if (effect) {
+			if (effect && isString(effect)) {
 				this.$element[effect]({
 					complete: callback
 				});
 			} else {
-				this.$element.hide({
-					complete: callback
-				});
+				this.$element.hide();
+				isFunction(callback) && callback();
 			}
 			var self = this;
 			setTimeout(function () { self.$element.trigger('tbtx.popup.hide') }, 0);
@@ -110,11 +116,13 @@
 		},
 
 		on: function() {
+            this.$element.on('click', '.J-popup-close', this.hideProxy);
             this.$element.on('click', '.close', this.hideProxy);
 			$(window).on('scroll resize', this.adjustProxy);
 		},
 
 		off: function() {
+            this.$element.off('click', '.J-popup-close', this.hideProxy);
             this.$element.off('click', '.close', this.hideProxy);
 			$(window).off('scroll resize', this.adjustProxy);
 		}

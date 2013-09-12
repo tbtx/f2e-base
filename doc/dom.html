@@ -10,10 +10,11 @@
 
 <ul>
 <li><a href="#loadCss">loadCss(url, callback, charset)</a> 
-    <p>加载css文件</p>
+    <p>加载css文件， 同下</p>
 </li>
 <li><a href="#loadScript">loadScript(url, callback, charset)</a> 
-    <p>加载js, 可指定成功的回调函数</p>
+    <p>加载js, 可指定成功的回调函数,返回jQuery deferred, 可以使用loadScript(url).done(callback)</p>
+    <p>url可以是miee/js/m.js，会自动加上cdn的url</p>
 </li>
 <li><a href="">pageHeight()/pageWidth()</a> 
     <p>返回页面总的宽高， 相当于$(window).width()/height()</p></li>

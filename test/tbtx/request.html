@@ -13,13 +13,22 @@
 
 
 <script>
-tbtx.loadCss("http://a.tbcdn.cn/apps/tbtx/miiee/css/base.css", function() {
-    alert('css loaded');
+// tbtx.loadCss("http://a.tbcdn.cn/apps/tbtx/miiee/css/base.css", function() {
+//     alert('css loaded');
+// });
+
+tbtx.loadScript("miiee/js/m.js", function() {
+    alert('script loaded');
+}).done(function() {
+	alert(1213);
 });
 
-tbtx.loadScript("http://a.tbcdn.cn/apps/tbtx/miiee/js/m.js", function() {
-    alert('script loaded');
-});
+setTimeout(function() {
+	tbtx.loadScript("http://a.tbcdn.cn/apps/tbtx/miiee/js/m.js", function() {
+	    alert('hehe loaded');
+	});
+}, 2000);
+
 </script>
 
 </body>

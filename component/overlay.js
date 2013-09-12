@@ -37,7 +37,7 @@
             // }
             this.$element = $(substitute(template, this.options));
             this.$element[0].style.cssText += substitute(cssTemplate, this.options);
-                
+
             this.options.zindex && this.$element.css({
                 zindex: this.options.zindex
             });
@@ -71,9 +71,11 @@
             // this.options.onShow.call(this, this.element);
         },
         hide: function(effect) {
-            effect && this.$element[effect]();
-            !effect && this.$element.hide();
-            
+            if (effect && typeof effect == 'string') {
+                this.$element[effect]();
+            } else {
+                this.$element.hide();
+            }
             this.off();
             this.remove();
 
