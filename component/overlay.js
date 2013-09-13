@@ -26,7 +26,7 @@
                 this.resize();
             }));
             // 只有hideOnClick为true时才使用
-            this.hideProxy = this.proxy(this.hide); // 
+            this.hideProxy = this.proxy(this.hide); //
         },
 
         // 仅仅加到dom里，不显示
