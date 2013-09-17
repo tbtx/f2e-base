@@ -7,7 +7,7 @@
          * @param  {string} msg 消息
          * @param  {string} cat 类型，如error/info等，可选
          * @param  {string} src 消息来源，可选
-         * @return {object}     返回tbtx以链式调用，如tbtx.log().log()       
+         * @return {object}     返回tbtx以链式调用，如tbtx.log().log()
          */
         log: function(msg, cat, src) {
             if (src) {
@@ -23,7 +23,7 @@
         /**
          * global对象，在浏览器环境中为window
          * @type {object}
-         */ 
+         */
         global: global,
 
         /**
@@ -39,15 +39,21 @@
          */
         data: function(key, value) {
             var self = this;
-            
+            var ret;
+
+            if (!key && !value) {
+                return ret;
+            }
+
             if (typeof key == 'string') {
                 if (value) {
                     self._data[key] = value;
+                    return self;
                 } else {
-                    return self._data[key];                    
+                    return self._data[key];
                 }
             }
-            return undefined;
+            return ret;
         },
 
         /**

@@ -3,6 +3,7 @@
         throttle = T.throttle,
         pageWidth = T.pageWidth,
         pageHeight = T.pageHeight,
+        viewportWidth = T.viewportWidth,
         Class = T.Class;
 
     // 最佳实践是添加className而非cssText，但是这里为了减少组件对CSS的依赖
@@ -84,7 +85,7 @@
         },
         resize: function() {
             this.$element.css({
-                width: pageWidth(),
+                width: viewportWidth(),
                 height: pageHeight()
             });
         },

@@ -1,4 +1,4 @@
-(function(T) {
+(function(global, $) {
     var doc = document,
         de = document.documentElement,
         head = document.getElementsByTagName("head")[0] || de;
@@ -8,7 +8,7 @@
             return {}.toString.call(obj) == "[object " + type + "]";
         };
     }
-
+    var isArray = Array.isArray || isType("Array");
     var isFunction = isType("Function");
 
     var baseElement = head.getElementsByTagName("base")[0];
@@ -34,7 +34,7 @@
             // do nothing
         } else {        // 相对地址转为绝对地址
             var prefix = "http://a.tbcdn.cn/apps/tbtx";
-            if (T.startsWith(url, '/')) {
+            if (tbtx.startsWith(url, '/')) {
                 url = prefix + url;
             } else {
                 url = prefix + '/' + url;
@@ -162,32 +162,54 @@
     }
 
     function loadScript(url, callback, charset) {
+        if (isArray(url)) {
+            var chain,
+                noop = function() {
+                    console.log('noop');
+                };
+
+            $.each(url, function(index, u) {
+                if (chain) {
+                    chain = chain.then(request(u, index == url.length - 1 ? callback : noop, charset));
+                } else {
+                    chain = request(u, noop, charset);
+                }
+            });
+
+            return chain;
+        }
         return request(url, callback, charset);
     }
 
         // $(document).height()
     var pageHeight = function() {
-            return doc.body.scrollHeight;
+            return $(document).height();
+            // return doc.body.scrollHeight;
         },
         pageWidth = function() {
-            return doc.body.scrollWidth;
+            return $(document).width();
+            // return doc.body.scrollWidth;
         },
 
         scrollX = function() {
-            return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
+            return $(window).scrollLeft();
+            // return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
         },
         // $(window).scrollTop()
         scrollY = function() {
-            return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
+            return $(window).scrollTop();
+            // return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
         },
 
         // $(window).height()
         viewportHeight = function() {
+            return $(window).height();
             // var de = document.documentElement;      //IE67的严格模式
-            return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
+            // return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
         },
         viewportWidth = function() {
-            return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
+            return $(window).width();
+            // return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
         },
 
         // 距离top多少px才算inView
@@ -196,7 +218,6 @@
 
             var $elem = $(selector);
             var offset = $elem.offset();
-            // T.log(offset).log(scrollY()).log(viewportHeight()).log(top);     
             if ((viewportHeight() + scrollY()) > (offset.top + top)) {
                 return true;
             } else {
@@ -252,7 +273,7 @@
 
                 conent = conent.slice(0, max) + suffix;
                 $element.text(conent);
-            });  
+            });
         },
 
         initWangWang = function(callback) {
@@ -267,7 +288,16 @@
             }
         };
 
-    T.mix(T, {
+    var dist,
+        mix;
+    if (global.tbtx) {
+        dist = global.tbtx;
+        mix = dist.mix;
+    } else {
+        dist = jQuery;
+        mix = dist.extend;
+    }
+    mix(dist, {
         loadCss: loadCss,
         loadScript: loadScript,
 
@@ -284,4 +314,4 @@
         limitLength: limitLength,
         initWangWang: initWangWang
     });
-})(tbtx);
+})(this, jQuery);

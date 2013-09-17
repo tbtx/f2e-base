@@ -14,6 +14,7 @@
 </li>
 <li><a href="#loadScript">loadScript(url, callback, charset)</a> 
     <p>加载js, 可指定成功的回调函数,返回jQuery deferred, 可以使用loadScript(url).done(callback)</p>
+    <p>url可以是一个数组，会按照数组中的脚本顺序加载，全部加载完成执行callback</p>
     <p>url可以是miee/js/m.js，会自动加上cdn的url</p>
 </li>
 <li><a href="">pageHeight()/pageWidth()</a> 

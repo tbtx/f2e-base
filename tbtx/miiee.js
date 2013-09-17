@@ -1,7 +1,8 @@
-(function(T) {
+(function(global) {
+    var tbtx = global.tbtx;
     var miieeJSToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
-        T.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
+        tbtx.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
         return token;
     };
 
@@ -9,13 +10,13 @@
     var userCheck = function(callSuccess, callFailed) {
         userCheckAjax = userCheckAjax || $.ajax({
             type: "POST",
-            url: T.path.getuserinfo,
+            url: tbtx.path.getuserinfo,
             dataType: 'json',
             data: {},
             timeout: 5000
         }).done(function(json) {
             if (json.result && json.result.data) {
-                T.data('user', json.result.data);
+                tbtx.data('user', json.result.data);
             }
         });
 
@@ -75,20 +76,20 @@
         };
 
         try {
-            // Internet Explorer 
+            // Internet Explorer
             window.external.AddFavorite(url, title);
         } catch (e) {       // 两个e不要一样
             try {
-                // Mozilla 
+                // Mozilla
                 window.sidebar.addPanel(title, url, "");
             } catch (ex) {
-                // Opera 
+                // Opera
                 // 果断无视opera
                 if (typeof(opera) == "object") {
                     def();
                     return true;
                 } else {
-                    // Unknown 
+                    // Unknown
                     def();
                 }
             }
@@ -96,11 +97,11 @@
     };
 
 
-    T.mix(T, {
+    tbtx.mix(tbtx, {
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
 
         shareToSinaWB: shareToSinaWB,
         addToFavourite: addToFavourite
     });
-})(tbtx);
+})(this);

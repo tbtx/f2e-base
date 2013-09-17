@@ -1,4 +1,4 @@
-(function(T) {
+(function(global) {
     // 语言扩展
     var toString = Object.prototype.toString,
 
@@ -33,7 +33,9 @@
                 return -1;
         },
 
-        hasEnumBug = !({toString: 1}['propertyIsEnumerable']('toString')),
+        hasEnumBug = !({
+            toString: 1
+        }['propertyIsEnumerable']('toString')),
         enumProperties = [
             'constructor',
             'hasOwnProperty',
@@ -62,11 +64,11 @@
             return ret;
         },
 
-        startsWith = function (str, prefix) {
+        startsWith = function(str, prefix) {
             return str.lastIndexOf(prefix, 0) === 0;
         },
 
-        endsWith = function (str, suffix) {
+        endsWith = function(str, suffix) {
             var ind = str.length - suffix.length;
             return ind >= 0 && str.indexOf(suffix, ind) == ind;
         },
@@ -130,7 +132,7 @@
 
         // 在underscore里面有实现，这个版本借鉴的是kissy
         throttle = function(fn, ms, context) {
-            ms = ms || 100;     // 150 -> 100
+            ms = ms || 100; // 150 -> 100
 
             if (ms === -1) {
                 return (function() {
@@ -206,7 +208,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        T.log(e + 'decodeURIComponent error : ' + val, 'error');
+                        tbtx.log(e + 'decodeURIComponent error : ' + val, 'error');
                     }
                 }
                 ret[key] = val;
@@ -215,18 +217,20 @@
         },
 
         getQueryParam = function(name, url) {
-            if (name && !url || !name) {
+            if (!url) {
                 url = location.href;
             }
+            var ret;
 
             var search;
             if (url.indexOf('?') > -1) {
                 search = url.split('?')[1];
             } else {
-                return '';
+                ret = name ? '': {};
+                return ret;
             }
 
-            var ret = unparam(search);
+            ret = unparam(search);
             if (name) {
                 return ret[name] || '';
             }
@@ -252,7 +256,7 @@
                 return escapeReg;
             }
             var str = EMPTY;
-            $.each(htmlEntities, function (index, entity) {
+            $.each(htmlEntities, function(index, entity) {
                 str += entity + '|';
             });
             str = str.slice(0, -1);
@@ -265,12 +269,12 @@
                 return unEscapeReg;
             }
             var str = EMPTY;
-            $.each(reverseEntities, function (index, entity) {
+            $.each(reverseEntities, function(index, entity) {
                 str += entity + '|';
             });
             str += '&#(\\d{1,5});';
             unEscapeReg = new RegExp(str, 'g');
-            return unEscapeReg; 
+            return unEscapeReg;
         },
 
         escapeHtml = function(text) {
@@ -284,7 +288,7 @@
             });
         };
 
-    (function () {
+    (function() {
         for (var k in htmlEntities) {
             reverseEntities[htmlEntities[k]] = k;
         }
@@ -312,8 +316,9 @@
         return des;
     }
 
+    var dist = global.tbtx ? global.tbtx : jQuery;
     // exports
-    mix(T, {
+    mix(dist, {
         mix: mix,
         isNotEmptyString: isNotEmptyString,
         isArray: isArray,
@@ -332,4 +337,4 @@
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(tbtx);
+})(this);

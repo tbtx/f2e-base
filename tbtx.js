@@ -1,4 +1,4 @@
-/* tbtx-base-js -- 2013-09-13 */
+/* tbtx-base-js -- 2013-09-17 */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -8,7 +8,7 @@
          * @param  {string} msg 消息
          * @param  {string} cat 类型，如error/info等，可选
          * @param  {string} src 消息来源，可选
-         * @return {object}     返回tbtx以链式调用，如tbtx.log().log()       
+         * @return {object}     返回tbtx以链式调用，如tbtx.log().log()
          */
         log: function(msg, cat, src) {
             if (src) {
@@ -24,7 +24,7 @@
         /**
          * global对象，在浏览器环境中为window
          * @type {object}
-         */ 
+         */
         global: global,
 
         /**
@@ -40,15 +40,21 @@
          */
         data: function(key, value) {
             var self = this;
-            
+            var ret;
+
+            if (!key && !value) {
+                return ret;
+            }
+
             if (typeof key == 'string') {
                 if (value) {
                     self._data[key] = value;
+                    return self;
                 } else {
-                    return self._data[key];                    
+                    return self._data[key];
                 }
             }
-            return undefined;
+            return ret;
         },
 
         /**
@@ -60,7 +66,7 @@
 })(this, 'tbtx');
 
 
-;(function(T) {
+;(function(global) {
     // 语言扩展
     var toString = Object.prototype.toString,
 
@@ -95,7 +101,9 @@
                 return -1;
         },
 
-        hasEnumBug = !({toString: 1}['propertyIsEnumerable']('toString')),
+        hasEnumBug = !({
+            toString: 1
+        }['propertyIsEnumerable']('toString')),
         enumProperties = [
             'constructor',
             'hasOwnProperty',
@@ -124,11 +132,11 @@
             return ret;
         },
 
-        startsWith = function (str, prefix) {
+        startsWith = function(str, prefix) {
             return str.lastIndexOf(prefix, 0) === 0;
         },
 
-        endsWith = function (str, suffix) {
+        endsWith = function(str, suffix) {
             var ind = str.length - suffix.length;
             return ind >= 0 && str.indexOf(suffix, ind) == ind;
         },
@@ -192,7 +200,7 @@
 
         // 在underscore里面有实现，这个版本借鉴的是kissy
         throttle = function(fn, ms, context) {
-            ms = ms || 100;     // 150 -> 100
+            ms = ms || 100; // 150 -> 100
 
             if (ms === -1) {
                 return (function() {
@@ -268,7 +276,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        T.log(e + 'decodeURIComponent error : ' + val, 'error');
+                        tbtx.log(e + 'decodeURIComponent error : ' + val, 'error');
                     }
                 }
                 ret[key] = val;
@@ -277,18 +285,20 @@
         },
 
         getQueryParam = function(name, url) {
-            if (name && !url || !name) {
+            if (!url) {
                 url = location.href;
             }
+            var ret;
 
             var search;
             if (url.indexOf('?') > -1) {
                 search = url.split('?')[1];
             } else {
-                return '';
+                ret = name ? '': {};
+                return ret;
             }
 
-            var ret = unparam(search);
+            ret = unparam(search);
             if (name) {
                 return ret[name] || '';
             }
@@ -314,7 +324,7 @@
                 return escapeReg;
             }
             var str = EMPTY;
-            $.each(htmlEntities, function (index, entity) {
+            $.each(htmlEntities, function(index, entity) {
                 str += entity + '|';
             });
             str = str.slice(0, -1);
@@ -327,12 +337,12 @@
                 return unEscapeReg;
             }
             var str = EMPTY;
-            $.each(reverseEntities, function (index, entity) {
+            $.each(reverseEntities, function(index, entity) {
                 str += entity + '|';
             });
             str += '&#(\\d{1,5});';
             unEscapeReg = new RegExp(str, 'g');
-            return unEscapeReg; 
+            return unEscapeReg;
         },
 
         escapeHtml = function(text) {
@@ -346,7 +356,7 @@
             });
         };
 
-    (function () {
+    (function() {
         for (var k in htmlEntities) {
             reverseEntities[htmlEntities[k]] = k;
         }
@@ -374,8 +384,9 @@
         return des;
     }
 
+    var dist = global.tbtx ? global.tbtx : jQuery;
     // exports
-    mix(T, {
+    mix(dist, {
         mix: mix,
         isNotEmptyString: isNotEmptyString,
         isArray: isArray,
@@ -394,7 +405,7 @@
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(tbtx);
+})(this);
 
 
 ;(function(global) {
@@ -475,7 +486,7 @@
             cookie: cookie
         });
     } else {
-        $.cookie = cookie;
+        jQuery.cookie = cookie;
     }
 })(this);
 
@@ -1010,16 +1021,20 @@
         isIE6: detector.browser.ie && detector.browser.version == 6,
         isMobile: !! detector.mobile
     };
-
-    if (global.tbtx && tbtx.mix) {
-        tbtx.mix(tbtx, ret);
+    var dist,
+        mix;
+    if (global.tbtx) {
+        dist = global.tbtx;
+        mix = dist.mix;
     } else {
-        $.extend($, ret);
+        dist = jQuery;
+        mix = dist.extend;
     }
+    mix(dist, ret);
 })(this);
 
 
-;(function(T) {
+;(function(global, $) {
     var doc = document,
         de = document.documentElement,
         head = document.getElementsByTagName("head")[0] || de;
@@ -1029,7 +1044,7 @@
             return {}.toString.call(obj) == "[object " + type + "]";
         };
     }
-
+    var isArray = Array.isArray || isType("Array");
     var isFunction = isType("Function");
 
     var baseElement = head.getElementsByTagName("base")[0];
@@ -1055,7 +1070,7 @@
             // do nothing
         } else {        // 相对地址转为绝对地址
             var prefix = "http://a.tbcdn.cn/apps/tbtx";
-            if (T.startsWith(url, '/')) {
+            if (tbtx.startsWith(url, '/')) {
                 url = prefix + url;
             } else {
                 url = prefix + '/' + url;
@@ -1183,32 +1198,54 @@
     }
 
     function loadScript(url, callback, charset) {
+        if (isArray(url)) {
+            var chain,
+                noop = function() {
+                    console.log('noop');
+                };
+
+            $.each(url, function(index, u) {
+                if (chain) {
+                    chain = chain.then(request(u, index == url.length - 1 ? callback : noop, charset));
+                } else {
+                    chain = request(u, noop, charset);
+                }
+            });
+
+            return chain;
+        }
         return request(url, callback, charset);
     }
 
         // $(document).height()
     var pageHeight = function() {
-            return doc.body.scrollHeight;
+            return $(document).height();
+            // return doc.body.scrollHeight;
         },
         pageWidth = function() {
-            return doc.body.scrollWidth;
+            return $(document).width();
+            // return doc.body.scrollWidth;
         },
 
         scrollX = function() {
-            return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
+            return $(window).scrollLeft();
+            // return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
         },
         // $(window).scrollTop()
         scrollY = function() {
-            return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
+            return $(window).scrollTop();
+            // return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
         },
 
         // $(window).height()
         viewportHeight = function() {
+            return $(window).height();
             // var de = document.documentElement;      //IE67的严格模式
-            return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
+            // return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
         },
         viewportWidth = function() {
-            return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
+            return $(window).width();
+            // return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
         },
 
         // 距离top多少px才算inView
@@ -1217,7 +1254,6 @@
 
             var $elem = $(selector);
             var offset = $elem.offset();
-            // T.log(offset).log(scrollY()).log(viewportHeight()).log(top);     
             if ((viewportHeight() + scrollY()) > (offset.top + top)) {
                 return true;
             } else {
@@ -1273,7 +1309,7 @@
 
                 conent = conent.slice(0, max) + suffix;
                 $element.text(conent);
-            });  
+            });
         },
 
         initWangWang = function(callback) {
@@ -1288,7 +1324,16 @@
             }
         };
 
-    T.mix(T, {
+    var dist,
+        mix;
+    if (global.tbtx) {
+        dist = global.tbtx;
+        mix = dist.mix;
+    } else {
+        dist = jQuery;
+        mix = dist.extend;
+    }
+    mix(dist, {
         loadCss: loadCss,
         loadScript: loadScript,
 
@@ -1305,10 +1350,10 @@
         limitLength: limitLength,
         initWangWang: initWangWang
     });
-})(tbtx);
+})(this, jQuery);
 
 
-;(function(T) {
+;(function(global) {
     var location = document.location;
 
     var ROOT = (function() {
@@ -1331,17 +1376,19 @@
     };
 
 
-    T.mix(T, {
+    var tbtx = global.tbtx;
+    tbtx.mix(tbtx, {
         ROOT: ROOT,
         path: path
     });
-})(tbtx);
+})(this);
 
 
-;(function(T) {
+;(function(global) {
+    var tbtx = global.tbtx;
     var miieeJSToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
-        T.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
+        tbtx.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
         return token;
     };
 
@@ -1349,13 +1396,13 @@
     var userCheck = function(callSuccess, callFailed) {
         userCheckAjax = userCheckAjax || $.ajax({
             type: "POST",
-            url: T.path.getuserinfo,
+            url: tbtx.path.getuserinfo,
             dataType: 'json',
             data: {},
             timeout: 5000
         }).done(function(json) {
             if (json.result && json.result.data) {
-                T.data('user', json.result.data);
+                tbtx.data('user', json.result.data);
             }
         });
 
@@ -1415,20 +1462,20 @@
         };
 
         try {
-            // Internet Explorer 
+            // Internet Explorer
             window.external.AddFavorite(url, title);
         } catch (e) {       // 两个e不要一样
             try {
-                // Mozilla 
+                // Mozilla
                 window.sidebar.addPanel(title, url, "");
             } catch (ex) {
-                // Opera 
+                // Opera
                 // 果断无视opera
                 if (typeof(opera) == "object") {
                     def();
                     return true;
                 } else {
-                    // Unknown 
+                    // Unknown
                     def();
                 }
             }
@@ -1436,11 +1483,11 @@
     };
 
 
-    T.mix(T, {
+    tbtx.mix(tbtx, {
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
 
         shareToSinaWB: shareToSinaWB,
         addToFavourite: addToFavourite
     });
-})(tbtx);
+})(this);

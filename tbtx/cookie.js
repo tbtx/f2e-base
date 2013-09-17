@@ -76,6 +76,6 @@
             cookie: cookie
         });
     } else {
-        $.cookie = cookie;
+        jQuery.cookie = cookie;
     }
 })(this);

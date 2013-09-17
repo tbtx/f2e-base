@@ -1,4 +1,4 @@
-(function(T) {
+(function(global) {
     var location = document.location;
 
     var ROOT = (function() {
@@ -21,8 +21,9 @@
     };
 
 
-    T.mix(T, {
+    var tbtx = global.tbtx;
+    tbtx.mix(tbtx, {
         ROOT: ROOT,
         path: path
     });
-})(tbtx);
+})(this);

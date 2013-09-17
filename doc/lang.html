@@ -8,6 +8,8 @@
 <body>
 <h2 id="api">API</h2>
 
+<p>该文件无依赖，可单独使用，如果没有tbtx，则将接口暴露到jQuery，可以通过jQuery.startsWith这样访问</p>
+
 <ul>
 <li><a href="#mix">mix(des, source, blacklist, over)</a>
     <p>类似于$.extend,浅拷贝</p>
@@ -63,7 +65,8 @@
 <li>getQueryParam(name, [url])
     <p>返回查询字符串中的name对应值</p>
 </li>
-<li>escapeHtml(str)
+<li>
+    <a href="#escapeHtml">escapeHtml(str)</a>
     <p>将字符串经过 html 转义得到适合在页面中显示的内容, 例如替换 &lt; 为 &amp;lt;</p>
 </li>
 
@@ -170,9 +173,9 @@ sep可以替换&amp;, eq可以替换=，一般不需要
 
 <p>getQueryParam(name, [url]) 获取查询字符串中的变量，不指定url则使用当前href，不指定name则返回所有参数的对象（内部调用的是unparm）</p>
 
-<h3 id="encodehtml">encodeHTML</h3>
+<h3 id="escapeHtml">escapeHtml(text)</h3>
 
-<p>此函数只会对以下符号进行 escape： " &lt; &gt; &amp; 和空格 </p>
+<p>此函数会对以下符号进行 escape： " &lt; &gt; &amp; 和空格 </p>
 
 </body>
 </html>

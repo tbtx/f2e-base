@@ -528,10 +528,14 @@
         isIE6: detector.browser.ie && detector.browser.version == 6,
         isMobile: !! detector.mobile
     };
-
-    if (global.tbtx && tbtx.mix) {
-        tbtx.mix(tbtx, ret);
+    var dist,
+        mix;
+    if (global.tbtx) {
+        dist = global.tbtx;
+        mix = dist.mix;
     } else {
-        $.extend($, ret);
+        dist = jQuery;
+        mix = dist.extend;
     }
+    mix(dist, ret);
 })(this);
