@@ -164,9 +164,7 @@
     function loadScript(url, callback, charset) {
         if (isArray(url)) {
             var chain,
-                noop = function() {
-                    console.log('noop');
-                };
+                noop = function() {};
 
             $.each(url, function(index, u) {
                 if (chain) {
