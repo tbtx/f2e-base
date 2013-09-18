@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <title>request test</title>
+    <script src="../../jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../tbtx.js"></script>
 </head>
 
 <body>
-<script src="../../jquery/jquery-1.8.3.min.js"></script>
-<script src="../../tbtx.js"></script>
-
+<span class="J_WangWang" data-nick="乌鸦_tbtx"  data-display="inline" data-encode="true"></span>
 
 
 <script>
@@ -29,10 +29,16 @@
 // 	});
 // }, 2000);
 //
-var ret = tbtx.loadScript(["http://a.tbcdn.cn/apps/tbtx/miiee/js/order/TweenMax.min.js", "http://seajs.org/dist/sea.js"], function() {
+var ret = tbtx.loadScript(["https://raw.github.com/seajs/seajs/master/dist/sea-debug.js", "http://a.tbcdn.cn/apps/tbtx/miiee/js/order/TweenMax.min.js", "http://a.tbcdn.cn/apps/tbtx/miiee/js/ZeroClipboard.min.js"], function() {
 	console.log(TweenMax);
-	console.log(seajs);
+	console.log(ZeroClipboard);
+    console.log(seajs);
 });
+
+ret.done(function() {
+    console.log('done');
+});
+
 //
 var getData = function() {
 	console.log('getData');
@@ -40,7 +46,7 @@ var getData = function() {
 
     setTimeout(function() {
 		deferred.resolve("src");
-    }, 5000);
+    }, 300);
 
     return deferred.promise();
 }
@@ -51,7 +57,7 @@ var getImg = function(src) {
 
     setTimeout(function() {
 		deferred.resolve("img");
-    }, 1000);
+    }, 2300);
     return deferred.promise();
 }
 
@@ -59,9 +65,11 @@ var showImg = function(img) {
 	console.log(img);
 }
 
-// var r = getData()
-// .then(getImg)
-// .then(showImg);
+var r = getData()
+.then(getImg)
+.then(showImg);
+
+tbtx.initWangWang();
 </script>
 
 </body>

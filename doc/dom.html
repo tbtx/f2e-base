@@ -9,20 +9,20 @@
 <h2 id="api">API</h2>
 
 <ul>
-<li><a href="#loadCss">loadCss(url, callback, charset)</a> 
-    <p>加载css文件， 同下</p>
+<li><a href="#loadCss">loadCss(url, callback, charset)</a>
+    <p>加载css文件， 除了不支持数组，调用同下</p>
 </li>
-<li><a href="#loadScript">loadScript(url, callback, charset)</a> 
+<li><a href="#loadScript">loadScript(url, callback, charset)</a>
     <p>加载js, 可指定成功的回调函数,返回jQuery deferred, 可以使用loadScript(url).done(callback)</p>
     <p>url可以是一个数组，会按照数组中的脚本顺序加载，全部加载完成执行callback</p>
     <p>url可以是miee/js/m.js，会自动加上cdn的url</p>
 </li>
-<li><a href="">pageHeight()/pageWidth()</a> 
+<li><a href="">pageHeight()/pageWidth()</a>
     <p>返回页面总的宽高， 相当于$(window).width()/height()</p></li>
 <li><a href="">scrollX/scrollY</a>
     <p>返回页面滚动的距离, 相当于$(window).scrollTop()/scrollLeft()</p>
 </li>
-<li><a href="">viewportHeight/viewportWidth</a> 
+<li><a href="">viewportHeight/viewportWidth</a>
     <p>返回视口的宽高，相当于$(document).width()/height()</p>
 </li>
 <li><a href="">isInView(selector)</a>

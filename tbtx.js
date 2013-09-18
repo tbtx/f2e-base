@@ -1,4 +1,4 @@
-/* tbtx-base-js -- 2013-09-17 */
+/* tbtx-base-js -- 2013-09-18 */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -1064,19 +1064,10 @@
 
     // 存储每个url的deferred对象
     var deferredMap = {};
+    // 存储每个script的下一个脚本信息，也就是链式调用时resolve的data
+    var resolveDate = {};
 
     function request(url, callback, charset) {
-        if (/^https?/.test(url)) {
-            // do nothing
-        } else {        // 相对地址转为绝对地址
-            var prefix = "http://a.tbcdn.cn/apps/tbtx";
-            if (tbtx.startsWith(url, '/')) {
-                url = prefix + url;
-            } else {
-                url = prefix + '/' + url;
-            }
-        }
-
         // 该url已经请求过，直接done
         if (deferredMap[url]) {
             deferredMap[url].done(callback);
@@ -1150,7 +1141,11 @@
                 // Dereference the node
                 node = null;
 
-                deferredMap[url].resolve();
+                if (resolveDate[url]) {
+                    deferredMap[url].resolve(resolveDate[url], tbtx.noop);
+                } else {
+                    deferredMap[url].resolve();
+                }
                 // callback();
             }
         };
@@ -1193,24 +1188,48 @@
         }, 20);
     }
 
+    // 给传入的相对url加上前缀
+    function transformUrl(url) {
+        if (/^https?/.test(url)) {
+            // do nothing
+        } else {        // 相对地址转为绝对地址
+            var prefix = "http://a.tbcdn.cn/apps/tbtx";
+            if (tbtx.startsWith(url, '/')) {
+                url = prefix + url;
+            } else {
+                url = prefix + '/' + url;
+            }
+        }
+
+        return url;
+    }
+
     function loadCss(url, callback, charset) {
+        url = transformUrl(url);
         return request(url, callback, charset);
     }
 
     function loadScript(url, callback, charset) {
+
+        // url传入数组，按照数组中脚本的顺序进行加载
         if (isArray(url)) {
             var chain,
-                noop = function() {};
+                length = url.length;
 
             $.each(url, function(index, u) {
+
+                u = transformUrl(u);
+                if (index < length - 1 ) {
+                    resolveDate[u] = url[index + 1];
+                }
                 if (chain) {
-                    chain = chain.then(request(u, index == url.length - 1 ? callback : noop, charset));
+                    chain = chain.then(request);
                 } else {
-                    chain = request(u, noop, charset);
+                    chain = request(u, tbtx.noop, charset);
                 }
             });
 
-            return chain;
+            return chain.then(callback);
         }
         return request(url, callback, charset);
     }
@@ -1316,9 +1335,7 @@
             if (window.KISSY) {
                 loadScript(webww, callback);
             } else {
-                loadScript("http://a.tbcdn.cn/??s/kissy/1.2.0/kissy-min.js", function() {
-                    loadScript(webww, callback);
-                });
+                loadScript(["http://a.tbcdn.cn/??s/kissy/1.2.0/kissy-min.js", webww], callback);
             }
         };
 
