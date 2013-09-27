@@ -20,6 +20,11 @@
             return this;
         },
 
+        /*
+         * debug mod off
+         */
+        debug: false,
+
         /**
          * global对象，在浏览器环境中为window
          * @type {object}

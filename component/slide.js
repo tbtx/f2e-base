@@ -17,7 +17,7 @@
             // 是否可以沿一个方向无限循环
             isCarousel: true,
             // 移动方向
-            // x, y, or none
+            // x, y, fade or none
             direction: 'x'
         }
     });
@@ -27,15 +27,16 @@
             this.$element = $(element);
             this.options = options;
 
-            this.$indicators = this.$element.find(this.options.indicatorSelector);
-            this.$items = this.$element.find(this.options.itemSelector);
+            this.$indicators = this.$element.find(options.indicatorSelector);
+            this.$items = this.$element.find(options.itemSelector);
             // 用来调整margin的元素
             this.$slider = this.$element.find('.slide-inner');
             // 默认获取宽高的元素
             this.$slide = this.$element.find('.slide');
 
-            this.activeClass = this.options.activeClass;
-            this.viewSize = this.options.viewSize;
+            this.activeClass = options.activeClass;
+            this.viewSize = options.viewSize;
+            this.direction = options.direction;
 
             this.itemSize = this.options.itemSize || (this.options.direction == 'x' ? this.$slide.width() : this.$slide.height());
 
@@ -60,7 +61,7 @@
             }
 
             // 调整$slider 长度，以及位置修复到开始位置（针对克隆过）
-            if (this.options.direction == 'x') {
+            if (this.direction == 'x') {
                 this.$slider.css({
                     width: this.itemSize * this.length,
                     marginLeft: this.baseOffset
@@ -136,7 +137,7 @@
                 return;
             }
             if (this.sliding) {
-                return this.$element.one('slid', function () { 
+                return this.$element.one('slid', function () {
                     self.to(pos);
                 });
             }
@@ -150,7 +151,9 @@
         },
 
         slide: function(direction, pos) {
-            pos = parseInt(pos, 10);
+            if (pos) {
+                pos = parseInt(pos, 10);
+            }
             var isCycling = this.interval;
 
             this.sliding = true;
@@ -169,14 +172,14 @@
             if (this.options.isCarousel) {
                 // next
                 if (direction == 'next') {
-                    this.nextIndex = pos || activeIndex + 1;
+                    this.nextIndex = pos != undefined ? pos : activeIndex + 1;
                 } else {
-                    this.nextIndex = pos || activeIndex - 1;
+                    this.nextIndex = pos != undefined ? pos : activeIndex - 1;
                 }
             } else {
                 // next
                 if (activeIndex < this.$items.length - 1) {
-                    this.nextIndex = pos || activeIndex + 1;
+                    this.nextIndex = pos != undefined ? pos : activeIndex + 1;
                 } else {
                     this.nextIndex = 0;
                 }
@@ -232,24 +235,34 @@
                     self.activeIndex = self.nextIndex;
                 }
 
+                toggleActive();
                 self.sliding = false;
                 setTimeout(function () { self.$element.trigger('slid') }, 0);
 
             });
-            
+
             !animateObj && +function() {
-                $items.hide();
-                $items.eq(self.nextIndex).show();
+                if (self.options.direction == "fade") {
+                    $items.hide();
+                    $items.eq(self.nextIndex).fadeIn();
+                } else {
+                    $items.hide();
+                    $items.eq(self.nextIndex).show();
+                }
+
+                toggleActive();
                 self.activeIndex = self.nextIndex;
                 self.sliding = false;
                 setTimeout(function () { self.$element.trigger('slid') }, 0)
             }();
 
-            $items.removeClass(activeClass);
-            $items.eq(this.nextIndex).addClass(activeClass);
-            $indicators.removeClass(activeClass);
-            $indicators.eq(this.nextIndex).addClass(activeClass);
-            
+            function toggleActive() {
+                $items.removeClass(activeClass);
+                $items.eq(self.nextIndex).addClass(activeClass);
+                $indicators.removeClass(activeClass);
+                $indicators.eq(self.nextIndex).addClass(activeClass);
+            }
+
             isCycling && self.cycle();
             return this;
         }
@@ -291,16 +304,14 @@
         e.preventDefault();
     })
 
-    // 一开始默认data-ride="carousel" 的将自动执行
-    $(window).on('load', function() {
-        $('[data-ride="slide"]').each(function() {
-            var $element = $(this);
-            $element.Slide($element.data());
-        });
-    });
-
     T.loadCss("http://a.tbcdn.cn/apps/tbtx/base/css/component/slide.css", function() {
-
+        // 一开始默认data-ride="carousel" 的将自动执行
+        $(window).on('load', function() {
+            $('[data-ride="slide"]').each(function() {
+                var $element = $(this);
+                $element.Slide($element.data());
+            });
+        });
     });
     T.mix(T, {
         Slide: Slide

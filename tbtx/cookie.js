@@ -71,10 +71,8 @@
         }
     };
 
-    if (global.tbtx && tbtx.mix) {
-        tbtx.mix(tbtx, {
-            cookie: cookie
-        });
+    if (global.tbtx) {
+        tbtx.cookie = cookie;
     } else {
         jQuery.cookie = cookie;
     }

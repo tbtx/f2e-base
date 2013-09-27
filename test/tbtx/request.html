@@ -2,10 +2,10 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>request test</title>
-    <script src="../../jquery/jquery-1.8.3.min.js"></script>
-    <script src="../../tbtx.js"></script>
+	<meta charset="UTF-8">
+	<title>request test</title>
+	<script src="../../jquery/jquery-1.8.3.min.js"></script>
+	<script src="../../tbtx.js"></script>
 </head>
 
 <body>
@@ -14,51 +14,52 @@
 
 <script>
 // tbtx.loadCss("http://a.tbcdn.cn/apps/tbtx/miiee/css/base.css", function() {
-//     alert('css loaded');
+//	 alert('css loaded');
 // });
 
 // tbtx.loadScript("miiee/js/m.js", function() {
-//     alert('script loaded');
+//	 alert('script loaded');
 // }).done(function() {
 // 	alert(1213);
 // });
 
 // setTimeout(function() {
 // 	tbtx.loadScript("http://a.tbcdn.cn/apps/tbtx/miiee/js/m.js", function() {
-// 	    alert('hehe loaded');
+// 		alert('hehe loaded');
 // 	});
 // }, 2000);
 //
 var ret = tbtx.loadScript(["https://raw.github.com/seajs/seajs/master/dist/sea-debug.js", "http://a.tbcdn.cn/apps/tbtx/miiee/js/order/TweenMax.min.js", "http://a.tbcdn.cn/apps/tbtx/miiee/js/ZeroClipboard.min.js"], function() {
 	console.log(TweenMax);
 	console.log(ZeroClipboard);
-    console.log(seajs);
+	console.log(seajs);
 });
 
 ret.done(function() {
-    console.log('done');
+	console.log('done');
 });
 
 //
 var getData = function() {
+
 	console.log('getData');
-    var deferred = jQuery.Deferred();
+	var deferred = jQuery.Deferred();
 
-    setTimeout(function() {
+	setTimeout(function() {
 		deferred.resolve("src");
-    }, 300);
+	}, 300);
 
-    return deferred.promise();
+	return deferred.promise();
 }
 
 var getImg = function(src) {
-    console.log(src);
-    var deferred = jQuery.Deferred();
+	console.log(src);
+	var deferred = jQuery.Deferred();
 
-    setTimeout(function() {
+	setTimeout(function() {
 		deferred.resolve("img");
-    }, 2300);
-    return deferred.promise();
+	}, 2300);
+	return deferred.promise();
 }
 
 var showImg = function(img) {

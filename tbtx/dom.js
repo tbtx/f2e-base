@@ -293,6 +293,22 @@
             });
         },
 
+        flash = function(selector, flashColor, bgColor) {
+            var $elements = $(selector);
+            bgColor = bgColor || "#FFF";
+            flashColor = flashColor || "#FF9";
+
+            $.each($elements, function(index, element) {
+                var $element = $(element);
+                var backgroundColor = $element.css("background-color");
+                $element.css("background-color", flashColor).fadeOut("fast", function() {
+                    $element.fadeIn("fast", function() {
+                        $element.css("background-color", backgroundColor || bgColor);
+                    });
+                });
+            });
+        },
+
         initWangWang = function(callback) {
             callback = callback || function() {};
             var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
@@ -327,6 +343,7 @@
         adjust: adjust,
 
         limitLength: limitLength,
-        initWangWang: initWangWang
+        initWangWang: initWangWang,
+        flash: flash
     });
 })(this, jQuery);

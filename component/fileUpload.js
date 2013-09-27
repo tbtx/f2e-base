@@ -48,7 +48,7 @@ var fileUpload = function(url){
 			url : oe.url + '?callFunc=' + oe.callFunc,
 			target : target
 		}));
-		oe.popup = new tbtx.Popup(oe.jObject);
+		oe.popup = new tbtx.Popup(oe.jObject,{destoryOnHide:true});
 		
 		$('.tbtx-file-upload-input input', oe.jObject).change(function() {
 			$('.tbtx-file-upload-form', oe.jObject).submit().hide();
@@ -69,7 +69,7 @@ var fileUpload = function(url){
 	oe.hide = function(){
 		oe.jObject.remove();		
 		window[oe.callFunc] = null;
-		delete window[oe.callFunc];
+		//delete window[oe.callFunc];
 		oe.jObject = oe.popup = oe.callFunc = null;
 		return oe;
 	};	
