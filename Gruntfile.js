@@ -25,6 +25,9 @@ module.exports = function(grunt) {
                 dest: 'tbtx.js' // 合并成依赖文件
             },
             popup: {
+                options: {
+                    banner: '/* overlay.popup -- <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+                },
                 src: ['component/overlay.js', 'component/popup.js'],
                 dest: 'component/overlay.popup.js'
             }

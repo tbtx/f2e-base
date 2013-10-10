@@ -1,6 +1,7 @@
-/* tbtx-base-js -- 2013-10-09 */
-(function(T) {
-    var substitute = T.substitute,
+/* overlay.popup -- 2013-10-10 */
+(function($) {
+    var T = tbtx,
+        substitute = T.substitute,
         throttle = T.throttle,
         pageWidth = T.pageWidth,
         pageHeight = T.pageHeight,
@@ -111,7 +112,7 @@
     T.mix(T, {
         Overlay: Overlay
     })
-})(tbtx);
+})(jQuery);
 
 
 ;(function(T) {

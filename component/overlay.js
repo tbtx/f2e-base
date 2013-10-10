@@ -1,5 +1,6 @@
-(function(T) {
-    var substitute = T.substitute,
+(function($) {
+    var T = tbtx,
+        substitute = T.substitute,
         throttle = T.throttle,
         pageWidth = T.pageWidth,
         pageHeight = T.pageHeight,
@@ -110,4 +111,4 @@
     T.mix(T, {
         Overlay: Overlay
     })
-})(tbtx);
+})(jQuery);
