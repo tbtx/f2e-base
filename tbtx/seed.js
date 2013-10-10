@@ -33,32 +33,23 @@
 
         /**
          * 存放数据
-         * @type {Object}
+         * @type {jQuery Object}
          */
-        _data: {},
+        _data: jQuery({}),
 
         /**
          * 存取数据
          * @param  {string} key   键值
          * @param  {any} value 存放值
          */
-        data: function(key, value) {
+        data: function() {
             var self = this;
-            var ret;
+            return self._data.data.apply(self._data, arguments);
+        },
 
-            if (!key && !value) {
-                return ret;
-            }
-
-            if (typeof key == 'string') {
-                if (value) {
-                    self._data[key] = value;
-                    return self;
-                } else {
-                    return self._data[key];
-                }
-            }
-            return ret;
+        removeData: function() {
+            var self = this;
+            return self._data.removeData.apply(self._data, arguments);
         },
 
         /**

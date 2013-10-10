@@ -21,8 +21,7 @@
     };
 
 
-    var tbtx = global.tbtx;
-    tbtx.mix(tbtx, {
+    tbtx.mix({
         ROOT: ROOT,
         path: path
     });

@@ -1,4 +1,4 @@
-/* tbtx-base-js -- 2013-09-27 */
+/* tbtx-base-js -- 2013-10-09 */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -34,32 +34,23 @@
 
         /**
          * 存放数据
-         * @type {Object}
+         * @type {jQuery Object}
          */
-        _data: {},
+        _data: jQuery({}),
 
         /**
          * 存取数据
          * @param  {string} key   键值
          * @param  {any} value 存放值
          */
-        data: function(key, value) {
+        data: function() {
             var self = this;
-            var ret;
+            return self._data.data.apply(self._data, arguments);
+        },
 
-            if (!key && !value) {
-                return ret;
-            }
-
-            if (typeof key == 'string') {
-                if (value) {
-                    self._data[key] = value;
-                    return self;
-                } else {
-                    return self._data[key];
-                }
-            }
-            return ret;
+        removeData: function() {
+            var self = this;
+            return self._data.removeData.apply(self._data, arguments);
         },
 
         /**
@@ -142,8 +133,8 @@
         },
 
         endsWith = function(str, suffix) {
-            var ind = str.length - suffix.length;
-            return ind >= 0 && str.indexOf(suffix, ind) == ind;
+            var index = str.length - suffix.length;
+            return index >= 0 && str.indexOf(suffix, index) == index;
         },
 
         // oo实现
@@ -367,10 +358,15 @@
         }
     })();
 
-    function mix(des, source, blacklist, over) {
+    var mix = tbtx.mix = function(des, source, blacklist, over) {
         var i;
-        if (!des || !source || des === source) {
+        if (!des || des === source) {
             return des;
+        }
+        // 扩展自身
+        if (!source) {
+            source = des;
+            des = tbtx;
         }
         if (!blacklist) {
             blacklist = [];
@@ -387,11 +383,10 @@
             }
         }
         return des;
-    }
+    };
 
-    var dist = global.tbtx ? global.tbtx : jQuery;
     // exports
-    mix(dist, {
+    mix({
         mix: mix,
         isNotEmptyString: isNotEmptyString,
         isArray: isArray,
@@ -960,80 +955,20 @@
     detector.parse = parse;
 
 
-
+    var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/g;
     var decideMobile = function(ua) {
-        var ret = '',
-            m;
-        // WebKit
-        if ((m = ua.match(/AppleWebKit\/([\d.]*)/)) && m[1]) {
-            // Apple Mobile
-            // /iPad|iPod|iPhone/
-            if (/ Mobile\//.test(ua) && ua.match(/iPod|iPhone/)) {
-                ret = 'apple'; // iPad, iPhone or iPod Touch
-            } else if (/ Android/i.test(ua)) {
-                if (/Mobile/.test(ua)) {
-                    ret = 'android';
-                }
-            }
-            // Other WebKit Mobile Browsers
-            else if ((m = ua.match(/NokiaN[^\/]*|Android \d\.\d|webOS\/\d\.\d/))) {
-                ret = m[0].toLowerCase(); // Nokia N-series, Android, webOS, ex: NokiaN95
-            }
-        }
-        // NOT WebKit
-        else {
-            // Presto
-            // ref: http://www.useragentstring.com/pages/useragentstring.php
-            if ((m = ua.match(/Presto\/([\d.]*)/)) && m[1]) {
-                // Opera
-                if ((m = ua.match(/Opera\/([\d.]*)/)) && m[1]) {
-
-                    // Opera Mini
-                    if ((m = ua.match(/Opera Mini[^;]*/)) && m) {
-                        ret = m[0].toLowerCase(); // ex: Opera Mini/2.0.4509/1316
-                    }
-                    // Opera Mobile
-                    // ex: Opera/9.80 (Windows NT 6.1; Opera Mobi/49; U; en) Presto/2.4.18 Version/10.00
-                    // issue: 由于 Opera Mobile 有 Version/ 字段，可能会与 Opera 混淆，同时对于 Opera Mobile 的版本号也比较混乱
-                    else if ((m = ua.match(/Opera Mobi[^;]*/)) && m) {
-                        ret = m[0];
-                    }
-                }
-
-                // NOT WebKit or Presto
-            } else {
-
-                // Gecko
-                if ((m = ua.match(/Gecko/))) {
-                    if ((m = ua.match(/rv:([\d.]*)/)) && m[1]) {
-                        if (/Mobile|Tablet/.test(ua)) {
-                            ret = "firefox";
-                        }
-                    }
-                }
-            }
-        }
-        return ret;
+        var match = mobilePattern.exec(ua);
+        return match ? match[1]: '';
     };
 
     detector.mobile = decideMobile(userAgent);
-
-    var ret = {
+    
+    tbtx.mix({
         detector: detector,
         decideMobile: decideMobile,
         isIE6: detector.browser.ie && detector.browser.version == 6,
         isMobile: !! detector.mobile
-    };
-    var dist,
-        mix;
-    if (global.tbtx) {
-        dist = global.tbtx;
-        mix = dist.mix;
-    } else {
-        dist = jQuery;
-        mix = dist.extend;
-    }
-    mix(dist, ret);
+    });
 })(this);
 
 
@@ -1192,7 +1127,7 @@
     }
 
     // 给传入的相对url加上前缀
-    function transformUrl(url) {
+    function normalizeUrl(url) {
         if (/^https?/.test(url)) {
             // do nothing
         } else {        // 相对地址转为绝对地址
@@ -1208,7 +1143,7 @@
     }
 
     function loadCss(url, callback, charset) {
-        url = transformUrl(url);
+        url = normalizeUrl(url);
         return request(url, callback, charset);
     }
 
@@ -1221,7 +1156,7 @@
 
             $.each(url, function(index, u) {
 
-                u = transformUrl(u);
+                u = normalizeUrl(u);
                 if (index < length - 1 ) {
                     resolveDate[u] = url[index + 1];
                 }
@@ -1237,7 +1172,6 @@
         return request(url, callback, charset);
     }
 
-        // $(document).height()
     var pageHeight = function() {
             return $(document).height();
             // return doc.body.scrollHeight;
@@ -1272,8 +1206,8 @@
         isInView = function(selector, top) {
             top = top || 0;
 
-            var $elem = $(selector);
-            var offset = $elem.offset();
+            var $element = $(selector);
+            var offset = $element.offset();
             if ((viewportHeight() + scrollY()) > (offset.top + top)) {
                 return true;
             } else {
@@ -1283,10 +1217,10 @@
 
         // 针对absolute or fixed
         adjust = function(selector, isAbsolute, top) {
-            var $elem = $(selector);
+            var $element = $(selector);
 
-            var h = $elem.outerHeight(),
-                w = $elem.outerWidth();
+            var h = $element.outerHeight(),
+                w = $element.outerWidth();
 
             top = typeof top == "number" ? top : "center";
             if (!isAbsolute) {
@@ -1308,7 +1242,7 @@
                 l = 0;
             }
 
-            $elem.css({
+            $element.css({
                 top: t,
                 left: l
             });
@@ -1358,16 +1292,7 @@
             }
         };
 
-    var dist,
-        mix;
-    if (global.tbtx) {
-        dist = global.tbtx;
-        mix = dist.mix;
-    } else {
-        dist = jQuery;
-        mix = dist.extend;
-    }
-    mix(dist, {
+    tbtx.mix({
         loadCss: loadCss,
         loadScript: loadScript,
 
@@ -1411,16 +1336,15 @@
     };
 
 
-    var tbtx = global.tbtx;
-    tbtx.mix(tbtx, {
+    tbtx.mix({
         ROOT: ROOT,
         path: path
     });
 })(this);
 
 
-;(function(global) {
-    var tbtx = global.tbtx;
+;(function(global, $) {
+
     var miieeJSToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
         tbtx.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
@@ -1518,11 +1442,11 @@
     };
 
 
-    tbtx.mix(tbtx, {
+    tbtx.mix({
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
 
         shareToSinaWB: shareToSinaWB,
         addToFavourite: addToFavourite
     });
-})(this);
+})(this, jQuery);

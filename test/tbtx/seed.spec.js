@@ -14,12 +14,8 @@ describe('seed', function() {
 	describe("data", function() {
 		it("should data a value with name", function(){
 			var v = "hello";
-			tbtx.data('msg', v)
+			tbtx.data('msg', v);
 			expect(tbtx.data('msg')).toEqual(v);
-		});
-
-		it("should get undefined with no name and no value", function(){
-			expect(tbtx.data()).toEqual(undefined);
 		});
 
 		it("should get the value with name", function(){

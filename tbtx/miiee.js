@@ -1,5 +1,5 @@
-(function(global) {
-    var tbtx = global.tbtx;
+(function(global, $) {
+
     var miieeJSToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
         tbtx.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
@@ -97,11 +97,11 @@
     };
 
 
-    tbtx.mix(tbtx, {
+    tbtx.mix({
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
 
         shareToSinaWB: shareToSinaWB,
         addToFavourite: addToFavourite
     });
-})(this);
+})(this, jQuery);

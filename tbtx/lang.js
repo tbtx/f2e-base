@@ -69,8 +69,8 @@
         },
 
         endsWith = function(str, suffix) {
-            var ind = str.length - suffix.length;
-            return ind >= 0 && str.indexOf(suffix, ind) == ind;
+            var index = str.length - suffix.length;
+            return index >= 0 && str.indexOf(suffix, index) == index;
         },
 
         // oo实现
@@ -294,10 +294,15 @@
         }
     })();
 
-    function mix(des, source, blacklist, over) {
+    var mix = tbtx.mix = function(des, source, blacklist, over) {
         var i;
-        if (!des || !source || des === source) {
+        if (!des || des === source) {
             return des;
+        }
+        // 扩展自身
+        if (!source) {
+            source = des;
+            des = tbtx;
         }
         if (!blacklist) {
             blacklist = [];
@@ -314,11 +319,10 @@
             }
         }
         return des;
-    }
+    };
 
-    var dist = global.tbtx ? global.tbtx : jQuery;
     // exports
-    mix(dist, {
+    mix({
         mix: mix,
         isNotEmptyString: isNotEmptyString,
         isArray: isArray,

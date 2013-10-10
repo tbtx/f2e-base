@@ -153,7 +153,7 @@
     }
 
     // 给传入的相对url加上前缀
-    function transformUrl(url) {
+    function normalizeUrl(url) {
         if (/^https?/.test(url)) {
             // do nothing
         } else {        // 相对地址转为绝对地址
@@ -169,7 +169,7 @@
     }
 
     function loadCss(url, callback, charset) {
-        url = transformUrl(url);
+        url = normalizeUrl(url);
         return request(url, callback, charset);
     }
 
@@ -182,7 +182,7 @@
 
             $.each(url, function(index, u) {
 
-                u = transformUrl(u);
+                u = normalizeUrl(u);
                 if (index < length - 1 ) {
                     resolveDate[u] = url[index + 1];
                 }
@@ -198,7 +198,6 @@
         return request(url, callback, charset);
     }
 
-        // $(document).height()
     var pageHeight = function() {
             return $(document).height();
             // return doc.body.scrollHeight;
@@ -233,8 +232,8 @@
         isInView = function(selector, top) {
             top = top || 0;
 
-            var $elem = $(selector);
-            var offset = $elem.offset();
+            var $element = $(selector);
+            var offset = $element.offset();
             if ((viewportHeight() + scrollY()) > (offset.top + top)) {
                 return true;
             } else {
@@ -244,10 +243,10 @@
 
         // 针对absolute or fixed
         adjust = function(selector, isAbsolute, top) {
-            var $elem = $(selector);
+            var $element = $(selector);
 
-            var h = $elem.outerHeight(),
-                w = $elem.outerWidth();
+            var h = $element.outerHeight(),
+                w = $element.outerWidth();
 
             top = typeof top == "number" ? top : "center";
             if (!isAbsolute) {
@@ -269,7 +268,7 @@
                 l = 0;
             }
 
-            $elem.css({
+            $element.css({
                 top: t,
                 left: l
             });
@@ -319,16 +318,7 @@
             }
         };
 
-    var dist,
-        mix;
-    if (global.tbtx) {
-        dist = global.tbtx;
-        mix = dist.mix;
-    } else {
-        dist = jQuery;
-        mix = dist.extend;
-    }
-    mix(dist, {
+    tbtx.mix({
         loadCss: loadCss,
         loadScript: loadScript,
 
