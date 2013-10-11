@@ -1,4 +1,4 @@
-/* tbtx-base-js -- 2013-10-10 */
+/* tbtx-base-js -- 2013-10-11 */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -1169,7 +1169,7 @@
 
             return chain.then(callback);
         }
-        return request(url, callback, charset);
+        return request(normalizeUrl(url), callback, charset);
     }
 
     var pageHeight = function() {
@@ -1312,6 +1312,24 @@
     });
 })(this, jQuery);
 
+
+;(function(global, $) {
+    var doc = document;
+
+    $.extend($.support, {
+        placeholder: 'placeholder' in doc.createElement('input')
+    });
+
+    if (!$.support.placeholder) {
+        /*
+            input, textarea { color: #000; }
+            .placeholder { color: #aaa; }
+         */
+        tbtx.loadScript("base/js/plugin/jquery.placeholder.js", function() {
+            $('input, textarea').placeholder();
+        });
+    }
+})(this, jQuery);
 
 ;(function(global) {
     var location = document.location;

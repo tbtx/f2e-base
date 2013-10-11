@@ -195,7 +195,7 @@
 
             return chain.then(callback);
         }
-        return request(url, callback, charset);
+        return request(normalizeUrl(url), callback, charset);
     }
 
     var pageHeight = function() {
