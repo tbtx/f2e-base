@@ -1,5 +1,7 @@
 (function(global, $) {
     var doc = document,
+        scripts = doc.scripts,
+        loaderScript = scripts[scripts.length - 1],
         de = document.documentElement,
         head = document.getElementsByTagName("head")[0] || de;
 
@@ -152,12 +154,27 @@
         }, 20);
     }
 
+    // 获取脚本的绝对url
+    function getScriptAbsoluteSrc(node) {
+        return node.hasAttribute ? // non-IE6/7
+            node.src :
+            // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
+            node.getAttribute("src", 4);
+    }
+    // file:///E:/tbcdn or a.tbcdn.cn/apps/tbtx
+    function getUrlPrefix() {
+        // tbtx.js所在路径
+        var loaderSrc = getScriptAbsoluteSrc(loaderScript);
+        var arr = loaderSrc.split('/');
+        arr.splice(arr.length - 3);
+        return arr.join('/');
+    }
     // 给传入的相对url加上前缀
     function normalizeUrl(url) {
         if (/^https?/.test(url)) {
             // do nothing
         } else {        // 相对地址转为绝对地址
-            var prefix = "http://a.tbcdn.cn/apps/tbtx";
+            var prefix = getUrlPrefix();
             if (tbtx.startsWith(url, '/')) {
                 url = prefix + url;
             } else {
