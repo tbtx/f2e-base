@@ -45,7 +45,7 @@ var fileUpload = function(url){
 		
 		oe.jObject = $(TPLswap(tpl_file_box, {
 			fid : fid,
-			url : oe.url + '?callFunc=' + oe.callFunc,
+			url : oe.url + (/\?/gi.test(oe.url)?'&':'?')+'callFunc=' + oe.callFunc,
 			target : target
 		}));
 		oe.popup = new tbtx.Popup(oe.jObject,{destoryOnHide:true});

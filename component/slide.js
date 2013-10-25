@@ -1,4 +1,4 @@
-(function(T) {
+(function(T, $) {
     var Class = T.Class;
 
     var Slide = new Class();
@@ -304,9 +304,9 @@
         e.preventDefault();
     })
 
-    T.loadCss("http://a.tbcdn.cn/apps/tbtx/base/css/component/slide.css", function() {
+    T.loadCss("base/css/component/slide.css", function() {
         // 一开始默认data-ride="carousel" 的将自动执行
-        $(window).on('load', function() {
+        $(function() {
             $('[data-ride="slide"]').each(function() {
                 var $element = $(this);
                 $element.Slide($element.data());
@@ -316,4 +316,4 @@
     T.mix(T, {
         Slide: Slide
     });
-})(tbtx);
+})(tbtx, jQuery);

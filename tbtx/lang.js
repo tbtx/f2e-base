@@ -1,4 +1,4 @@
-(function(global) {
+(function(global, $) {
     // 语言扩展
     var toString = Object.prototype.toString,
 
@@ -33,6 +33,18 @@
                 return -1;
         },
 
+        filter = AP.filter ? function(arr, fn, context) {
+            return AP.filter.call(arr, fn, context);
+        } : function(arr, fn, context) {
+            var ret = [];
+            $.each(arr, function(i, item) {
+                if (fn.call(context || this, item, i, arr)) {
+                    ret.push(item);
+                }
+            });
+            return ret;
+        },
+
         hasEnumBug = !({
             toString: 1
         }['propertyIsEnumerable']('toString')),
@@ -45,7 +57,9 @@
             'toLocaleString',
             'valueOf'
         ],
-        keys = function(o) {
+        keys = Object.keys ? function(o) {
+            return Object.keys(o);
+        } : function(o) {
             var ret = [],
                 p,
                 i;
@@ -71,6 +85,63 @@
         endsWith = function(str, suffix) {
             var index = str.length - suffix.length;
             return index >= 0 && str.indexOf(suffix, index) == index;
+        },
+
+         /*
+         * 返回m-n之间的随机数，并取整,
+         * 包括m, 不包括n - floor, ceil相反
+         * 也可以传入数组，随机返回数组某个元素
+         */
+        choice = function(m, n) {
+            var array,
+                random;
+            if (isArray(m)) {
+                array = m;
+                m = 0;
+                n = array.length;
+            }
+            var tmp;
+            if (m > n) {
+                tmp = m;
+                m = n;
+                n = tmp;
+            }
+
+            random = Math.floor(Math.random() * (n-m) + m);
+            if (array) {
+                return array[random];
+            }
+            return random;
+        },
+
+        /*
+         * http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+         * 洗牌算法
+         * 多次运行测试是否足够随机
+         * test code: https://gist.github.com/4507739
+         */
+        shuffle = function(array) {
+            if (!isArray(array)) {
+                return [];
+            }
+
+            var length = array.length,
+                temp,
+                i = length,
+                j;
+
+            if (length === 0) {
+                return [];
+            }
+
+            while (i > 1) {
+                i = i - 1;
+                j = choice(0, i);
+                temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
         },
 
         // oo实现
@@ -170,6 +241,9 @@
         // based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
         substitute = function(str, o, regexp) {
             if (!isString(str)) {
+                return str;
+            }
+            if ( !($.isPlainObject(o) || isArray(o)) ) {
                 return str;
             }
             return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
@@ -328,9 +402,12 @@
         isArray: isArray,
         inArray: inArray,
         indexOf: indexOf,
+        filter: filter,
         keys: keys,
         startsWith: startsWith,
         endsWith: endsWith,
+        choice: choice,
+        shuffle: shuffle,
         Class: Class,
         Now: Now,
         throttle: throttle,
@@ -341,4 +418,4 @@
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(this);
+})(this, jQuery);

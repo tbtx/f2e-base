@@ -163,10 +163,14 @@
     }
     // file:///E:/tbcdn or a.tbcdn.cn/apps/tbtx
     function getUrlPrefix() {
-        // tbtx.js所在路径
+        // tbtx.js所在路径, 当使用requestjs去加载时将是页面js的src
         var loaderSrc = getScriptAbsoluteSrc(loaderScript);
+        if (!/tbtx\.js/.test(loaderSrc)) {
+            return "http://a.tbcdn.cn/apps/tbtx";
+        }
         var arr = loaderSrc.split('/');
-        arr.splice(arr.length - 3);
+        arr.splice(arr.length - 3, 3);  // delete base js tbtx.js
+
         return arr.join('/');
     }
     // 给传入的相对url加上前缀
@@ -187,6 +191,7 @@
 
     function loadCss(url, callback, charset) {
         url = normalizeUrl(url);
+
         return request(url, callback, charset);
     }
 
@@ -201,7 +206,7 @@
 
                 u = normalizeUrl(u);
                 if (index < length - 1 ) {
-                    resolveDate[u] = url[index + 1];
+                    resolveDate[u] = normalizeUrl(url[index + 1]);
                 }
                 if (chain) {
                     chain = chain.then(request);
@@ -250,6 +255,11 @@
             top = top || 0;
 
             var $element = $(selector);
+
+            if (top == "center") {
+                top = (viewportHeight() - $element.innerHeight())/2;
+            }
+
             var offset = $element.offset();
             if ((viewportHeight() + scrollY()) > (offset.top + top)) {
                 return true;

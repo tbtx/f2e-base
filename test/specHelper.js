@@ -8,12 +8,12 @@ beforeEach(function() {
 	// 	}
 	// });
 
-	// this.addMatchers({
-	// 	toBeBetween: function(m, n) {
-	// 		this.message = function() {
-	// 			return "Expected " + this.actual + " to be >=m & < n";
-	// 		};
-	// 		return this.actual >= m && this.actual < n;
-	// 	}
-	// });
+	this.addMatchers({
+		toBeBetween: function(m, n) {
+			this.message = function() {
+				return "Expected " + this.actual + " to be >=" + m + " & < " + n;
+			};
+			return this.actual >= m && this.actual < n;
+		}
+	});
 });

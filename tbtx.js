@@ -1,4 +1,4 @@
-/* tbtx-base-js -- 2013-10-12 */
+/* tbtx-base-js -- 2013-10-25 */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -62,7 +62,7 @@
 })(this, 'tbtx');
 
 
-;(function(global) {
+;(function(global, $) {
     // 语言扩展
     var toString = Object.prototype.toString,
 
@@ -97,6 +97,18 @@
                 return -1;
         },
 
+        filter = AP.filter ? function(arr, fn, context) {
+            return AP.filter.call(arr, fn, context);
+        } : function(arr, fn, context) {
+            var ret = [];
+            $.each(arr, function(i, item) {
+                if (fn.call(context || this, item, i, arr)) {
+                    ret.push(item);
+                }
+            });
+            return ret;
+        },
+
         hasEnumBug = !({
             toString: 1
         }['propertyIsEnumerable']('toString')),
@@ -109,7 +121,9 @@
             'toLocaleString',
             'valueOf'
         ],
-        keys = function(o) {
+        keys = Object.keys ? function(o) {
+            return Object.keys(o);
+        } : function(o) {
             var ret = [],
                 p,
                 i;
@@ -135,6 +149,63 @@
         endsWith = function(str, suffix) {
             var index = str.length - suffix.length;
             return index >= 0 && str.indexOf(suffix, index) == index;
+        },
+
+         /*
+         * 返回m-n之间的随机数，并取整,
+         * 包括m, 不包括n - floor, ceil相反
+         * 也可以传入数组，随机返回数组某个元素
+         */
+        choice = function(m, n) {
+            var array,
+                random;
+            if (isArray(m)) {
+                array = m;
+                m = 0;
+                n = array.length;
+            }
+            var tmp;
+            if (m > n) {
+                tmp = m;
+                m = n;
+                n = tmp;
+            }
+
+            random = Math.floor(Math.random() * (n-m) + m);
+            if (array) {
+                return array[random];
+            }
+            return random;
+        },
+
+        /*
+         * http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+         * 洗牌算法
+         * 多次运行测试是否足够随机
+         * test code: https://gist.github.com/4507739
+         */
+        shuffle = function(array) {
+            if (!isArray(array)) {
+                return [];
+            }
+
+            var length = array.length,
+                temp,
+                i = length,
+                j;
+
+            if (length === 0) {
+                return [];
+            }
+
+            while (i > 1) {
+                i = i - 1;
+                j = choice(0, i);
+                temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
         },
 
         // oo实现
@@ -234,6 +305,9 @@
         // based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
         substitute = function(str, o, regexp) {
             if (!isString(str)) {
+                return str;
+            }
+            if ( !($.isPlainObject(o) || isArray(o)) ) {
                 return str;
             }
             return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
@@ -392,9 +466,12 @@
         isArray: isArray,
         inArray: inArray,
         indexOf: indexOf,
+        filter: filter,
         keys: keys,
         startsWith: startsWith,
         endsWith: endsWith,
+        choice: choice,
+        shuffle: shuffle,
         Class: Class,
         Now: Now,
         throttle: throttle,
@@ -405,7 +482,7 @@
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(this);
+})(this, jQuery);
 
 
 ;(function(global) {
@@ -487,6 +564,94 @@
         jQuery.cookie = cookie;
     }
 })(this);
+
+
+;(function($) {
+    var isNotEmptyString = tbtx.isNotEmptyString;
+
+    function isType(type) {
+        return function(obj) {
+            return {}.toString.call(obj) == "[object " + type + "]";
+        };
+    }
+    var isDate = isType("Date");
+
+    /*
+     * 将日期格式化成字符串
+     *  Y - 4位年
+     *  y - 2位年
+     *  M - 不补0的月,
+     *  m - 补0的月
+     *  D - 不补0的日期
+     *  d - 补0的日期
+     *  H - 不补0的小时
+     *  h - 补0的小时
+     *  I - 不补0的分
+     *  i - 补0的分
+     *  S - 不补0的秒
+     *  s - 补0的秒
+     *  毫秒暂不支持
+     *  @return：指定格式的字符串
+     */
+    function formatDate(format, date) {
+        format = format || "Y-m-d h:i:s";
+
+        var o = normalizeDate(date);
+        var i;
+
+        var ret = format;
+        for (i in o) {
+            ret = ret.replace(i, o[i]);
+        }
+        return ret;
+    }
+
+    // date转对象
+    function normalizeDate(date) {
+        date = toDate(date);
+
+        var o = {
+            Y: date.getFullYear(),
+            M: date.getMonth() + 1,
+            D: date.getDate(),
+            H: date.getHours(),
+            I: date.getMinutes(),
+            S: date.getSeconds()
+        };
+
+        // 补0
+        var i,
+            key;
+        for(i in o) {
+            key = i.toLowerCase();
+            if (key == 'y') {
+                o[key] = o[i].toString().substring(2, 4);
+            } else {
+                o[key] = o[i] < 10 ? ("0" + o[i]) : o[i];
+            }
+        }
+
+        return o;
+    }
+
+    // 字符串/数字 -> Date
+    function toDate(date) {
+        if (isDate(date)) {
+            return date;
+        }
+        var type = typeof date;
+        if (type == 'number' || type == 'string') {
+            return new Date(date);
+        } else{
+            return new Date();
+        }
+    }
+
+    tbtx.mix({
+        normalizeDate: normalizeDate,
+        formatDate: formatDate
+    });
+})(jQuery);
 
 
 ;(function(global) {
@@ -962,7 +1127,7 @@
     };
 
     detector.mobile = decideMobile(userAgent);
-    
+
     tbtx.mix({
         detector: detector,
         decideMobile: decideMobile,
@@ -1137,10 +1302,14 @@
     }
     // file:///E:/tbcdn or a.tbcdn.cn/apps/tbtx
     function getUrlPrefix() {
-        // tbtx.js所在路径
+        // tbtx.js所在路径, 当使用requestjs去加载时将是页面js的src
         var loaderSrc = getScriptAbsoluteSrc(loaderScript);
+        if (!/tbtx\.js/.test(loaderSrc)) {
+            return "http://a.tbcdn.cn/apps/tbtx";
+        }
         var arr = loaderSrc.split('/');
-        arr.splice(arr.length - 3);
+        arr.splice(arr.length - 3, 3);  // delete base js tbtx.js
+
         return arr.join('/');
     }
     // 给传入的相对url加上前缀
@@ -1161,6 +1330,7 @@
 
     function loadCss(url, callback, charset) {
         url = normalizeUrl(url);
+
         return request(url, callback, charset);
     }
 
@@ -1175,7 +1345,7 @@
 
                 u = normalizeUrl(u);
                 if (index < length - 1 ) {
-                    resolveDate[u] = url[index + 1];
+                    resolveDate[u] = normalizeUrl(url[index + 1]);
                 }
                 if (chain) {
                     chain = chain.then(request);
@@ -1224,6 +1394,11 @@
             top = top || 0;
 
             var $element = $(selector);
+
+            if (top == "center") {
+                top = (viewportHeight() - $element.innerHeight())/2;
+            }
+
             var offset = $element.offset();
             if ((viewportHeight() + scrollY()) > (offset.top + top)) {
                 return true;
@@ -1337,43 +1512,75 @@
         placeholder: 'placeholder' in doc.createElement('input')
     });
 
-    if (!$.support.placeholder) {
-        /*
-            input, textarea { color: #000; }
-            .placeholder { color: #aaa; }
-         */
-        tbtx.loadScript("base/js/plugin/jquery.placeholder.js", function() {
-            $('input, textarea').placeholder();
-        });
-    }
+    // fix placeholder
+    $(function() {
+        if (!$.support.placeholder) {
+            /*
+                input, textarea { color: #000; }
+                .placeholder { color: #aaa; }
+             */
+            tbtx.loadScript("base/js/plugin/jquery.placeholder.js", function() {
+                $('input, textarea').placeholder();
+            });
+        }
+    });
+
+    // fix ie6 position [data-fixed-position]
+    $(function() {
+        if (!tbtx.isIE6) {
+            return;
+        }
+        var $elements = $('[data-fixed-position]');
+        if ($elements.length) {
+            $(window).on('resize scroll', function() {
+                $elements.each(function(index, el) {
+                    var $element = $(el);
+                    var data = $element.data();
+                    var pos = data["fixedPosition"];
+
+                    var i,
+                        ret = {};
+
+                    if (pos) {
+                        for (i in pos) {
+                            // 不跳转left和right, 统一将bottom和top设置为top
+                            if (i == 'top') {
+                                ret[i] = pos[i] + tbtx.scrollY();
+                            }
+
+                            if (i == 'bottom') {
+                                ret['top'] = tbtx.scrollY() + tbtx.viewportHeight() - pos[i] - $element.innerWidth();
+                            }
+                        }
+                        $element.css(ret);
+                    }
+                });
+            });
+        }
+    });
 })(this, jQuery);
 
 ;(function(global, $) {
     var itemTemplate = '<p class="tbtx-msg-item tbtx-msg-{{ type }}">{{ msg }}</p>',
         containerTemplate = '<div id="tbtx-msg"></div>';
 
-    var ua = (window.navigator.userAgent || "").toLowerCase(), 
+    var ua = (window.navigator.userAgent || "").toLowerCase(),
         isIE6 = ua.indexOf("msie 6") !== -1;
 
     var MSG = tbtx.MSG = {
-        last: 6000,     // item持续时间
-        duration: 200,
-        timer: null,
+        last: 10000,     // item持续时间
+        duration: 200,  // 动画时间
+        isInited: false,
 
         init: function() {
             var self = this;
-            if (!this.$container) {
-                this.$container = $(containerTemplate).appendTo('body').on('mouseover', 'p', function() {
-                    self.clearItem($(this));
-                });
+            this.$container = $(containerTemplate).appendTo('body').on('click', 'p', function() {
+                self.clearItem($(this));
+            });
 
-                tbtx.loadCss("base/css/msg.css");
-                if (isIE6) {
-                    this.on();
-                }
-            }
+            tbtx.loadCss("base/css/msg.css");
+            self.isInited = true;
 
-            this.$container.show();
         },
         // IE6调整位置
         pin: function() {
@@ -1382,14 +1589,21 @@
                 top: tbtx.scrollY() + tbtx.viewportHeight() - 24 - self.$container.height()
             });
         },
-        on: function() {
+
+        show: function() {
             var self = this;
-            $(window).on('resize scroll', self.pin);
+            self.$container.show();
+            if (isIE6) {
+                $(window).on('resize scroll', self.pin);
+            }
         },
 
-        off: function() {
+        hide: function() {
             var self = this;
-            $(window).off('resize scroll', self.pin);
+            self.$container.hide();
+            if (isIE6) {
+                $(window).off('resize scroll', self.pin);
+            }
         },
 
         // 清除某条消息
@@ -1397,40 +1611,36 @@
             var width = $item.width();
             var self = this;
 
-            if (last) {
-                $item.delay(last).animate({
-                    left: -width,
-                    opacity: 0
-                }, self.duration, function() {
-                    $item.remove();
-                });
-            } else {
+            $item.animate({
+                left: -width,
+                opacity: 0
+            }, self.duration, function() {
                 $item.remove();
-            }
-
-            clearTimeout(self.timer);
-            self.timer = setTimeout(self.checkItems, (last || self.duration) + 200);
+                self.checkItems();
+            });
         },
 
         // 检测是否还有消息, 隐藏消息container
         checkItems: function() {
             var self = MSG;
             if (!self.$container.find('p').length) {
-                self.$container.hide();
-                if (isIE6) {
-                    this.off();
-                }
+                self.hide();
             }
         },
         item: function(msg, type) {
             var self = this;
-            self.init();
+            if (!self.isInited) {
+                self.init();
+            }
 
+            self.show();
             var html = tbtx.substitute(itemTemplate, {
                 type: type,
                 msg: msg
             });
             var $item = $(html).appendTo(self.$container);
+
+            // 最多存在10条消息
             var $items = self.$container.children('p');
             if ($items.length > 10) {
                 self.clearItem($items.first());
@@ -1444,7 +1654,9 @@
                 left: 0,
                 opacity: 1
             }, self.duration, function() {
-                self.clearItem($item, self.last);
+                setTimeout(function() {
+                    self.clearItem($item);
+                }, self.last);
             });
         }
     };
@@ -1477,6 +1689,7 @@
 
     var path = {
         getuserinfo:  baseUrl + 'interface/getuserinfo.htm',
+        getlogininfo: baseUrl + 'interface/getlogininfo.htm',       // 临时登陆状态判断
         taobao_login_page : baseUrl + 'applogin.htm'
     };
 
@@ -1497,10 +1710,11 @@
     };
 
     var userCheckAjax;
-    var userCheck = function(callSuccess, callFailed) {
+    // 默认使用登陆接口，某些操作使用临时登陆状态即可
+    var userCheck = function(callSuccess, callFailed, isTemp) {
         userCheckAjax = userCheckAjax || $.ajax({
             type: "POST",
-            url: tbtx.path.getuserinfo,
+            url: isTemp ?  tbtx.path.getlogininfo : tbtx.path.getuserinfo,
             dataType: 'json',
             data: {},
             timeout: 5000

@@ -471,7 +471,7 @@
     };
 
     detector.mobile = decideMobile(userAgent);
-    
+
     tbtx.mix({
         detector: detector,
         decideMobile: decideMobile,

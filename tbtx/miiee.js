@@ -7,10 +7,11 @@
     };
 
     var userCheckAjax;
-    var userCheck = function(callSuccess, callFailed) {
+    // 默认使用登陆接口，某些操作使用临时登陆状态即可
+    var userCheck = function(callSuccess, callFailed, isTemp) {
         userCheckAjax = userCheckAjax || $.ajax({
             type: "POST",
-            url: tbtx.path.getuserinfo,
+            url: isTemp ?  tbtx.path.getlogininfo : tbtx.path.getuserinfo,
             dataType: 'json',
             data: {},
             timeout: 5000

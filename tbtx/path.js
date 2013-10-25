@@ -17,6 +17,7 @@
 
     var path = {
         getuserinfo:  baseUrl + 'interface/getuserinfo.htm',
+        getlogininfo: baseUrl + 'interface/getlogininfo.htm',       // 临时登陆状态判断
         taobao_login_page : baseUrl + 'applogin.htm'
     };
 

@@ -1,4 +1,4 @@
-/* overlay.popup -- 2013-10-12 */
+/* overlay.popup -- 2013-10-25 */
 (function($) {
     var T = tbtx,
         substitute = T.substitute,
@@ -204,6 +204,12 @@
 				callback = effect;
 				effect = undefined;
 			}
+
+            if (this.beforeHide && isFunction(this.beforeHide)) {
+                if (!this.beforeHide()) {
+                    return;
+                }
+            }
 
 			if (effect && isString(effect)) {
 				this.$element[effect]({

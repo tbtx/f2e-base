@@ -1,7 +1,9 @@
 describe('seed', function() {
 	describe("log", function() {
 		it("should get the log info if the console.log exists", function(){
-			console.log('tbtx');
+			tbtx.log('tbtx');
+			tbtx.log('tbtx', 'debug');
+			tbtx.log('tbtx', 'debug', 'src');
 		});
 	});
 

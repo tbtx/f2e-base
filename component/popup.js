@@ -88,6 +88,12 @@
 				effect = undefined;
 			}
 
+            if (this.beforeHide && isFunction(this.beforeHide)) {
+                if (!this.beforeHide()) {
+                    return;
+                }
+            }
+
 			if (effect && isString(effect)) {
 				this.$element[effect]({
 					complete: callback
