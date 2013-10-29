@@ -30,6 +30,8 @@
 		init: function(selector, options) {
 
 			this.options = $.extend(true, {}, defaults, options);
+
+            this.selector = selector;
 			this.$element = $(selector);
 
 			// html append to body
@@ -76,7 +78,11 @@
 			}
 
 			var self = this;
-			setTimeout(function () { self.$element.trigger('tbtx.popup.show') }, 0);
+			setTimeout(function () {
+                self.$element.trigger('tbtx.popup.show', {
+                    selector: self.selector
+                });
+            }, 0);
 
 			this.on();
 
@@ -90,7 +96,7 @@
 
             if (this.beforeHide && isFunction(this.beforeHide)) {
                 if (!this.beforeHide()) {
-                    return;
+                    return false;
                 }
             }
 
@@ -103,7 +109,11 @@
 				isFunction(callback) && callback();
 			}
 			var self = this;
-			setTimeout(function () { self.$element.trigger('tbtx.popup.hide') }, 0);
+			setTimeout(function () {
+                self.$element.trigger('tbtx.popup.hide', {
+                    selector: self.selector
+                });
+            }, 0);
 
 			if (this.overlay) {
 				this.overlay.hide(effect);
@@ -114,6 +124,8 @@
 			if (this.options.destoryOnHide) {
 				this.$element.remove();
 			}
+            // ie 下 a标签
+            return false;
 		},
 
 		adjust: function() {
