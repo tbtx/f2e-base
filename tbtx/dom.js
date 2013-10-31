@@ -314,7 +314,7 @@
                     return;
                 }
 
-                conent = conent.slice(0, max) + suffix;
+                conent = conent.slice(0, max - suffix.length) + suffix;
                 $element.text(conent);
             });
         },

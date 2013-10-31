@@ -192,7 +192,8 @@
                     included(klass);
                 }
             };
-
+            // 让类去实现其他接口
+            klass.Implements = Implements;
             return klass;
 
         },
@@ -367,6 +368,18 @@
             reverseEntities[htmlEntities[k]] = k;
         }
     })();
+
+    function Implements(items) {
+        if (!isArray(items)) {
+            items = [items];
+        }
+        var proto = this.fn || this.prototype,
+            item = items.shift();
+        while(item) {
+            mix(proto, item.prototype || item, ['prototype']);
+            item = items.shift();
+        }
+    }
 
     var mix = tbtx.mix = function(des, source, blacklist, over) {
         var i;

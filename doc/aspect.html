@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aspect</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>tbtx.Aspect</h2>
+
+<p>需要与tbtx.Events tbtx.Class配合使用</p>
+
+<p>在调用某个方法前后注入方法</p>
+
+<p>例如：/p>
+
+<pre><code>
+    var Overlay = new Class;
+    Overlay.Implements([tbtx.Events, tbtx.Aspect]);
+
+    var o = new Overlay();
+    // 在Overlay的show方法之前调用该方法，如果return false则show方法不会调用
+    o.before("show", function() {
+        console.log('before show');
+        return false;
+    });
+</code></pre>
+
+<p>想让某个对象拥有事件能力:</p>
+
+<pre><code>
+    tbtx.Events.mixTo(o)
+</code></pre>
+
+<p>优先向o.prototype复制， 其次是o</p>
+
+<p>默认 tbtx.Events.mixTo(tbtx)</p>
+
+<p>也就是tbtx下面有了on/off/trigger三个方法</p>
+</body>
+</html>

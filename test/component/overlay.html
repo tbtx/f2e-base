@@ -14,18 +14,6 @@
 	body {
 		background: #39c;
 	}
-
-	.overlay {
-		position:absolute;
-		top:0;
-		left:0;
-		right:0;
-		bottom:0;
-		background-color:rgba(0, 0, 0, 0.85);
-		background: url(data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAABl0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjUuNUmK/OAAAAATSURBVBhXY2RgYNgHxGAAYuwDAA78AjwwRoQYAAAAAElFTkSuQmCC) repeat scroll transparent\9; /* ie fallback png background image */
-		z-index:9999;
-		color:white;
-	}
 	</style>
 </head>
 <body>
@@ -137,14 +125,18 @@
 	var o = new tbtx.Overlay({
 
 	});
-	// o.show();
+	o.on("abc", function() {
+		console.log('event');
+	});
+	o.trigger("abc");
+	o.show();
 
-	$('body').on('tbtx.overlay.show', function() {
-		console.log('show');
-	});
-	$('body').on('tbtx.overlay.hide', function() {
-		console.log('hide');
-	});
+	// $('body').on('tbtx.overlay.show', function() {
+	// 	console.log('show');
+	// });
+	// $('body').on('tbtx.overlay.hide', function() {
+	// 	console.log('hide');
+	// });
 	</script>
 </body>
 </html>

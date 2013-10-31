@@ -1,9 +1,10 @@
-(function(T) {
-	var throttle = T.throttle,
-        Class = T.Class,
-        Overlay = T.Overlay,
-        adjust = T.adjust,
-        detector = T.detector,
+(function($, global) {
+	var tbtx = global.tbtx,
+        throttle = tbtx.throttle,
+        Class = tbtx.Class,
+        Overlay = tbtx.Overlay,
+        adjust = tbtx.adjust,
+        detector = tbtx.detector,
         isNotSupportFixed = detector.browser.ie && detector.browser.version < 7;
 
 	var defaults = {
@@ -25,13 +26,13 @@
     	isString = isType("String");
 
 	var Popup = new Class;
+    Popup.Implements([tbtx.Events, tbtx.Aspect]);
 
 	Popup.include({
 		init: function(selector, options) {
+            this.config(options);
 
-			this.options = $.extend(true, {}, defaults, options);
-
-            this.selector = selector;
+            this.mask = '';     // 标示popup，在事件里作为数据传递
 			this.$element = $(selector);
 
 			// html append to body
@@ -47,10 +48,18 @@
 
 			// 在事件处理程序中使用this
             this.adjustProxy = this.proxy(throttle(this.adjust));
-            this.hideProxy  = this.proxy(this.hide);
 		},
 
+        config: function(options) {
+            this.options = $.extend(true, {}, defaults, options);
+        },
+
 		show: function(effect, callback) {
+            // 不能像overlay那样通过是否在dom里来判断是否显示
+            if (this.visibile) {
+                return;
+            }
+            this.visibile = true;
 			// show(function)
 			if (effect && isFunction(effect)) {
 				callback = effect;
@@ -80,25 +89,25 @@
 			var self = this;
 			setTimeout(function () {
                 self.$element.trigger('tbtx.popup.show', {
-                    selector: self.selector
+                    mask: self.mask
                 });
+
             }, 0);
 
-			this.on();
+			this.bind();
 
 		},
 
 		hide: function(effect, callback) {
+            if (!this.visibile) {
+                return;
+            }
+            this.visibile = false;
+
 			if (effect && isFunction(effect)) {
 				callback = effect;
 				effect = undefined;
 			}
-
-            if (this.beforeHide && isFunction(this.beforeHide)) {
-                if (!this.beforeHide()) {
-                    return false;
-                }
-            }
 
 			if (effect && isString(effect)) {
 				this.$element[effect]({
@@ -111,7 +120,7 @@
 			var self = this;
 			setTimeout(function () {
                 self.$element.trigger('tbtx.popup.hide', {
-                    selector: self.selector
+                    mask: self.mask
                 });
             }, 0);
 
@@ -119,7 +128,7 @@
 				this.overlay.hide(effect);
 			}
 
-			this.off();
+			this.unbind();
 
 			if (this.options.destoryOnHide) {
 				this.$element.remove();
@@ -133,13 +142,14 @@
             adjust(this.$element, isNotSupportFixed, this.options.top);
 		},
 
-		on: function() {
+		bind: function() {
+            this.hideProxy  = this.proxy(this.hide);
             this.$element.on('click', '.J-popup-close', this.hideProxy);
             this.$element.on('click', '.close', this.hideProxy);
 			$(window).on('scroll resize', this.adjustProxy);
 		},
 
-		off: function() {
+		unbind: function() {
             this.$element.off('click', '.J-popup-close', this.hideProxy);
             this.$element.off('click', '.close', this.hideProxy);
 			$(window).off('scroll resize', this.adjustProxy);
@@ -152,7 +162,5 @@
     	return $(this).data('tbtx.pop') || new Popup(this, options);
     };
 
-    T.mix(T, {
-    	Popup: Popup
-    });
-})(tbtx);
+    tbtx.Popup = Popup;
+})(jQuery, this);

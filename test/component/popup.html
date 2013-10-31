@@ -34,6 +34,7 @@
 	
 	<div id="pop">
 		asfasfasfasfasf
+		<a href="javascript:;" class="J-popup-close">X</a>
 	</div>
 
 	<div id="pop-2">pop-2</div>
@@ -46,15 +47,14 @@
 	// });
 	var p = new tbtx.Popup('#pop', {
 	});
-	// p.show(function() {
 
-	// });
-
-	var p2 = new tbtx.Popup('#pop-2', {
+	p.before('hide', function() {
+		console.log("hide");
+		return false;
 	});
-	// p2.show(function() {
-	// 	// alert(123);
-	// });
+	p.show();
+
+
 	$('#pop').on('tbtx.popup.show', function() {
 		console.log('tbtx.popup.show');
 	}).on('tbtx.popup.hide', function() {
