@@ -251,17 +251,24 @@
         },
 
         // 距离top多少px才算inView
+        // 元素是否出现在视口内
         isInView = function(selector, top) {
             top = top || 0;
 
             var $element = $(selector);
 
+            var portHeight = viewportHeight(),
+                elementHeight = $element.innerHeight();
+
             if (top == "center") {
-                top = (viewportHeight() - $element.innerHeight())/2;
+                top = (portHeight - elementHeight)/2;
             }
 
-            var offset = $element.offset();
-            if ((viewportHeight() + scrollY()) > (offset.top + top)) {
+            var offset = $element.offset(),
+                base = portHeight + scrollY(), // 视口低端所在top
+                pos = offset.top + top;         // 元素所在top
+
+            if ( (base > pos) && (base < pos + elementHeight + portHeight)) {
                 return true;
             } else {
                 return false;

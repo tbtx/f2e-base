@@ -1,4 +1,7 @@
-/* overlay.popup -- 2013-10-31 */
+/*
+ * overlay.popup
+ * 2013-11-01 11:28:21
+ */
 (function($, global) {
     var tbtx = global.tbtx,
         substitute = tbtx.substitute,

@@ -18,7 +18,7 @@ module.exports = function(grunt) {
         concat: {
             options: {
                 separator: '\n\n;',
-                banner: '/* <%= pkg.name %> -- <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+                banner: '/*\n * <%= pkg.name %>\n * <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
             },
             common: {
                 src: ['tbtx/seed.js', 'tbtx/lang.js', 'tbtx/events.js', 'tbtx/aspect.js', 'tbtx/cookie.js', 'tbtx/date.js', 'tbtx/detector.js', 'tbtx/dom.js', 'tbtx/support.js', 'tbtx/msg.js', 'tbtx/path.js', 'tbtx/miiee.js'],
@@ -26,7 +26,7 @@ module.exports = function(grunt) {
             },
             popup: {
                 options: {
-                    banner: '/* overlay.popup -- <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+                    banner: '/*\n * overlay.popup\n * <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n */\n'
                 },
                 src: ['component/overlay.js', 'component/popup.js'],
                 dest: 'component/overlay.popup.js'

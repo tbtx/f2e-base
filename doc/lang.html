@@ -8,8 +8,6 @@
 <body>
 <h2 id="api">API</h2>
 
-<p>该文件无依赖，可单独使用，如果没有tbtx，则将接口暴露到jQuery，可以通过jQuery.startsWith这样访问</p>
-
 <ul>
 <li><a href="#mix">mix(des, source, blacklist, over)</a>
     <p>类似于$.extend,浅拷贝</p>
@@ -44,10 +42,10 @@
 
 <li>
     <a href="#choice">choice(m, n)</a>
-    <p>返回m-n之间的随机数，并取整</p>
+    <p>返回m-n之间的随机数，并取整, 也可以直接传入一个数组，随机一个数组元素返回</p>
 </li>
 <li>
-    <a href="#shuffle">shuffle</a>
+    <a href="#shuffle">shuffle(arr)</a>
     <p>数组随机重排序</p>
 </li>
 

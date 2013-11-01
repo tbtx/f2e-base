@@ -1,5 +1,7 @@
 {
   "name": "tbtx-base-js",
+  "author": "十一_tbtx",
+  "email": "zenxds@gmail.com",
   "version": "0.1.0",
   "devDependencies": {
     "grunt": "~0.4.1",

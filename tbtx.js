@@ -1,4 +1,9 @@
-/* tbtx-base-js -- 2013-10-31 */
+/*
+ * tbtx-base-js
+ * 2013-11-01 11:28:21
+ * 十一_tbtx
+ * zenxds@gmail.com
+ */
 (function(global, tbtx) {
 
     global[tbtx] = {
@@ -63,6 +68,8 @@
 
 
 ;(function(global, $) {
+    var exports = global.tbtx;
+
     // 语言扩展
     var toString = Object.prototype.toString,
 
@@ -84,14 +91,24 @@
             return indexOf(arr, item) > -1;
         },
 
+        // 修正IE7以下字符串不支持下标获取字符
         indexOf = AP.indexOf ?
             function(arr, item) {
                 return arr.indexOf(item);
         } :
             function(arr, item) {
-                for (var i = 0; i < arr.length; i++) {
-                    if (arr[i] === item) {
-                        return i;
+                var i;
+                if (typeof arr == 'string') {
+                    for (i = 0; i < arr.length; i++) {
+                        if (arr.charAt(i) === item) {
+                            return i;
+                        }
+                    }
+                } else {
+                    for (i = 0; i < arr.length; i++) {
+                        if (arr[i] === item) {
+                            return i;
+                        }
                     }
                 }
                 return -1;
@@ -437,15 +454,19 @@
         if (!isArray(items)) {
             items = [items];
         }
-        var proto = this.fn || this.prototype,
+        var proto = this.prototype || this,
             item = items.shift();
         while(item) {
             mix(proto, item.prototype || item, ['prototype']);
             item = items.shift();
         }
     }
+    function classify(cls) {
+        cls.Implements = Implements;
+        return cls;
+    }
 
-    var mix = tbtx.mix = function(des, source, blacklist, over) {
+    var mix = exports.mix = function(des, source, blacklist, over) {
         var i;
         if (!des || des === source) {
             return des;
@@ -453,7 +474,7 @@
         // 扩展自身
         if (!source) {
             source = des;
-            des = tbtx;
+            des = exports;
         }
         if (!blacklist) {
             blacklist = [];
@@ -475,6 +496,7 @@
     // exports
     mix({
         mix: mix,
+        classify: classify,
         isNotEmptyString: isNotEmptyString,
         isArray: isArray,
         inArray: inArray,
@@ -806,20 +828,25 @@
             I: date.getMinutes(),
             S: date.getSeconds()
         };
+        var ret = {},
+            i;
+        // for in o的时候如果再对o赋值，在IE7下有bug
+        for(i in o) {
+            ret[i] = o[i];
+        }
 
         // 补0
-        var i,
-            key;
+        var key;
         for(i in o) {
             key = i.toLowerCase();
             if (key == 'y') {
-                o[key] = o[i].toString().substring(2, 4);
+                ret[key] = o[i].toString().substring(2, 4);
             } else {
-                o[key] = o[i] < 10 ? ("0" + o[i]) : o[i];
+                ret[key] = o[i] < 10 ? ("0" + o[i]) : o[i];
             }
         }
 
-        return o;
+        return ret;
     }
 
     // 字符串/数字 -> Date
@@ -1578,17 +1605,24 @@
         },
 
         // 距离top多少px才算inView
+        // 元素是否出现在视口内
         isInView = function(selector, top) {
             top = top || 0;
 
             var $element = $(selector);
 
+            var portHeight = viewportHeight(),
+                elementHeight = $element.innerHeight();
+
             if (top == "center") {
-                top = (viewportHeight() - $element.innerHeight())/2;
+                top = (portHeight - elementHeight)/2;
             }
 
-            var offset = $element.offset();
-            if ((viewportHeight() + scrollY()) > (offset.top + top)) {
+            var offset = $element.offset(),
+                base = portHeight + scrollY(), // 视口低端所在top
+                pos = offset.top + top;         // 元素所在top
+
+            if ( (base > pos) && (base < pos + elementHeight + portHeight)) {
                 return true;
             } else {
                 return false;
@@ -1878,7 +1912,8 @@
     var path = {
         getuserinfo:  baseUrl + 'interface/getuserinfo.htm',
         getlogininfo: baseUrl + 'interface/getlogininfo.htm',       // 临时登陆状态判断
-        taobao_login_page : baseUrl + 'applogin.htm'
+        taobao_login_page : baseUrl + 'applogin.htm',
+        login: baseUrl + 'applogin.htm'+ "?ref=" + encodeURIComponent(location.href)
     };
 
 

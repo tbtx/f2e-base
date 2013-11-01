@@ -33,6 +33,21 @@ describe('lang', function() {
 		});
 	});
 
+	describe('classify', function() {
+		it("should get a Implements method", function() {
+			var o = {};
+			tbtx.classify(o);
+			expect("Implements" in o).toBeTruthy();
+
+			o.Implements([tbtx.Events, tbtx.Aspect]);
+			expect("before" in o).toBeTruthy();
+			expect("after" in o).toBeTruthy();
+			expect("on" in o).toBeTruthy();
+			expect("off" in o).toBeTruthy();
+			expect("trigger" in o).toBeTruthy();
+		});
+	});
+
 	describe('isNotEmptyString', function() {
 		it("should be true if the param is string and is not empty", function() {
 			expect(tbtx.isNotEmptyString('abc')).toBeTruthy();
@@ -54,7 +69,6 @@ describe('lang', function() {
 		it("should get the index of the param in the array", function() {
 			var array = [1, 2, 3, 4, 5];
 			expect(tbtx.indexOf(array, 1)).toBe(0);
-			expect(tbtx.indexOf('abc', 'b')).toBe(1);
 		});
 	});
 

@@ -50,20 +50,25 @@
             I: date.getMinutes(),
             S: date.getSeconds()
         };
+        var ret = {},
+            i;
+        // for in o的时候如果再对o赋值，在IE7下有bug
+        for(i in o) {
+            ret[i] = o[i];
+        }
 
         // 补0
-        var i,
-            key;
+        var key;
         for(i in o) {
             key = i.toLowerCase();
             if (key == 'y') {
-                o[key] = o[i].toString().substring(2, 4);
+                ret[key] = o[i].toString().substring(2, 4);
             } else {
-                o[key] = o[i] < 10 ? ("0" + o[i]) : o[i];
+                ret[key] = o[i] < 10 ? ("0" + o[i]) : o[i];
             }
         }
 
-        return o;
+        return ret;
     }
 
     // 字符串/数字 -> Date
