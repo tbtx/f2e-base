@@ -252,6 +252,7 @@
 
         // 距离top多少px才算inView
         // 元素是否出现在视口内
+        // 超出也不在view
         isInView = function(selector, top) {
             top = top || 0;
 
@@ -265,7 +266,7 @@
             }
 
             var offset = $element.offset(),
-                base = portHeight + scrollY(), // 视口低端所在top
+                base = portHeight + scrollY(), // 视口底端所在top
                 pos = offset.top + top;         // 元素所在top
 
             if ( (base > pos) && (base < pos + elementHeight + portHeight)) {
@@ -353,19 +354,19 @@
         };
 
     tbtx.mix({
+        // load
         loadCss: loadCss,
         loadScript: loadScript,
-
+        // page & viewport
         pageWidth: pageWidth,
         pageHeight: pageHeight,
         scrollY: scrollY,
         scrollX: scrollX,
         viewportHeight: viewportHeight,
         viewportWidth: viewportWidth,
-
+        // support fn
         isInView: isInView,
         adjust: adjust,
-
         limitLength: limitLength,
         initWangWang: initWangWang,
         flash: flash

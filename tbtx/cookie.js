@@ -71,9 +71,6 @@
         }
     };
 
-    if (global.tbtx) {
-        tbtx.cookie = cookie;
-    } else {
-        jQuery.cookie = cookie;
-    }
+    var exports = global.tbtx ? global.tbtx : jQuery;
+    exports.cookie = cookie;
 })(this);

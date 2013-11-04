@@ -405,7 +405,7 @@
         // 扩展自身
         if (!source) {
             source = des;
-            des = exports;
+            des = this;
         }
         if (!blacklist) {
             blacklist = [];
@@ -425,7 +425,7 @@
     };
 
     // exports
-    mix({
+    exports.mix({
         mix: mix,
         classify: classify,
         isNotEmptyString: isNotEmptyString,

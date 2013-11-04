@@ -1,4 +1,4 @@
-(function($) {
+(function() {
     var isNotEmptyString = tbtx.isNotEmptyString;
 
     function isType(type) {
@@ -88,4 +88,4 @@
         normalizeDate: normalizeDate,
         formatDate: formatDate
     });
-})(jQuery);
+})();

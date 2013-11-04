@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-04 10:14:19
+ * 2013-11-04 11:00:28
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -474,7 +474,7 @@
         // 扩展自身
         if (!source) {
             source = des;
-            des = exports;
+            des = this;
         }
         if (!blacklist) {
             blacklist = [];
@@ -494,7 +494,7 @@
     };
 
     // exports
-    mix({
+    exports.mix({
         mix: mix,
         classify: classify,
         isNotEmptyString: isNotEmptyString,
@@ -693,7 +693,7 @@
         };
         this[methodName].__isAspected = true;
     }
-})(tbtx);
+})();
 
 ;(function(global) {
     var toString = Object.prototype.toString,
@@ -768,15 +768,12 @@
         }
     };
 
-    if (global.tbtx) {
-        tbtx.cookie = cookie;
-    } else {
-        jQuery.cookie = cookie;
-    }
+    var exports = global.tbtx ? global.tbtx : jQuery;
+    exports.cookie = cookie;
 })(this);
 
 
-;(function($) {
+;(function() {
     var isNotEmptyString = tbtx.isNotEmptyString;
 
     function isType(type) {
@@ -866,7 +863,7 @@
         normalizeDate: normalizeDate,
         formatDate: formatDate
     });
-})(jQuery);
+})();
 
 
 ;(function(global) {
@@ -1347,7 +1344,7 @@
         detector: detector,
         decideMobile: decideMobile,
         isIE6: detector.browser.ie && detector.browser.version == 6,
-        isMobile: !! detector.mobile
+        isMobile: !!detector.mobile
     });
 })(this);
 
@@ -1606,6 +1603,7 @@
 
         // 距离top多少px才算inView
         // 元素是否出现在视口内
+        // 超出也不在view
         isInView = function(selector, top) {
             top = top || 0;
 
@@ -1619,7 +1617,7 @@
             }
 
             var offset = $element.offset(),
-                base = portHeight + scrollY(), // 视口低端所在top
+                base = portHeight + scrollY(), // 视口底端所在top
                 pos = offset.top + top;         // 元素所在top
 
             if ( (base > pos) && (base < pos + elementHeight + portHeight)) {
@@ -1707,19 +1705,19 @@
         };
 
     tbtx.mix({
+        // load
         loadCss: loadCss,
         loadScript: loadScript,
-
+        // page & viewport
         pageWidth: pageWidth,
         pageHeight: pageHeight,
         scrollY: scrollY,
         scrollX: scrollX,
         viewportHeight: viewportHeight,
         viewportWidth: viewportWidth,
-
+        // support fn
         isInView: isInView,
         adjust: adjust,
-
         limitLength: limitLength,
         initWangWang: initWangWang,
         flash: flash
@@ -1895,13 +1893,7 @@
 ;(function(global) {
     var location = document.location;
 
-    var ROOT = (function() {
-        var ret = location.protocol + '//' + location.hostname;
-        if (location.port) {
-            ret += ':' + location.port;
-        }
-        return ret;
-    }()).toString();
+    var ROOT = location.protocol + '//' + location.host;
 
     if (!(/^http/i).test(ROOT)) {
         ROOT = '';

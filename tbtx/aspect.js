@@ -44,4 +44,4 @@
         };
         this[methodName].__isAspected = true;
     }
-})(tbtx);
+})();

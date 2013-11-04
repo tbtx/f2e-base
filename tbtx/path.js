@@ -1,13 +1,7 @@
 (function(global) {
     var location = document.location;
 
-    var ROOT = (function() {
-        var ret = location.protocol + '//' + location.hostname;
-        if (location.port) {
-            ret += ':' + location.port;
-        }
-        return ret;
-    }()).toString();
+    var ROOT = location.protocol + '//' + location.host;
 
     if (!(/^http/i).test(ROOT)) {
         ROOT = '';

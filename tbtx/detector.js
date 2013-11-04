@@ -476,6 +476,6 @@
         detector: detector,
         decideMobile: decideMobile,
         isIE6: detector.browser.ie && detector.browser.version == 6,
-        isMobile: !! detector.mobile
+        isMobile: !!detector.mobile
     });
 })(this);
