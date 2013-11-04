@@ -161,24 +161,13 @@
             // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
             node.getAttribute("src", 4);
     }
-    // file:///E:/tbcdn or a.tbcdn.cn/apps/tbtx
-    function getUrlPrefix() {
-        // tbtx.js所在路径, 当使用requestjs去加载时将是页面js的src
-        var loaderSrc = getScriptAbsoluteSrc(loaderScript);
-        if (!/tbtx\.js/.test(loaderSrc)) {
-            return "http://a.tbcdn.cn/apps/tbtx";
-        }
-        var arr = loaderSrc.split('/');
-        arr.splice(arr.length - 3, 3);  // delete base js tbtx.js
 
-        return arr.join('/');
-    }
     // 给传入的相对url加上前缀
     function normalizeUrl(url) {
         if (/^https?/.test(url)) {
             // do nothing
         } else {        // 相对地址转为绝对地址
-            var prefix = getUrlPrefix();
+            var prefix = tbtx.staticUrl;
             if (tbtx.startsWith(url, '/')) {
                 url = prefix + url;
             } else {
@@ -218,6 +207,25 @@
             return chain.then(callback);
         }
         return request(normalizeUrl(url), callback, charset);
+    }
+
+    // file:///E:/tbcdn or cdn(如a.tbcdn.cn/apps/tbtx)
+    // 用requirejs的话使用config所在script获取到staticUrl
+    // 直接加载tbtx时使用tbtx所在script获取到staticUrl
+    // 除非使用第三方的加载，如$.getScript
+    // 这时使用默认的staticUrl
+    var staticUrl = tbtx._tbtx && tbtx._tbtx.staticUrl;
+    if (staticUrl) {
+        tbtx.staticUrl = tbtx._tbtx.staticUrl;
+    } else {
+        // tbtx.js所在路径
+        var loaderSrc = getScriptAbsoluteSrc(loaderScript);
+        if (/tbtx\.js/.test(loaderSrc)) {
+             var pathArray = loaderSrc.split('/'),
+                deep = 3;
+            pathArray.splice(pathArray.length - deep, deep);  // delete base js tbtx.js
+            tbtx.staticUrl = pathArray.join("/");
+        }
     }
 
     var pageHeight = function() {
@@ -349,7 +357,7 @@
             if (window.KISSY) {
                 loadScript(webww, callback);
             } else {
-                loadScript(["http://a.tbcdn.cn/??s/kissy/1.2.0/kissy-min.js", webww], callback);
+                loadScript(["http://a.tbcdn.cn/s/kissy/1.2.0/kissy-min.js", webww], callback);
             }
         };
 

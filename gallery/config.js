@@ -1,6 +1,22 @@
-(function() {
+(function(global) {
+    var doc = document,
+        scripts = doc.scripts,
+        loaderScript = scripts[scripts.length - 1];
+
+    // config文件所在url
+    var scriptUrl = getScriptAbsoluteSrc(loaderScript),
+        baseUrl
+        deep = 4;       // config文件目录深度 base/js/gallery/config.js
+
+    var arr = scriptUrl.split('/');
+    arr.splice(arr.length - deep, deep);
+    baseUrl = arr.join('/');
+
+    global.tbtx = global.tbtx || {};
+    global.tbtx.staticUrl = baseUrl;
+
     require.config({
-        baseUrl: "http://a.tbcdn.cn/apps/tbtx",
+        baseUrl: baseUrl,
         urlArgs: "2013.10.15.0",
         paths: {
             "jquery": "base/js/jquery/jquery-1.8.3.min",
@@ -76,4 +92,12 @@
             }
         }
     });
-})();
+
+    // 获取脚本的绝对url
+    function getScriptAbsoluteSrc(node) {
+        return node.hasAttribute ? // non-IE6/7
+            node.src :
+            // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
+            node.getAttribute("src", 4);
+    }
+})(this);

@@ -25,11 +25,18 @@
          */
         debug: false,
 
+        /*
+         * 静态文件url
+         */
+        staticUrl: "",
+
         /**
          * global对象，在浏览器环境中为window
          * @type {object}
          */
         global: global,
+
+        _tbtx: global[tbtx],
 
         /**
          * 存放数据
