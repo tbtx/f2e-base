@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Aspect</title>
+    <title>Attrs</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,20 +11,25 @@
 
 <p>需要与tbtx.Events tbtx.Class配合使用</p>
 
-<p>在调用某个方法前后注入方法</p>
+<p>属性set/get</p>
 
-<p>例如：/p>
+<p>例如：</p>
 
 <pre><code>
     var Overlay = new Class;
-    Overlay.Implements([tbtx.Events, tbtx.Aspect]);
+    Overlay.Implements([tbtx.Events, tbtx.Attrs]);
 
     var o = new Overlay();
-    // 在Overlay的show方法之前调用该方法，如果return false则show方法不会调用
-    o.before("show", function() {
-        console.log('before show');
-        return false;
-    });
+
+    var config = {
+        attrs: {
+            name: 123
+        }
+    };
+    o.initAttrs(config);
+
+    o.on("change:name", function(value, prev, key){ alert(123)});
+    o.set("name", 456);
 </code></pre>
 
 <p>想让某个对象拥有该能力:</p>
@@ -32,9 +37,9 @@
 <pre><code>
     var o = {};
     tbtx.classify(o); // 拥有Implements方法
-    o.Implements([tbtx.Events, tbtx.Aspect])
+    o.Implements([tbtx.Events, tbtx.Attrs])
 
-    o.before();
+    o.initAttrs(config);
 </code></pre>
 </body>
 </html>

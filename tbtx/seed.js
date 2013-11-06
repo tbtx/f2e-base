@@ -26,9 +26,9 @@
         debug: false,
 
         /*
-         * 静态文件url
+         * 静态文件url前缀
          */
-        staticUrl: "",
+        staticUrl: "http://static.tianxia.taobao.com/tbtx",
 
         /**
          * global对象，在浏览器环境中为window

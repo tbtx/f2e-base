@@ -18,12 +18,47 @@
         };
 
     var Overlay = new Class;
-    Overlay.Implements([tbtx.Events, tbtx.Aspect]);
+    Overlay.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
 
     Overlay.include({
         init: function(options) {
             this.config(options);
 
+            this.initAttrs({
+                attrs: this.options
+            });
+
+            this.on("change:opacity", function(val, prev) {
+                this.set("alpha", val * 100);
+
+                this.options.opacity = val;
+                this.options.alpha = this.options.opacity * 100;
+
+                if (this.get("status") == "show") {
+                    this.$element.css("opacity", val);
+                }
+            });
+
+            this.on("change:color", function(val, prev) {
+                this.options.color = val;
+
+                if (this.get("status") == "show") {
+                    this.$element.css("backgroundColor", val);
+                }
+            });
+
+            this.on("change:status", function(val, prev) {
+                // triger event
+                var eventName = 'tbtx.overlay.' + val;
+                $('body').trigger(eventName);
+                this.trigger(eventName);
+
+                if (val == "show") {
+
+                } else if(val == "hide") {
+
+                }
+            });
             // 在事件处理程序中使用this
             this.resizeProxy = this.proxy(throttle(this.resize));
         },
@@ -31,9 +66,10 @@
         // 仅仅加到dom里，不显示
         render: function(selector) {
             // 不要重复render
-            if (this.$element && this.$element.parent().length) {
+            if (this.get("status") == "show") {
                 return;
             }
+
             this.$element = $(substitute(template, this.options));
             this.$element[0].style.cssText += substitute(cssTemplate, this.options);
 
@@ -55,6 +91,7 @@
         config: function(options) {
             this.options = $.extend({}, defaults, options);
             this.options.alpha = this.options.opacity * 100;
+            this.options.status = "hide";
         },
 
         remove: function() {
@@ -65,15 +102,10 @@
             this.render(selector);      // 每次渲染，因为关闭的时候remove掉了
 
             this.$element.show();
+            this.set("status", "show");
 
             this.resize();
             this.bind(); // 只有显示的时候进行事件监听
-
-            var self = this;
-            setTimeout(function () {
-                $('body').trigger('tbtx.overlay.show');
-                self.trigger('tbtx.overlay.show');
-            }, 0);
         },
         hide: function(effect) {
             if (effect && typeof effect == 'string') {
@@ -81,16 +113,9 @@
             } else {
                 this.$element.hide();
             }
+            this.set("status", "hide");
             this.unbind();
             this.remove();
-
-            var self = this;
-            setTimeout(function () {
-                // 兼容没有aspect时的trigger
-                $('body').trigger('tbtx.overlay.hide');
-
-                self.trigger('tbtx.overlay.hide');
-            }, 0);
         },
         resize: function() {
             this.$element.css({
@@ -102,10 +127,12 @@
         // event on & off
         bind: function() {
             $(window).on('resize', this.resizeProxy);
-
+            var self = this;
             // hide与before配合时hide会改变，不能一开始就proxy
             if (this.options.hideOnClick) {
-                this.hideProxy = this.proxy(this.hide);
+                this.hideProxy = function() {
+                    self.hide();
+                };
                 this.$element.on('click', this.hideProxy);
             }
         },

@@ -26,7 +26,7 @@
     	isString = isType("String");
 
 	var Popup = new Class;
-    Popup.Implements([tbtx.Events, tbtx.Aspect]);
+    Popup.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
 
 	Popup.include({
 		init: function(selector, options) {
@@ -48,6 +48,10 @@
 
 			// 在事件处理程序中使用this
             this.adjustProxy = this.proxy(throttle(this.adjust));
+            var self = this;
+            this.hideProxy  = function() {
+                self.hide();
+            };
 		},
 
         config: function(options) {
@@ -143,7 +147,6 @@
 		},
 
 		bind: function() {
-            this.hideProxy  = this.proxy(this.hide);
             this.$element.on('click', '.J-popup-close', this.hideProxy);
             this.$element.on('click', '.close', this.hideProxy);
 			$(window).on('scroll resize', this.adjustProxy);
