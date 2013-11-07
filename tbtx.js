@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-07 2:55:22
+ * 2013-11-07 4:50:01
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2124,6 +2124,40 @@
                 });
             });
         },
+        // 返回顶部
+        flyToTop = function(selector) {
+            var $container = $(selector);
+
+            // 大于offset消失
+            var offset = $container.data("offset");
+            if (offset) {
+                // fade in #back-top
+                var $window = $(window);
+
+                var checkHandler = function() {
+                    if ($window.scrollTop() > offset) {
+                        $container.fadeIn();
+                    } else {
+                        $container.fadeOut();
+                    }
+                };
+
+                $window.scroll(tbtx.throttle(checkHandler));
+                // 一开始检测一下
+                checkHandler();
+            }
+
+            // 默认监听J-fly-to-top, 没找到则监听自身
+            var $flyer = $container.find(".J-fly-to-top"),
+                $listener = $flyer.length ? $flyer : $container;
+
+            $listener.on('click', function(){
+                $('body,html').animate({
+                    scrollTop: 0
+                }, 800);
+                return false;
+            });
+        },
 
         initWangWang = function(callback) {
             callback = callback || function() {};
@@ -2151,7 +2185,8 @@
         adjust: adjust,
         limitLength: limitLength,
         initWangWang: initWangWang,
-        flash: flash
+        flash: flash,
+        flyToTop: flyToTop
     });
 })(this, jQuery);
 

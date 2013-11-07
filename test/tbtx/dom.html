@@ -11,13 +11,13 @@
         position: relative;
     }
     #div-1 {
-        position: absolute;
+        position: fixed;
         top: 20px;
         left: 50px;
     }
 
     #div-2 {
-        position: absolute;
+        position: fixed;
         bottom: 20px;
         right: 50px;
     }
@@ -27,7 +27,7 @@
    <div id="div-1" data-fixed-position='{"top":20, "left":50}'>hello</div>
     
 
-    <div id="div-2" data-fixed-position='{"bottom":20, "right":50}'>hello2</div>
+    <div id="div-2" data-offset="400" data-fixed-position='{"bottom":20, "right":50}'>hello2 <a href="#" class="J-fly-to-top">to top</a></div>
     <script>
     </script>
 </body>
