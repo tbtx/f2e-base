@@ -1,6 +1,6 @@
 /*
  * overlay.popup
- * 2013-11-06 1:50:24
+ * 2013-11-07 2:55:22
  */
 (function($, global) {
     var tbtx = global.tbtx,
@@ -21,8 +21,7 @@
             'hideOnClick': false// 点击遮罩层是否关闭
         };
 
-    var Overlay = new Class;
-    Overlay.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
+    var Overlay = new Class(tbtx.Widget);
 
     Overlay.include({
         init: function(options) {
@@ -180,8 +179,7 @@
     var isFunction = isType("Function"),
     	isString = isType("String");
 
-	var Popup = new Class;
-    Popup.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
+	var Popup = new Class(tbtx.Widget);
 
 	Popup.include({
 		init: function(selector, options) {

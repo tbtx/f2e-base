@@ -25,8 +25,7 @@
     var isFunction = isType("Function"),
     	isString = isType("String");
 
-	var Popup = new Class;
-    Popup.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
+	var Popup = new Class(tbtx.Widget);
 
 	Popup.include({
 		init: function(selector, options) {

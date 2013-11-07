@@ -159,18 +159,25 @@
         // oo实现
         Class = function(parent) {
             var klass = function() {
-                this.init.apply(this, arguments);
+                if (this.constructor === klass && this.init) {
+                    this.init.apply(this, arguments);
+                }
             };
 
             if (parent) {
-                var subclass = function() {};
-                subclass.prototype = parent.prototype;
-                klass.prototype = new subclass();
+                // var subclass = function() {};
+                // subclass.prototype = parent.prototype;
+                // klass.prototype = new subclass();
+
+                // or
+                mix(klass.prototype, parent.prototype);
+
+                // ClassA.superclass.method显示调用父类方法
+                klass.superclass = parent.prototype;
             }
 
-            klass.prototype.init = function() {}; // need to be overwrite
+            // klass.prototype.init = function() {}; // need to be overwrite
             klass.fn = klass.prototype;
-
             klass.fn.constructor = klass;
             klass.fn.parent = klass;
 
@@ -394,6 +401,7 @@
     }
     function classify(cls) {
         cls.Implements = Implements;
+        cls.mix = mix;
         return cls;
     }
 

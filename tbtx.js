@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-06 1:50:24
+ * 2013-11-07 2:55:22
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -235,18 +235,25 @@
         // oo实现
         Class = function(parent) {
             var klass = function() {
-                this.init.apply(this, arguments);
+                if (this.constructor === klass && this.init) {
+                    this.init.apply(this, arguments);
+                }
             };
 
             if (parent) {
-                var subclass = function() {};
-                subclass.prototype = parent.prototype;
-                klass.prototype = new subclass();
+                // var subclass = function() {};
+                // subclass.prototype = parent.prototype;
+                // klass.prototype = new subclass();
+
+                // or
+                mix(klass.prototype, parent.prototype);
+
+                // ClassA.superclass.method显示调用父类方法
+                klass.superclass = parent.prototype;
             }
 
-            klass.prototype.init = function() {}; // need to be overwrite
+            // klass.prototype.init = function() {}; // need to be overwrite
             klass.fn = klass.prototype;
-
             klass.fn.constructor = klass;
             klass.fn.parent = klass;
 
@@ -470,6 +477,7 @@
     }
     function classify(cls) {
         cls.Implements = Implements;
+        cls.mix = mix;
         return cls;
     }
 
@@ -1068,6 +1076,46 @@
         // 其他情况返回 false, 以避免误判导致 change 事件没发生
         return false;
     }
+})(tbtx);
+
+;(function(exports) {
+    var Base = new tbtx.Class();
+    Base.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
+    Base.include({
+        init: function(config) {
+            this.initAttrs(config);
+        },
+        destory: function() {
+            // 解除事件绑定
+            this.off();
+
+            for (var p in this) {
+                if (this.hasOwnProperty(p)) {
+                    delete this[p];
+                }
+            }
+            // Destroy should be called only once, generate a fake destroy after called
+            // https://github.com/aralejs/widget/issues/50
+            this.destroy = function() {};
+        }
+    });
+    exports.Base = Base;
+
+
+    var Widget = new tbtx.Class(Base);
+
+    Widget.include({
+        $element: null,
+        init: function() {
+            this.setup();
+        },
+        $: function(selector) {
+            return this.$element.find(selector);
+        },
+        setup: function() {},
+        render: function() {}
+    });
+    exports.Widget = Widget;
 })(tbtx);
 
 ;(function(global) {

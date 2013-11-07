@@ -31,6 +31,36 @@ describe('lang', function() {
 			var instance = new ClassA;
 			expect(instance.talk('hello')).toBe('talk:hello');
 		});
+
+		it("should extend from a parent", function() {
+			var ClassA = new tbtx.Class;
+
+			ClassA.include({
+				talk: function(msg) {
+					return 'talk:' + msg;
+				},
+				init: function() {
+					console.log("A init");
+				}
+			});
+
+			var ClassB = new tbtx.Class(ClassA);
+			ClassB.include({
+				talk: function(msg) {
+					return 'Btalk:' + msg;
+				},
+				init: function() {
+					console.log("B init");
+				}
+			});
+
+			var instanceB = new ClassB;
+			var instanceA = new ClassA;
+			expect(instanceB.talk('hello')).toBe('Btalk:hello');
+			expect(instanceA.talk('hello')).toBe('talk:hello');
+
+			expect(ClassB.superclass.talk('hello')).toBe('talk:hello');
+		});
 	});
 
 	describe('classify', function() {

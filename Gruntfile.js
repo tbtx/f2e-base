@@ -21,7 +21,7 @@ module.exports = function(grunt) {
                 banner: '/*\n * <%= pkg.name %>\n * <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
             },
             common: {
-                src: ['tbtx/seed.js', 'tbtx/lang.js', 'tbtx/events.js', 'tbtx/aspect.js', 'tbtx/attrs.js', 'tbtx/cookie.js', 'tbtx/date.js', 'tbtx/detector.js', 'tbtx/dom.js', 'tbtx/support.js', 'tbtx/msg.js', 'tbtx/path.js', 'tbtx/miiee.js'],
+                src: ['tbtx/seed.js', 'tbtx/lang.js', 'tbtx/events.js', 'tbtx/aspect.js', 'tbtx/attrs.js', 'tbtx/widget.js', 'tbtx/cookie.js', 'tbtx/date.js', 'tbtx/detector.js', 'tbtx/dom.js', 'tbtx/support.js', 'tbtx/msg.js', 'tbtx/path.js', 'tbtx/miiee.js'],
                 dest: 'tbtx.js' // 合并成依赖文件
             },
             popup: {

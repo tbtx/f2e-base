@@ -17,8 +17,7 @@
             'hideOnClick': false// 点击遮罩层是否关闭
         };
 
-    var Overlay = new Class;
-    Overlay.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
+    var Overlay = new Class(tbtx.Widget);
 
     Overlay.include({
         init: function(options) {
