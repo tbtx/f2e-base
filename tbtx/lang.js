@@ -159,6 +159,10 @@
         // oo实现
         Class = function(parent) {
             var klass = function() {
+                // static
+                // if (parent) {
+                //     parent.apply(this, arguments);
+                // }
                 if (this.constructor === klass && this.init) {
                     this.init.apply(this, arguments);
                 }
@@ -181,40 +185,10 @@
             klass.fn.constructor = klass;
             klass.fn.parent = klass;
 
-            // 在事件处理程序中保证this指向klass, not 事件发生元素
-            klass.proxy = function(func) {
-                var self = this;
-                return (function() {
-                    return func.apply(self, arguments);
-                });
-            };
+            mix(klass, Class.Mutators);
             klass.fn.proxy = klass.proxy;
 
-            // 添加类属性
-            klass.extend = function(object) {
-                var extended = object.extended;
-
-                mix(klass, object, ['extended']);
-
-                if (extended) {
-                    extended(klass);
-                }
-            };
-
-            // 向原型上添加实例属性
-            klass.include = function(object) {
-                var included = object.included;
-
-                mix(klass.fn, object, ['included']);
-
-                if (included) {
-                    included(klass);
-                }
-            };
-            // 让类去实现其他接口
-            klass.Implements = Implements;
             return klass;
-
         },
 
         Now = Date.now || function() {
@@ -388,6 +362,33 @@
         }
     })();
 
+    Class.Mutators = {
+        extend: function(object) {
+            var extended = object.extended;
+
+            mix(this, object, ['extended']);
+
+            if (extended) {
+                extended(this);
+            }
+        },
+        include: function(object) {
+            var included = object.included;
+
+            mix(this.prototype, object, ['included']);
+
+            if (included) {
+                included(this);
+            }
+        },
+        proxy: function(func) {
+            var self = this;
+            return (function() {
+                return func.apply(self, arguments);
+            });
+        },
+        Implements: Implements
+    };
     function Implements(items) {
         if (!isArray(items)) {
             items = [items];
@@ -401,7 +402,6 @@
     }
     function classify(cls) {
         cls.Implements = Implements;
-        cls.mix = mix;
         return cls;
     }
 
