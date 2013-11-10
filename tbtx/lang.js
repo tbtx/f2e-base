@@ -159,10 +159,9 @@
         // oo实现
         Class = function(parent) {
             var klass = function() {
-                // static
-                // if (parent) {
-                //     parent.apply(this, arguments);
-                // }
+                if (parent) {
+                    parent.apply(this, arguments);
+                }
                 if (this.constructor === klass && this.init) {
                     this.init.apply(this, arguments);
                 }
@@ -174,7 +173,11 @@
                 // klass.prototype = new subclass();
 
                 // or
-                mix(klass.prototype, parent.prototype);
+                // mix(klass.prototype, parent.prototype);
+
+                var proto = createProto(parent.prototype);
+                mix(proto, klass.prototype);
+                klass.prototype = proto;
 
                 // ClassA.superclass.method显示调用父类方法
                 klass.superclass = parent.prototype;
@@ -361,6 +364,19 @@
             reverseEntities[htmlEntities[k]] = k;
         }
     })();
+
+
+    // Shared empty constructor function to aid in prototype-chain creation.
+    function Ctor() {}
+    // See: http://jsperf.com/object-create-vs-new-ctor
+    var createProto = Object.__proto__ ? function(proto) {
+        return {
+            __proto__: proto
+        };
+    } : function(proto) {
+        Ctor.prototype = proto;
+        return new Ctor();
+    };
 
     Class.Mutators = {
         extend: function(object) {

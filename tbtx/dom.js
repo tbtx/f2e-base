@@ -258,6 +258,14 @@
             // return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
         },
 
+        contains = $.contains || function(a, b) {
+            //noinspection JSBitwiseOperatorUsage
+            return !!(a.compareDocumentPosition(b) & 16);
+        },
+        isInDocument = function(element) {
+            return contains(document.documentElement, element);
+        },
+
         // 距离top多少px才算inView
         // 元素是否出现在视口内
         // 超出也不在view
@@ -406,6 +414,9 @@
         scrollX: scrollX,
         viewportHeight: viewportHeight,
         viewportWidth: viewportWidth,
+
+        contains: contains,
+        isInDocument: isInDocument,
         // support fn
         isInView: isInView,
         adjust: adjust,

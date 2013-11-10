@@ -1,5 +1,9 @@
 (function(tbtx) {
     var exports = tbtx.Attrs = {};
+    // set/get/initAttrs
+    // set会触发 change:attrName 事件
+    // 实例的propsInAttrs在initAttrs时会自动转成this的属性
+
     // Attribute
     // -----------------
     // Thanks to:

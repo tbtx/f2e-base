@@ -1,9 +1,10 @@
 /*
  * overlay.popup
- * 2013-11-08 6:11:35
+ * 2013-11-10 7:47:57
  */
 (function($, global) {
     var tbtx = global.tbtx,
+        mix = tbtx.mix,
         substitute = tbtx.substitute,
         throttle = tbtx.throttle,
         pageWidth = tbtx.pageWidth,
@@ -64,6 +65,13 @@
             });
             // 在事件处理程序中使用this
             this.resizeProxy = this.proxy(throttle(this.resize));
+        },
+        attrs: {
+            template: '<div id="" class="overlay"></div>'
+        },
+
+        setUp: function() {
+
         },
 
         // 仅仅加到dom里，不显示

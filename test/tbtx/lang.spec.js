@@ -1,4 +1,6 @@
 describe('lang', function() {
+	var Class = tbtx.Class;
+
 	describe("mix", function() {
 		it("should mix to tbtx if no src", function() {
 			expect(tbtx.hello).not.toEqual(123);

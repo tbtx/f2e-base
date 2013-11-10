@@ -8,9 +8,10 @@ module.exports = function(grunt) {
         jshint: {
             files: ['tbtx/*.js'],
             options: {
-                ignores: ['tbtx/detector.js', 'tbtx/aspect.js', 'tbtx/events.js', 'tbtx/attrs.js'],
+                ignores: ['tbtx/detector.js', 'tbtx/aspect.js', 'tbtx/events.js', 'tbtx/attrs.js', 'tbtx/widget.js'],
                 browser: true,
-                sub: true
+                sub: true,
+                proto: true
             }
         },
 
