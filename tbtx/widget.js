@@ -219,15 +219,7 @@
                     var outerBox = this._outerBox = $("<div></div>").addClass(outerBoxClass);
                     outerBox.append(this.element).appendTo(parentNode);
                 } else {
-                    if (this.get("insertDirection") == "before") {
-                        if (this.get("beforeNode")) {
-                            this.element.insertBefore(beforeNode);
-                        } else {
-                            this.element.prependTo(parentNode);
-                        }
-                    } else {
-                        this.element.appendTo(parentNode);
-                    }
+                    this.element.appendTo(parentNode);
                 }
             }
             return this;
@@ -294,8 +286,16 @@
             cachedInstances[cid].destroy();
         }
     });
-    exports.Widget = Widget;
 
+    // 查询与 selector 匹配的第一个 DOM 节点，得到与该 DOM 节点相关联的 Widget 实例
+    Widget.query = function(selector) {
+        var element = $(selector).eq(0);
+        var cid;
+        element && (cid = element.attr(DATA_WIDGET_CID));
+        return cachedInstances[cid];
+    };
+
+    exports.Widget = Widget;
 
     var cidCounter = 0;
     function uniqueCid() {

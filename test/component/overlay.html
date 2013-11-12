@@ -120,14 +120,14 @@
 
 	<script src="../../jquery/jquery-1.8.3.min.js"></script>
 	<script src="../../tbtx.js"></script>
-	<script src="../../component/overlay2.js"></script>
+	<script src="../../component/overlay.js"></script>
 	<script>
 	var o = new tbtx.Overlay();
 	o.on("abc", function() {
 		console.log('event');
 	});
 	o.trigger("abc");
-	// o.show();
+	o.show();
 
 	// $('body').on('tbtx.overlay.show', function() {
 	// 	console.log('show');
