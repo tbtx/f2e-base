@@ -12,6 +12,21 @@ describe('lang', function() {
 	});
 
 	describe("Class", function() {
+		it("should get a fn to be it's prototype ", function() {
+			var ClassA = new tbtx.Class;
+
+			expect(ClassA.fn).toBe(ClassA.prototype);
+		});
+
+		it("should get some built in method ", function() {
+			var ClassA = new tbtx.Class;
+
+			expect("extend" in ClassA).toBeTruthy();
+			expect("include" in ClassA).toBeTruthy();
+			expect("proxy" in ClassA).toBeTruthy();
+			expect("Implements" in ClassA).toBeTruthy();
+		});
+
 		it("should extend as Class prop", function() {
 			var ClassA = new tbtx.Class;
 			ClassA.extend({
@@ -62,6 +77,47 @@ describe('lang', function() {
 			expect(instanceA.talk('hello')).toBe('talk:hello');
 
 			expect(ClassB.superclass.talk('hello')).toBe('talk:hello');
+		});
+
+		xit("Inherit class (static) properties from parent.", function() {
+			var ClassA = new tbtx.Class;
+
+			ClassA.extend({
+				hello: "zenxds"
+			});
+			expect(ClassA.hello).toEqual("zenxds");
+			var ClassB = new Class(ClassA);
+			expect(ClassB.hello).toBe("zenxds");
+		});
+
+		it("should call the parent's constructor", function() {
+			var ClassA = function(name) {
+					this.name = name;
+				};
+
+			var ClassB = new Class(ClassA);
+			ClassB.include({
+				init: function(name) {
+					this.name2 = name;
+				}
+			});
+
+			var b = new ClassB("alex");
+
+			expect(b.name).toBe("alex");
+			expect(b.name2).toBe("alex");
+		});
+
+		it("should fix it's constructor", function() {
+			var ClassA = new tbtx.Class;
+			var a = new ClassA;
+
+			expect(ClassA.fn.constructor).toBe(ClassA);
+			expect(a.constructor).toBe(ClassA);
+
+			var ClassB = new Class(ClassA);
+			var b = new ClassB;
+			expect(b.constructor).toBe(ClassB);
 		});
 	});
 

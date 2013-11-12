@@ -1,9 +1,10 @@
 (function(exports) {
     var Class = tbtx.Class;
 
-
     // Base
     // _onChange属性名 会自动监听attr变化
+    // 在attrs里面设置是没有_开头的
+    // config直接就是attrs对象的 {element: ""}
     var Base = new Class();
     Base.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
     Base.include({
@@ -72,7 +73,7 @@
             // 默认数据模型
             model: null,
             // 组件的默认父节点
-            parentNode: document.body
+            parentNode: 'body'
         },
 
         init: function(config) {
@@ -141,7 +142,7 @@
             // key 为 'event selector'
             for (var key in events) {
                 if (!events.hasOwnProperty(key)) continue;
-                var args = _delegateElements(key, this);
+                var args = parseEventKey(key, this);
                 var eventType = args.type;
                 var selector = args.selector;
                 (function(handler, widget) {
@@ -218,7 +219,15 @@
                     var outerBox = this._outerBox = $("<div></div>").addClass(outerBoxClass);
                     outerBox.append(this.element).appendTo(parentNode);
                 } else {
-                    this.element.appendTo(parentNode);
+                    if (this.get("insertDirection") == "before") {
+                        if (this.get("beforeNode")) {
+                            this.element.insertBefore(beforeNode);
+                        } else {
+                            this.element.prependTo(parentNode);
+                        }
+                    } else {
+                        this.element.appendTo(parentNode);
+                    }
                 }
             }
             return this;

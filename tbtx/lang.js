@@ -175,6 +175,9 @@
                 // or
                 // mix(klass.prototype, parent.prototype);
 
+                // 继承静态属性
+                // mix(klass, parent);
+
                 var proto = createProto(parent.prototype);
                 mix(proto, klass.prototype);
                 klass.prototype = proto;
@@ -186,7 +189,6 @@
             // klass.prototype.init = function() {}; // need to be overwrite
             klass.fn = klass.prototype;
             klass.fn.constructor = klass;
-            klass.fn.parent = klass;
 
             mix(klass, Class.Mutators);
             klass.fn.proxy = klass.proxy;

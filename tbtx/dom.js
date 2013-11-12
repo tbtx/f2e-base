@@ -396,7 +396,7 @@
         initWangWang = function(callback) {
             callback = callback || function() {};
             var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
-            if (window.KISSY) {
+            if (global.KISSY) {
                 loadScript(webww, callback);
             } else {
                 loadScript(["http://a.tbcdn.cn/s/kissy/1.2.0/kissy-min.js", webww], callback);
