@@ -293,6 +293,10 @@
             if (!url) {
                 url = location.href;
             }
+            if (url.indexOf('#') > -1) {
+                url = url.split('#')[0];
+            }
+
             var ret;
 
             var search;

@@ -27,4 +27,24 @@ describe('Base and Widget', function() {
             b.set("hello", "zenxds2");
         });
     });
+
+    describe("Widget", function() {
+        it("should render to body", function() {
+            Widget.extend({
+                outerBoxClass: "outer"
+            });
+
+            var w = new Widget({
+                id: "test-widget",
+                template: "<div><div class='test'>test</div></div>",
+                events: {
+                    "click .test": "test"
+                }
+            });
+            w.test = function() {
+                console.log("test");
+            };
+            w.render();
+        });
+    });
 });

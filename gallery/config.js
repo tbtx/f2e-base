@@ -26,6 +26,7 @@
             "slide": "base/js/component/slide",
             "soltMachine": "base/js/component/soltMachine",
             "validate": "base/js/plugin/jquery.validate.min",
+            "validator": "base/js/component/jquery.validator",
             "imagesloaded": "base/js/plugin/imagesloaded.min",
 
             "swfobject": "base/js/plugin/swfobject",

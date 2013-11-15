@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Base and Widget</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>tbtx.Base</h2>
+
+<pre><code>
+    var b = new Base({
+        hello: "zenxds",
+
+        // hello更改时触发 onChangeXXX
+        onChangeHello: function(v, prev) {
+            expect(prev).toEqual("zenxds");
+        }
+    });
+
+    a.on/off/triger/before/after/set/get/initAttrs
+</code></pre>
+
+</body>
+</html>

@@ -228,7 +228,7 @@ describe('lang', function() {
 		});
 
 		it("should get a object of the params with a url ", function() {
-			var url = "http://miiee.taobao.com/themes/theme_118.htm?spm=a310i.2181409.5731777.1.eVI5Sh&name=1213";
+			var url = "http://miiee.taobao.com/themes/theme_118.htm?spm=a310i.2181409.5731777.1.eVI5Sh&name=1213#page-5";
 			var target = {spm: "a310i.2181409.5731777.1.eVI5Sh", name: "1213"};
 
 			expect( tbtx.getQueryParam("", url) ).toEqual(target);

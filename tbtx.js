@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-12 10:53:48
+ * 2013-11-15 3:47:02
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -369,6 +369,10 @@
             if (!url) {
                 url = location.href;
             }
+            if (url.indexOf('#') > -1) {
+                url = url.split('#')[0];
+            }
+
             var ret;
 
             var search;
@@ -1175,6 +1179,7 @@
             // 默认数据模型
             model: null,
             // 组件的默认父节点
+            // document.body在脚本放在头部时无法访问
             parentNode: 'body'
         },
 

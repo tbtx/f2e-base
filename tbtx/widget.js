@@ -73,6 +73,7 @@
             // 默认数据模型
             model: null,
             // 组件的默认父节点
+            // document.body在脚本放在头部时无法访问
             parentNode: 'body'
         },
 
