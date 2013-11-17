@@ -219,6 +219,12 @@ describe('lang', function() {
 		});
 	});
 
+	describe('getFragment', function() {
+		it("should get the fragment of a url", function() {
+			expect(tbtx.getFragment("http://miiee.taobao.com/choice.htm?spm=a310i.2181413.5731757.9.Jmv67O&pcid=8101&banner=nvzhuang#page-5")).toEqual("page-5");
+			expect(tbtx.getFragment("")).toEqual("");
+		});
+	});
 	describe('unparam, getQueryParam', function() {
 		it("should get a object of the params", function() {
 			expect(tbtx.unparam("spm=a310i.2181409.5731777.1.eVI5Sh&name=1213")).toEqual({
@@ -236,6 +242,9 @@ describe('lang', function() {
 
 			expect( tbtx.getQueryParam("") ).toEqual({});
 			expect( tbtx.getQueryParam("name") ).toEqual('');
+
+			expect( tbtx.getQueryParam("name", "abc") ).toEqual('');
+			expect( tbtx.getQueryParam("", "abc") ).toEqual({});
 		});
 	});
 

@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-12 10:53:48
+ * 2013-11-17 9:52:07
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -365,21 +365,33 @@
             return ret;
         },
 
+        // from caja uri
+        URI_RE = new RegExp(
+            "^" +
+            "(?:" +
+            "([^:/?#]+)" + // scheme
+            ":)?" +
+            "(?://" +
+            "(?:([^/?#]*)@)?" + // credentials
+            "([^/?#:@]*)" + // domain
+            "(?::([0-9]+))?" + // port
+            ")?" +
+            "([^?#]+)?" + // path
+            "(?:\\?([^#]*))?" + // query
+            "(?:#(.*))?" + // fragment
+            "$"
+        ),
+        getFragment = function(url) {
+            url = url || location.href;
+            var match = URI_RE.exec(url);
+            return match[7] || "";
+        },
         getQueryParam = function(name, url) {
-            if (!url) {
-                url = location.href;
-            }
-            var ret;
+            url = url || location.href;
+            var match = URI_RE.exec(url);
 
-            var search;
-            if (url.indexOf('?') > -1) {
-                search = url.split('?')[1];
-            } else {
-                ret = name ? '': {};
-                return ret;
-            }
 
-            ret = unparam(search);
+            var ret = unparam(match[6]);
             if (name) {
                 return ret[name] || '';
             }
@@ -546,6 +558,7 @@
         curry: curry,
         substitute: substitute,
         unparam: unparam,
+        getFragment: getFragment,
         getQueryParam: getQueryParam,
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
