@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-17 9:52:07
+ * 2013-11-17 10:12:54
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1188,6 +1188,7 @@
             // 默认数据模型
             model: null,
             // 组件的默认父节点
+            // document.body在脚本放在头部时无法访问
             parentNode: 'body'
         },
 
