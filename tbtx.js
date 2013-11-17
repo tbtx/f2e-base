@@ -1,10 +1,12 @@
 /*
  * tbtx-base-js
- * 2013-11-17 10:12:54
+ * 2013-11-17 10:37:29
  * 十一_tbtx
  * zenxds@gmail.com
  */
 (function(global, tbtx) {
+
+    var cidCounter = 0;
 
     global[tbtx] = {
 
@@ -68,7 +70,12 @@
         /**
          * 空函数，在需要使用空函数作为参数时使用
          */
-        noop: function() {}
+        noop: function() {},
+
+        // client unique id
+        uniqueCid: function() {
+            return cidCounter++;
+        }
     };
 
 })(this, 'tbtx');
@@ -1565,7 +1572,6 @@
 
 
 ;(function() {
-    var isNotEmptyString = tbtx.isNotEmptyString;
 
     function isType(type) {
         return function(obj) {

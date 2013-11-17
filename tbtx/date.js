@@ -1,5 +1,4 @@
 (function() {
-    var isNotEmptyString = tbtx.isNotEmptyString;
 
     function isType(type) {
         return function(obj) {

@@ -1,5 +1,7 @@
 (function(global, tbtx) {
 
+    var cidCounter = 0;
+
     global[tbtx] = {
 
         /**
@@ -62,7 +64,12 @@
         /**
          * 空函数，在需要使用空函数作为参数时使用
          */
-        noop: function() {}
+        noop: function() {},
+
+        // client unique id
+        uniqueCid: function() {
+            return cidCounter++;
+        }
     };
 
 })(this, 'tbtx');
