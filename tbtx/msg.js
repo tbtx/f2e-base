@@ -1,4 +1,4 @@
-(function(global, $) {
+(function($) {
     var itemTemplate = '<p class="tbtx-msg-item tbtx-msg-{{ type }}">{{ msg }}</p>',
         containerTemplate = '<div id="tbtx-msg"></div>';
 
@@ -106,4 +106,4 @@
             MSG.item(msg, type);
          };
     });
-})(this, jQuery);
+})(jQuery);

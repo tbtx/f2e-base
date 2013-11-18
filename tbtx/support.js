@@ -1,4 +1,4 @@
-(function(global, $) {
+(function($) {
     var doc = document;
 
     $.extend($.support, {
@@ -17,44 +17,4 @@
             });
         }
     });
-
-    // fix ie6 position
-    var fixPosition = function($element, pos) {
-        var i,
-            ret = {};
-
-        if (pos) {
-            for (i in pos) {
-                // 不跳转left和right, 统一将bottom和top设置为top
-                if (i == 'top') {
-                    ret[i] = pos[i] + tbtx.scrollY();
-                }
-
-                if (i == 'bottom') {
-                    ret['top'] = tbtx.scrollY() + tbtx.viewportHeight() - pos[i] - $element.innerHeight();
-                }
-            }
-            $element.css(ret);
-        }
-    };
-    // [data-fixed-position]
-    $(function() {
-        if (!tbtx.isIE6) {
-            return;
-        }
-        var $elements = $('[data-fixed-position]');
-        if ($elements.length) {
-            $(window).on('resize scroll', function() {
-                $elements.each(function(index, el) {
-                    var $element = $(el);
-                    var data = $element.data();
-                    var pos = data["fixedPosition"];
-
-                    fixPosition($element, pos);
-                });
-            });
-        }
-    });
-
-    tbtx.fixPosition = fixPosition;
-})(this, jQuery);
+})(jQuery);

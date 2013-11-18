@@ -24,18 +24,18 @@
     </style>
 </head>
 <body>
-   <div id="div-1">hello</div>
-
+   <div class="div-1">hello</div>
+    <div class="div-1">hello2</div>
     <script>
         // tbtx.pin("#div-1");
         // tbtx.pin("#div-1", {
         //     x: 10,
         //     y: 10
         // });
-        tbtx.pin("#div-1", {
-            x: "right",
-            y: "center"
-        });
+        tbtx.pin(
+            { element: ".div-1", x: 'right', y: 'center' },
+            { element: tbtx.VIEWPORT, x: 'right', y: 'center' }
+        );
         // tbtx.pin(
         //     { element: "#div-1", x: 'center', y: 'center' }, 
         //     { element: tbtx.VIEWPORT, x: 'center', y: 'center' }

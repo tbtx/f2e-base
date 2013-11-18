@@ -1,13 +1,61 @@
-(function(global, $) {
-    var exports = global.tbtx;
+(function(exports) {
 
     // 语言扩展
-    var toString = Object.prototype.toString,
+    var AP = Array.prototype,
+        forEach = AP.forEach,
+        OP = Object.prototype,
+        toString = OP.toString,
+        class2type = {},
 
-        AP = Array.prototype,
+        type = function(obj) {
+            return obj === null ?
+                String(obj) :
+                class2type[toString.call(obj)] || 'object';
+        },
+
+        // jQ的each在fn中参数顺序与forEach不同
+        each = function(object, fn, context) {
+            if (object) {
+                if (forEach && object.forEach === forEach) {
+                    object.forEach(fn, context);
+                    return;
+                }
+                var key,
+                    val,
+                    keysArray,
+                    i = 0,
+                    length = object.length,
+                    // do not use typeof obj == 'function': bug in phantomjs
+                    isObj = length === undefined || type(object) == 'function';
+
+                context = context || null;
+
+                if (isObj) {
+                    keysArray = keys(object);
+                    for (; i < keysArray.length; i++) {
+                        key = keysArray[i];
+                        // can not use hasOwnProperty
+                        if (fn.call(context, object[key], key, object) === false) {
+                            break;
+                        }
+                    }
+                } else {
+                    for (val = object[0]; i < length; val = object[++i]) {
+                        if (fn.call(context, val, i, object) === false) {
+                            break;
+                        }
+                    }
+                }
+            }
+            return object;
+        },
 
         isString = function(val) {
-            return toString.call(val) === '[object String]';
+            return type(val) === 'string';
+        },
+
+        isFunction = function(val) {
+            return type(val) === 'function';
         },
 
         isNotEmptyString = function(val) {
@@ -15,7 +63,7 @@
         },
 
         isArray = Array.isArray || function(val) {
-            return toString.call(val) === '[object Array]';
+            return type(val) === 'array';
         },
 
         inArray = function(arr, item) {
@@ -29,7 +77,7 @@
         } :
             function(arr, item) {
                 var i;
-                if (typeof arr == 'string') {
+                if (isString(arr)) {
                     for (i = 0; i < arr.length; i++) {
                         if (arr.charAt(i) === item) {
                             return i;
@@ -49,7 +97,7 @@
             return AP.filter.call(arr, fn, context);
         } : function(arr, fn, context) {
             var ret = [];
-            $.each(arr, function(i, item) {
+            each(arr, function(item, i) {
                 if (fn.call(context || this, item, i, arr)) {
                     ret.push(item);
                 }
@@ -88,6 +136,35 @@
             }
 
             return ret;
+        },
+
+        isPlainObject = function(obj) {
+            // Must be an Object.
+            // Because of IE, we also have to check the presence of the constructor property.
+            // Make sure that Dom nodes and window objects don't pass through, as well
+            if (!obj || type(obj) !== "object" || obj.nodeType || obj.window == obj) {
+                return false;
+            }
+
+            var key, objConstructor;
+
+            try {
+                // Not own constructor property must be Object
+                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, "constructor") && !hasOwnProperty(objConstructor.prototype, "isPrototypeOf")) {
+                    return false;
+                }
+            } catch (e) {
+                // IE8,9 Will throw exceptions on certain host objects
+                return false;
+            }
+
+            // Own properties are enumerated firstly, so to speed up,
+            // if last one is own, then all properties are own.
+
+
+            for (key in obj) {}
+
+            return key === undefined || hasOwnProperty(obj, key);
         },
 
         startsWith = function(str, prefix) {
@@ -157,7 +234,13 @@
         },
 
         // oo实现
-        Class = function(parent) {
+        Class = function(parent, properties) {
+            if (!isFunction(parent)) {
+                properties = parent;
+                parent = null;
+            }
+            properties = properties || {};
+
             var klass = function() {
                 if (parent) {
                     parent.apply(this, arguments);
@@ -193,7 +276,7 @@
             mix(klass, Class.Mutators);
             klass.fn.proxy = klass.proxy;
 
-            return klass;
+            return klass.include(properties);
         },
 
         Now = Date.now || function() {
@@ -242,7 +325,7 @@
             if (!isString(str)) {
                 return str;
             }
-            if ( !($.isPlainObject(o) || isArray(o)) ) {
+            if ( !(isPlainObject(o) || isArray(o)) ) {
                 return str;
             }
             return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
@@ -341,7 +424,7 @@
                 return escapeReg;
             }
             var str = EMPTY;
-            $.each(htmlEntities, function(index, entity) {
+            each(htmlEntities, function(entity, index) {
                 str += entity + '|';
             });
             str = str.slice(0, -1);
@@ -354,7 +437,7 @@
                 return unEscapeReg;
             }
             var str = EMPTY;
-            $.each(reverseEntities, function(index, entity) {
+            each(reverseEntities, function(entity, index) {
                 str += entity + '|';
             });
             str += '&#(\\d{1,5});';
@@ -379,6 +462,13 @@
         }
     })();
 
+    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, i) {
+        class2type["[object " + name + "]"] = name.toLowerCase();
+    });
+
+    function hasOwnProperty(o, p) {
+        return OP.hasOwnProperty.call(o, p);
+    }
 
     // Shared empty constructor function to aid in prototype-chain creation.
     function Ctor() {}
@@ -401,6 +491,7 @@
             if (extended) {
                 extended(this);
             }
+            return this;
         },
         include: function(object) {
             var included = object.included;
@@ -410,6 +501,7 @@
             if (included) {
                 included(this);
             }
+            return this;
         },
         proxy: function(func) {
             var self = this;
@@ -429,6 +521,7 @@
             mix(proto, item.prototype || item, ['prototype']);
             item = items.shift();
         }
+        return this;
     }
     function classify(cls) {
         cls.Implements = Implements;
@@ -469,6 +562,8 @@
         isNotEmptyString: isNotEmptyString,
         isArray: isArray,
         inArray: inArray,
+        type: type,
+        each: each,
         indexOf: indexOf,
         filter: filter,
         keys: keys,
@@ -487,4 +582,4 @@
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(this, jQuery);
+})(tbtx);

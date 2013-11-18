@@ -1,4 +1,4 @@
-(function(global) {
+(function(exports) {
     var toString = Object.prototype.toString,
 
         isString = function(val) {
@@ -71,6 +71,5 @@
         }
     };
 
-    var exports = global.tbtx ? global.tbtx : jQuery;
     exports.cookie = cookie;
-})(this);
+})(tbtx);

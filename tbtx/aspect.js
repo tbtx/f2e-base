@@ -1,4 +1,4 @@
-(function() {
+(function(tbtx) {
     var exports = tbtx.Aspect = {};
 
     exports.before = function(methodName, callback, context) {
@@ -44,4 +44,4 @@
         };
         this[methodName].__isAspected = true;
     }
-})();
+})(tbtx);

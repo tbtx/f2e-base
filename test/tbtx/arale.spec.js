@@ -42,7 +42,7 @@ describe('Base and Widget', function() {
                 }
             });
             w.test = function() {
-                console.log("test");
+                tbtx.log("test");
             };
             w.render();
         });

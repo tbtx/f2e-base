@@ -35,6 +35,8 @@
 	lang.js 语言扩展
 	events.js 事件
 	aspect.js before & after
+	attrs: attr操作
+	widget: base & widget
 	cookie.js cookie操作
 	date 日期格式化
 	detector.js 嗅探
@@ -48,6 +50,7 @@
 	overlay 覆盖层
 	Popup 弹出
 	Slide 轮播
+	validator 表单校验
 	scrollspy 滚动侦测
 	soltMachine 老虎机
 

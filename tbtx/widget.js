@@ -1,12 +1,17 @@
-(function(exports) {
-    var Class = tbtx.Class;
+(function(tbtx) {
+    var exports = tbtx;
+
+    var Class = tbtx.Class,
+        Events = tbtx.Events,
+        Aspect = tbtx.Aspect,
+        Attrs = tbtx.Attrs;
 
     // Base
     // _onChange属性名 会自动监听attr变化
     // 在attrs里面设置是没有_开头的
     // config直接就是attrs对象的 {element: ""}
     var Base = new Class();
-    Base.Implements([tbtx.Events, tbtx.Aspect, tbtx.Attrs]);
+    Base.Implements([Events, Aspect, Attrs]);
     Base.include({
         init: function(config) {
             this.initAttrs(config);
@@ -303,6 +308,7 @@
         return "widget-" + cidCounter++;
     }
 
+    var toString = Object.prototype.toString;
     function isString(val) {
         return toString.call(val) === "[object String]";
     }

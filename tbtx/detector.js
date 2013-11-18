@@ -1,4 +1,4 @@
-(function(global) {
+(function(exports) {
     /*
      * aralejs detector
      * detector.browser.name
@@ -464,6 +464,7 @@
     detector.parse = parse;
 
 
+    // exports add
     var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/g;
     var decideMobile = function(ua) {
         var match = mobilePattern.exec(ua);
@@ -472,10 +473,10 @@
 
     detector.mobile = decideMobile(userAgent);
 
-    tbtx.mix({
+    exports.mix({
         detector: detector,
         decideMobile: decideMobile,
         isIE6: detector.browser.ie && detector.browser.version == 6,
         isMobile: !!detector.mobile
     });
-})(this);
+})(tbtx);

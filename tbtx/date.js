@@ -1,4 +1,4 @@
-(function() {
+(function(exports) {
 
     function isType(type) {
         return function(obj) {
@@ -83,8 +83,8 @@
         }
     }
 
-    tbtx.mix({
+    exports.mix({
         normalizeDate: normalizeDate,
         formatDate: formatDate
     });
-})();
+})(tbtx);

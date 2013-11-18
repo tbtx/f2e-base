@@ -37,9 +37,7 @@ describe('lang', function() {
 		});
 
 		it("should include as instance prop", function() {
-			var ClassA = new tbtx.Class;
-
-			ClassA.include({
+			var ClassA = new tbtx.Class({
 				talk: function(msg) {
 					return 'talk:' + msg;
 				}
