@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-18 2:53:42
+ * 2013-11-19 11:39:26
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -846,8 +846,9 @@
 ;(function(tbtx) {
     var exports = tbtx.Attrs = {};
     // set/get/initAttrs
+    // change 手动触发change事件
     // set会触发 change:attrName 事件
-    // 实例的propsInAttrs在initAttrs时会自动转成this的属性
+    // 实例(一般是构造函数原型上)的propsInAttrs在initAttrs时会自动转成this的属性
 
     // Attribute
     // -----------------
@@ -1234,7 +1235,7 @@
             this.initAttrs(config);
             parseEventsFromInstance(this, this.attrs);
         },
-        destory: function() {
+        destroy: function() {
             // 解除事件绑定
             this.off();
 
@@ -1245,7 +1246,7 @@
             }
             // Destroy should be called only once, generate a fake destroy after called
             // https://github.com/aralejs/widget/issues/50
-            this.destory = function() {};
+            this.destroy = function() {};
         }
     });
     function parseEventsFromInstance(host, attrs) {

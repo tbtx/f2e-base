@@ -17,7 +17,7 @@
             this.initAttrs(config);
             parseEventsFromInstance(this, this.attrs);
         },
-        destory: function() {
+        destroy: function() {
             // 解除事件绑定
             this.off();
 
@@ -28,7 +28,7 @@
             }
             // Destroy should be called only once, generate a fake destroy after called
             // https://github.com/aralejs/widget/issues/50
-            this.destory = function() {};
+            this.destroy = function() {};
         }
     });
     function parseEventsFromInstance(host, attrs) {
