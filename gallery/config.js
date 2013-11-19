@@ -12,9 +12,6 @@
     arr.splice(arr.length - deep, deep);
     baseUrl = arr.join('/');
 
-    global.tbtx = global.tbtx || {};
-    global.tbtx.staticUrl = baseUrl;
-
     require.config({
         baseUrl: baseUrl,
         urlArgs: "2013.10.15.0",
@@ -26,8 +23,9 @@
             "slide": "base/js/component/slide",
             "soltMachine": "base/js/component/soltMachine",
             "validate": "base/js/plugin/jquery.validate.min",
-            "validator": "base/js/component/jquery.validator",
+            "validator": "base/js/component/validator",
             "imagesloaded": "base/js/plugin/imagesloaded.min",
+            "lazyload": "base/js/plugin/jquery.lazyload",
 
             "swfobject": "base/js/plugin/swfobject",
             "handlebars": "miiee/js/handlebars",
@@ -45,22 +43,19 @@
             "jquery": {
                 exports: "jQuery"
             },
-            "easing": {
-                deps: ["jquery"]
-            },
             "tbtx": {
                 deps: ["jquery"],
                 exports: "tbtx"
             },
+
+            // tbtx component
             "popup": {
                 deps: ["tbtx"],
                 exports: "tbtx.Popup"
             },
-            "validate": {
-                deps: ["jquery"]
-            },
-            "imagesloaded": {
-                deps: ["jquery"]
+            "validator": {
+                deps: ["tbtx"],
+                exports: "tbtx.Validator"
             },
             "slide": {
                 deps: ["tbtx"],
@@ -70,6 +65,22 @@
                 deps: ["tbtx"],
                 exports: "tbtx.SoltMachine"
             },
+
+            // jq plugin
+            "easing": {
+                deps: ["jquery"]
+            },
+            "validate": {
+                deps: ["jquery"],
+                exports: ["jQuery.validator"]
+            },
+            "lazyload": {
+                deps: ["jquery"]
+            },
+            "imagesloaded": {
+                deps: ["jquery"]
+            },
+
 
             "kissy": {
                 exports: "KISSY"

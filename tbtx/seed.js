@@ -28,7 +28,8 @@
         debug: false,
 
         /*
-         * 静态文件url前缀
+         * 默认静态文件url前缀
+         * 会在后面通过script.src重写
          */
         staticUrl: "http://static.tianxia.taobao.com/tbtx",
 

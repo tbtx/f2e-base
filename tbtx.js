@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-19 11:39:26
+ * 2013-11-19 2:24:54
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -34,7 +34,8 @@
         debug: false,
 
         /*
-         * 静态文件url前缀
+         * 默认静态文件url前缀
+         * 会在后面通过script.src重写
          */
         staticUrl: "http://static.tianxia.taobao.com/tbtx",
 
@@ -2451,7 +2452,6 @@
 ;(function(global, $) {
     var doc = document,
         scripts = doc.scripts,
-        loaderScript = scripts[scripts.length - 1],
         de = document.documentElement,
         head = document.getElementsByTagName("head")[0] || de;
 
@@ -2659,24 +2659,33 @@
         return request(normalizeUrl(url), callback, charset);
     }
 
+    // 获取tbtx所在script的的src
+    function getLoaderSrc() {
+        var node,
+            src;
+
+        for (var i = scripts.length - 1; i >= 0; i--) {
+            node = scripts[i];
+            src = getScriptAbsoluteSrc(node);
+            if (src && /tbtx\.(min\.)?js/.test(src)) {
+                return src;
+            }
+        }
+        return null;
+    }
+
     // file:///E:/tbcdn or cdn(如a.tbcdn.cn/apps/tbtx)
-    // 用requirejs的话使用config所在script获取到staticUrl
-    // 直接加载tbtx时使用tbtx所在script获取到staticUrl
-    // 除非使用第三方的加载，如$.getScript
-    // 这时使用默认的staticUrl
-    var staticUrl = tbtx._tbtx && tbtx._tbtx.staticUrl;
-    if (staticUrl) {
-        tbtx.staticUrl = tbtx._tbtx.staticUrl;
-    } else {
-        // tbtx.js所在路径
-        var loaderSrc = getScriptAbsoluteSrc(loaderScript);
-        if (/tbtx\.js/.test(loaderSrc)) {
-             var pathArray = loaderSrc.split('/'),
+    // 使用tbtx所在script获取到staticUrl
+    // 除非脚本名不是tbtx.js or tbtx.min.js，使用默认的staticUrl
+    (function(exports) {
+        var loaderSrc = getLoaderSrc();
+        if (loaderSrc) {
+            var pathArray = loaderSrc.split('/'),
                 deep = 3;
             pathArray.splice(pathArray.length - deep, deep);  // delete base js tbtx.js
-            tbtx.staticUrl = pathArray.join("/");
+            exports.staticUrl = pathArray.join("/");
         }
-    }
+    })(tbtx);
 
     var pageHeight = function() {
             return $(document).height();
