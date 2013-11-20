@@ -72,7 +72,7 @@
             },
             "validate": {
                 deps: ["jquery"],
-                exports: ["jQuery.validator"]
+                exports: "jQuery.validator"
             },
             "lazyload": {
                 deps: ["jquery"]

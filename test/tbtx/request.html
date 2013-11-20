@@ -30,14 +30,14 @@
 // }, 2000);
 //
 var ret = tbtx.loadScript(["https://raw.github.com/seajs/seajs/master/dist/sea-debug.js", "http://a.tbcdn.cn/apps/tbtx/miiee/js/order/TweenMax.min.js", "http://a.tbcdn.cn/apps/tbtx/miiee/js/ZeroClipboard.min.js"], function() {
-	console.log(TweenMax);
-	console.log(ZeroClipboard);
-	console.log(seajs);
+	// console.log(TweenMax);
+	// console.log(ZeroClipboard);
+	// console.log(seajs);
 });
 
-ret.done(function() {
-	console.log('done');
-});
+// ret.done(function() {
+// 	console.log('done');
+// });
 
 //
 var getData = function() {
@@ -67,7 +67,9 @@ var showImg = function(img) {
 }
 
 var r = getData()
-.then(getImg)
+.then(getImg, function() {
+	console.log("get data fail");
+})
 .then(showImg);
 
 tbtx.initWangWang();
