@@ -11,6 +11,19 @@ describe('lang', function() {
 		});
 	});
 
+	describe("type", function() {
+		it("should get the type of the argument", function() {
+			expect(tbtx.type("")).toEqual("string");
+			expect(tbtx.type(123)).toEqual("number");
+			expect(tbtx.type(function(){})).toEqual("function");
+			expect(tbtx.type([])).toEqual("array");
+			expect(tbtx.type({})).toEqual("object");
+			expect(tbtx.type(/abc/)).toEqual("regexp");
+			expect(tbtx.type(new Date())).toEqual("date");
+			expect(tbtx.type(true)).toEqual("boolean");
+		});
+	});
+
 	describe("Class", function() {
 		it("should get a fn to be it's prototype ", function() {
 			var ClassA = new tbtx.Class;
@@ -214,6 +227,14 @@ describe('lang', function() {
 
 		it("should get a number in the array", function() {
 			expect(tbtx.choice([1, 2, 3])).toBeBetween(1, 4);
+		});
+	});
+
+	describe('parseUrl', function() {
+		it("should get the info of a url", function() {
+			var r = tbtx.parseUrl("http://miiee.taobao.com/choice.htm?spm=a310i.2181413.5731757.9.Jmv67O&pcid=8101&banner=nvzhuang#page-5");
+			expect(r.scheme).toEqual("http");
+			expect(r.domain).toEqual("miiee.taobao.com");
 		});
 	});
 

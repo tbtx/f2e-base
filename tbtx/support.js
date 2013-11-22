@@ -1,4 +1,4 @@
-(function($) {
+(function($, tbtx) {
     var doc = document;
 
     $.extend($.support, {
@@ -17,4 +17,4 @@
             });
         }
     });
-})(jQuery);
+})(jQuery, tbtx);

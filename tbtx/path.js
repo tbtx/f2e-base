@@ -1,19 +1,20 @@
-(function(global) {
-    var location = document.location;
+(function(tbtx) {
+    var parseResult = tbtx.parseUrl(location.href);
 
-    var ROOT = location.protocol + '//' + location.host;
+    var ROOT = parseResult.scheme + "://" + parseResult.domain;
+    if (parseResult.port) {
+        ROOT += ":" + parseResult.port;
+    }
 
     if (!(/^http/i).test(ROOT)) {
         ROOT = '';
     }
 
-    var baseUrl = ROOT + '/';
-
     var path = {
-        getuserinfo:  baseUrl + 'interface/getuserinfo.htm',
-        getlogininfo: baseUrl + 'interface/getlogininfo.htm',       // 临时登陆状态判断
-        taobao_login_page : baseUrl + 'applogin.htm',
-        login: baseUrl + 'applogin.htm'+ "?ref=" + encodeURIComponent(location.href)
+        getuserinfo: '/interface/getuserinfo.htm',
+        getlogininfo: '/interface/getlogininfo.htm',       // 临时登陆状态判断
+        taobao_login_page : '/applogin.htm',
+        login: '/applogin.htm'+ "?ref=" + encodeURIComponent(location.href)
     };
 
 
@@ -21,4 +22,4 @@
         ROOT: ROOT,
         path: path
     });
-})(this);
+})(tbtx);

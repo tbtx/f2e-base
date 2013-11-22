@@ -1,4 +1,5 @@
 describe('seed', function() {
+	window.$ = null;
 	describe("log", function() {
 		it("should get the log info if the console.log exists", function(){
 			tbtx.log('tbtx');
@@ -9,7 +10,7 @@ describe('seed', function() {
 
 	describe("global", function() {
 		it("should equal to the window in the browser", function(){
-			expect(tbtx.global).toEqual(window);
+			expect(tbtx.global).toBe(window);
 		});
 	});
 
@@ -22,6 +23,19 @@ describe('seed', function() {
 
 		it("should get the value with name", function(){
 			expect(tbtx.data('msg')).toEqual('hello');
+		});
+	});
+
+	describe("staticUrl", function() {
+		it("should be the base static url of the static files", function() {
+			expect(tbtx.staticUrl).toEqual("file:///E:/tbcdn");
+		});
+	});
+
+	describe("uniqueCid", function() {
+		it("should get a unique client id", function() {
+			expect(tbtx.uniqueCid()).toEqual(0);
+			expect(tbtx.uniqueCid()).toEqual(1);
 		});
 	});
 });

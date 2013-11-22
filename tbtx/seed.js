@@ -27,9 +27,10 @@
          */
         debug: false,
 
-        /*
-         * 默认静态文件url前缀
-         * 会在后面通过script.src重写
+        /**
+         * staticUrl 默认静态文件url前缀
+         * 会在后面根据实际的地址重写，这里作为备用
+         * @type {String}
          */
         staticUrl: "http://static.tianxia.taobao.com/tbtx",
 
@@ -67,7 +68,10 @@
          */
         noop: function() {},
 
-        // client unique id
+        /**
+         * client unique id
+         * @return {number} cid
+         */
         uniqueCid: function() {
             return cidCounter++;
         }

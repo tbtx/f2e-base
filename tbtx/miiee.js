@@ -1,35 +1,51 @@
-(function(global, $) {
-
+(function($, tbtx) {
+    // cookie写入JSToken，服务器端处理后清掉，如果url的token跟cookie的不对应则
+    // 参数非法，防止重复提交
     var miieeJSToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
         tbtx.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
         return token;
     };
 
-    var userCheckAjax;
+    // 临时跟真正登陆暂时没区分
+    var userCheckDeferred;
     // 默认使用登陆接口，某些操作使用临时登陆状态即可
     var userCheck = function(callSuccess, callFailed, isTemp) {
-        userCheckAjax = userCheckAjax || $.ajax({
+        if (userCheckDeferred) {
+            return userCheckDeferred.done(callSuccess).fail(callFailed);
+        }
+        userCheckDeferred = $.Deferred();
+        $.ajax({
             type: "POST",
             url: isTemp ?  tbtx.path.getlogininfo : tbtx.path.getuserinfo,
             dataType: 'json',
             data: {},
             timeout: 5000
         }).done(function(json) {
-            if (json.result && json.result.data) {
-                tbtx.data('user', json.result.data);
+            var data = json.result && json.result.data,
+                code = json.code;
+
+            if (code == 601) {
+                userCheckDeferred.reject();
+            } else if (code == 100 || code == 608 || code == 1000) {
+                userCheckDeferred.resolve(data);
+                tbtx.data('user', data);
+                tbtx.data('userName', data.trueName ? data.trueName : data.userNick);
             }
+        }).fail(function() {
+            userCheckDeferred.reject();
         });
 
-        userCheckAjax.done(function(json) {
-            var code = json.code;
-            if (code == 601) {
-                callFailed();
-            } else if (code == 100 || code == 608 || code == 1000) {
-                callSuccess();
-            }
-        }).fail(callFailed);
+        userCheckDeferred.done(callSuccess).fail(callFailed).fail(function() {
+            // J-login 链接改为登陆
+            $('.J-login').attr({
+                href: tbtx.path.login,
+                target: "_self"
+            });
+        });
+        return userCheckDeferred.promise();
     };
+
 
     var config = {
         miiee: {
@@ -106,4 +122,4 @@
         shareToSinaWB: shareToSinaWB,
         addToFavourite: addToFavourite
     });
-})(this, jQuery);
+})(jQuery, tbtx);

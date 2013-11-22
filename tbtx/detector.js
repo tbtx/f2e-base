@@ -465,6 +465,15 @@
 
 
     // exports add
+    function mixTo(r, s) {
+        var p;
+        for (p in s) {
+            if (s.hasOwnProperty(p)) {
+                r[p] = s[p];
+            }
+        }
+    }
+
     var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/g;
     var decideMobile = function(ua) {
         var match = mobilePattern.exec(ua);
@@ -473,7 +482,7 @@
 
     detector.mobile = decideMobile(userAgent);
 
-    exports.mix({
+    mixTo(exports, {
         detector: detector,
         decideMobile: decideMobile,
         isIE6: detector.browser.ie && detector.browser.version == 6,

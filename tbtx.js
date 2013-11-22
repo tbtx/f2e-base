@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-19 2:24:54
+ * 2013-11-21 11:11:57
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -33,9 +33,10 @@
          */
         debug: false,
 
-        /*
-         * 默认静态文件url前缀
-         * 会在后面通过script.src重写
+        /**
+         * staticUrl 默认静态文件url前缀
+         * 会在后面根据实际的地址重写，这里作为备用
+         * @type {String}
          */
         staticUrl: "http://static.tianxia.taobao.com/tbtx",
 
@@ -73,7 +74,10 @@
          */
         noop: function() {},
 
-        // client unique id
+        /**
+         * client unique id
+         * @return {number} cid
+         */
         uniqueCid: function() {
             return cidCounter++;
         }
@@ -82,22 +86,28 @@
 })(this, 'tbtx');
 
 
-;(function(exports) {
+;(function(exports, undefined) {
 
     // 语言扩展
     var AP = Array.prototype,
         forEach = AP.forEach,
         OP = Object.prototype,
         toString = OP.toString,
+        FALSE = false,
         class2type = {},
 
+        /**
+         * jQuery type()
+         */
         type = function(obj) {
             return obj === null ?
                 String(obj) :
                 class2type[toString.call(obj)] || 'object';
         },
 
-        // jQ的each在fn中参数顺序与forEach不同
+        /**
+         * jQ的each在fn中参数顺序与forEach不同
+         */
         each = function(object, fn, context) {
             if (object) {
                 if (forEach && object.forEach === forEach) {
@@ -119,13 +129,13 @@
                     for (; i < keysArray.length; i++) {
                         key = keysArray[i];
                         // can not use hasOwnProperty
-                        if (fn.call(context, object[key], key, object) === false) {
+                        if (fn.call(context, object[key], key, object) === FALSE) {
                             break;
                         }
                     }
                 } else {
                     for (val = object[0]; i < length; val = object[++i]) {
-                        if (fn.call(context, val, i, object) === false) {
+                        if (fn.call(context, val, i, object) === FALSE) {
                             break;
                         }
                     }
@@ -154,7 +164,9 @@
             return indexOf(arr, item) > -1;
         },
 
-        // 修正IE7以下字符串不支持下标获取字符
+        /**
+         * 修正IE7以下字符串不支持下标获取字符
+         */
         indexOf = AP.indexOf ?
             function(arr, item) {
                 return arr.indexOf(item);
@@ -227,7 +239,7 @@
             // Because of IE, we also have to check the presence of the constructor property.
             // Make sure that Dom nodes and window objects don't pass through, as well
             if (!obj || type(obj) !== "object" || obj.nodeType || obj.window == obj) {
-                return false;
+                return FALSE;
             }
 
             var key, objConstructor;
@@ -235,11 +247,11 @@
             try {
                 // Not own constructor property must be Object
                 if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, "constructor") && !hasOwnProperty(objConstructor.prototype, "isPrototypeOf")) {
-                    return false;
+                    return FALSE;
                 }
             } catch (e) {
                 // IE8,9 Will throw exceptions on certain host objects
-                return false;
+                return FALSE;
             }
 
             // Own properties are enumerated firstly, so to speed up,
@@ -367,7 +379,9 @@
             return +new Date();
         },
 
-        // 在underscore里面有实现，这个版本借鉴的是kissy
+        /**
+         * 在underscore里面有实现，这个版本借鉴的是kissy
+         */
         throttle = function(fn, ms, context) {
             ms = ms || 100; // 150 -> 100
 
@@ -388,8 +402,10 @@
             });
         },
 
-        // 函数柯里化
-        // 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
+        /**
+         * 函数柯里化
+         * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
+         */
         curry = function(fn) {
             var slice = [].slice,
                 args = slice.call(arguments, 1);
@@ -402,9 +418,11 @@
             };
         },
 
-        // {{ name }} -> {{ o[name] }}
-        // \{{}} -> \{{}}
-        // based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
+        /**
+         * {{ name }} -> {{ o[name] }}
+         * \{{}} -> \{{}}
+         * based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
+         */
         substitute = function(str, o, regexp) {
             if (!isString(str)) {
                 return str;
@@ -420,7 +438,9 @@
             });
         },
 
-        // query字符串转为对象
+        /**
+         * query字符串转为对象
+         */
         unparam = function(str, sep, eq) {
             if (!isString(str)) {
                 return {};
@@ -472,6 +492,33 @@
             "(?:#(.*))?" + // fragment
             "$"
         ),
+
+        /**
+         * parse url
+         * @param  {url}    url     the url to be parsed
+         * @return {Object}         a object with url info
+         */
+        parseUrl = function(url) {
+            url = url || location.href;
+            var ret = {};
+            if (!isString(url)) {
+                return ret;
+            }
+            var match = URI_RE.exec(url);
+            if (match) {
+                return {
+                    scheme: match[1],
+                    credentials: match[2],
+                    domain: match[3],
+                    port: match[4],
+                    path: match[5],
+                    query: match[6],
+                    fragment: match[7]
+                };
+            }
+
+            return ret;
+        },
         getFragment = function(url) {
             url = url || location.href;
             var match = URI_RE.exec(url);
@@ -661,12 +708,13 @@
         curry: curry,
         substitute: substitute,
         unparam: unparam,
+        parseUrl: parseUrl,
         getFragment: getFragment,
         getQueryParam: getQueryParam,
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(tbtx);
+})(tbtx, undefined);
 
 
 ;(function(exports) {
@@ -1217,7 +1265,7 @@
     }
 })(tbtx);
 
-;(function(tbtx) {
+;(function($, tbtx) {
     var exports = tbtx;
 
     var Class = tbtx.Class,
@@ -1263,7 +1311,7 @@
     function ucfirst(str) {
         return str.charAt(0).toUpperCase() + str.substring(1);
     }
-    exports.Base = Base;
+
 
     // 所有初始化过的 Widget 实例
     var cachedInstances = {};
@@ -1520,8 +1568,6 @@
         return cachedInstances[cid];
     };
 
-    exports.Widget = Widget;
-
     var cidCounter = 0;
     function uniqueCid() {
         return "widget-" + cidCounter++;
@@ -1594,7 +1640,10 @@
     function isEmptyAttrValue(o) {
         return o == null || o === undefined;
     }
-})(tbtx);
+
+    exports.Base = Base;
+    exports.Widget = Widget;
+})(jQuery, tbtx);
 
 ;(function(exports) {
     var toString = Object.prototype.toString,
@@ -1758,7 +1807,16 @@
         }
     }
 
-    exports.mix({
+    function mixTo(r, s) {
+        var p;
+        for (p in s) {
+            if (s.hasOwnProperty(p)) {
+                r[p] = s[p];
+            }
+        }
+    }
+
+    mixTo(exports, {
         normalizeDate: normalizeDate,
         formatDate: formatDate
     });
@@ -2232,6 +2290,15 @@
 
 
     // exports add
+    function mixTo(r, s) {
+        var p;
+        for (p in s) {
+            if (s.hasOwnProperty(p)) {
+                r[p] = s[p];
+            }
+        }
+    }
+
     var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/g;
     var decideMobile = function(ua) {
         var match = mobilePattern.exec(ua);
@@ -2240,7 +2307,7 @@
 
     detector.mobile = decideMobile(userAgent);
 
-    exports.mix({
+    mixTo(exports, {
         detector: detector,
         decideMobile: decideMobile,
         isIE6: detector.browser.ie && detector.browser.version == 6,
@@ -2451,9 +2518,8 @@
 
 ;(function(global, $) {
     var doc = document,
-        scripts = doc.scripts,
-        de = document.documentElement,
-        head = document.getElementsByTagName("head")[0] || de;
+        de = doc.documentElement,
+        head = doc.head || doc.getElementsByTagName("head")[0] || de;
 
     function isType(type) {
         return function(obj) {
@@ -2464,7 +2530,6 @@
     var isFunction = isType("Function");
 
     var baseElement = head.getElementsByTagName("base")[0];
-
     var IS_CSS_RE = /\.css(?:\?|$)/i;
     var READY_STATE_RE = /^(?:loaded|complete|undefined)$/;
 
@@ -2489,7 +2554,7 @@
             deferredMap[url].done(callback);
             return deferredMap[url].promise();
         } else {    //
-            deferredMap[url] = jQuery.Deferred();
+            deferredMap[url] = $.Deferred();
             deferredMap[url].done(callback);
         }
 
@@ -2614,9 +2679,8 @@
 
     // 给传入的相对url加上前缀
     function normalizeUrl(url) {
-        if (/^https?/.test(url)) {
-            // do nothing
-        } else {        // 相对地址转为绝对地址
+        if (!/^(http|file)/i.test(url)) {
+            // 相对地址转为绝对地址
             var prefix = tbtx.staticUrl;
             if (tbtx.startsWith(url, '/')) {
                 url = prefix + url;
@@ -2661,6 +2725,7 @@
 
     // 获取tbtx所在script的的src
     function getLoaderSrc() {
+        var scripts = doc.scripts;
         var node,
             src;
 
@@ -2700,13 +2765,11 @@
             return $(window).scrollLeft();
             // return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
         },
-        // $(window).scrollTop()
         scrollY = function() {
             return $(window).scrollTop();
             // return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
         },
 
-        // $(window).height()
         viewportHeight = function() {
             return $(window).height();
             // var de = document.documentElement;      //IE67的严格模式
@@ -2722,7 +2785,7 @@
             return !!(a.compareDocumentPosition(b) & 16);
         },
         isInDocument = function(element) {
-            return contains(document.documentElement, element);
+            return contains(de, element);
         },
 
         // 距离top多少px才算inView
@@ -2887,7 +2950,7 @@
 })(this, jQuery);
 
 
-;(function($) {
+;(function($, tbtx) {
     var doc = document;
 
     $.extend($.support, {
@@ -2906,7 +2969,7 @@
             });
         }
     });
-})(jQuery);
+})(jQuery, tbtx);
 
 ;(function($) {
     var itemTemplate = '<p class="tbtx-msg-item tbtx-msg-{{ type }}">{{ msg }}</p>',
@@ -3018,22 +3081,23 @@
     });
 })(jQuery);
 
-;(function(global) {
-    var location = document.location;
+;(function(tbtx) {
+    var parseResult = tbtx.parseUrl(location.href);
 
-    var ROOT = location.protocol + '//' + location.host;
+    var ROOT = parseResult.scheme + "://" + parseResult.domain;
+    if (parseResult.port) {
+        ROOT += ":" + parseResult.port;
+    }
 
     if (!(/^http/i).test(ROOT)) {
         ROOT = '';
     }
 
-    var baseUrl = ROOT + '/';
-
     var path = {
-        getuserinfo:  baseUrl + 'interface/getuserinfo.htm',
-        getlogininfo: baseUrl + 'interface/getlogininfo.htm',       // 临时登陆状态判断
-        taobao_login_page : baseUrl + 'applogin.htm',
-        login: baseUrl + 'applogin.htm'+ "?ref=" + encodeURIComponent(location.href)
+        getuserinfo: '/interface/getuserinfo.htm',
+        getlogininfo: '/interface/getlogininfo.htm',       // 临时登陆状态判断
+        taobao_login_page : '/applogin.htm',
+        login: '/applogin.htm'+ "?ref=" + encodeURIComponent(location.href)
     };
 
 
@@ -3041,41 +3105,57 @@
         ROOT: ROOT,
         path: path
     });
-})(this);
+})(tbtx);
 
 
-;(function(global, $) {
-
+;(function($, tbtx) {
+    // cookie写入JSToken，服务器端处理后清掉，如果url的token跟cookie的不对应则
+    // 参数非法，防止重复提交
     var miieeJSToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
         tbtx.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
         return token;
     };
 
-    var userCheckAjax;
+    // 临时跟真正登陆暂时没区分
+    var userCheckDeferred;
     // 默认使用登陆接口，某些操作使用临时登陆状态即可
     var userCheck = function(callSuccess, callFailed, isTemp) {
-        userCheckAjax = userCheckAjax || $.ajax({
+        if (userCheckDeferred) {
+            return userCheckDeferred.done(callSuccess).fail(callFailed);
+        }
+        userCheckDeferred = $.Deferred();
+        $.ajax({
             type: "POST",
             url: isTemp ?  tbtx.path.getlogininfo : tbtx.path.getuserinfo,
             dataType: 'json',
             data: {},
             timeout: 5000
         }).done(function(json) {
-            if (json.result && json.result.data) {
-                tbtx.data('user', json.result.data);
+            var data = json.result && json.result.data,
+                code = json.code;
+
+            if (code == 601) {
+                userCheckDeferred.reject();
+            } else if (code == 100 || code == 608 || code == 1000) {
+                userCheckDeferred.resolve(data);
+                tbtx.data('user', data);
+                tbtx.data('userName', data.trueName ? data.trueName : data.userNick);
             }
+        }).fail(function() {
+            userCheckDeferred.reject();
         });
 
-        userCheckAjax.done(function(json) {
-            var code = json.code;
-            if (code == 601) {
-                callFailed();
-            } else if (code == 100 || code == 608 || code == 1000) {
-                callSuccess();
-            }
-        }).fail(callFailed);
+        userCheckDeferred.done(callSuccess).fail(callFailed).fail(function() {
+            // J-login 链接改为登陆
+            $('.J-login').attr({
+                href: tbtx.path.login,
+                target: "_self"
+            });
+        });
+        return userCheckDeferred.promise();
     };
+
 
     var config = {
         miiee: {
@@ -3152,4 +3232,4 @@
         shareToSinaWB: shareToSinaWB,
         addToFavourite: addToFavourite
     });
-})(this, jQuery);
+})(jQuery, tbtx);

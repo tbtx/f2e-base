@@ -1,4 +1,4 @@
-(function(tbtx) {
+(function($, tbtx) {
     var exports = tbtx;
 
     var Class = tbtx.Class,
@@ -44,7 +44,7 @@
     function ucfirst(str) {
         return str.charAt(0).toUpperCase() + str.substring(1);
     }
-    exports.Base = Base;
+
 
     // 所有初始化过的 Widget 实例
     var cachedInstances = {};
@@ -301,8 +301,6 @@
         return cachedInstances[cid];
     };
 
-    exports.Widget = Widget;
-
     var cidCounter = 0;
     function uniqueCid() {
         return "widget-" + cidCounter++;
@@ -375,4 +373,7 @@
     function isEmptyAttrValue(o) {
         return o == null || o === undefined;
     }
-})(tbtx);
+
+    exports.Base = Base;
+    exports.Widget = Widget;
+})(jQuery, tbtx);

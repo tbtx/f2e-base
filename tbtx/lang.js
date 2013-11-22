@@ -1,19 +1,25 @@
-(function(exports) {
+(function(exports, undefined) {
 
     // 语言扩展
     var AP = Array.prototype,
         forEach = AP.forEach,
         OP = Object.prototype,
         toString = OP.toString,
+        FALSE = false,
         class2type = {},
 
+        /**
+         * jQuery type()
+         */
         type = function(obj) {
             return obj === null ?
                 String(obj) :
                 class2type[toString.call(obj)] || 'object';
         },
 
-        // jQ的each在fn中参数顺序与forEach不同
+        /**
+         * jQ的each在fn中参数顺序与forEach不同
+         */
         each = function(object, fn, context) {
             if (object) {
                 if (forEach && object.forEach === forEach) {
@@ -35,13 +41,13 @@
                     for (; i < keysArray.length; i++) {
                         key = keysArray[i];
                         // can not use hasOwnProperty
-                        if (fn.call(context, object[key], key, object) === false) {
+                        if (fn.call(context, object[key], key, object) === FALSE) {
                             break;
                         }
                     }
                 } else {
                     for (val = object[0]; i < length; val = object[++i]) {
-                        if (fn.call(context, val, i, object) === false) {
+                        if (fn.call(context, val, i, object) === FALSE) {
                             break;
                         }
                     }
@@ -70,7 +76,9 @@
             return indexOf(arr, item) > -1;
         },
 
-        // 修正IE7以下字符串不支持下标获取字符
+        /**
+         * 修正IE7以下字符串不支持下标获取字符
+         */
         indexOf = AP.indexOf ?
             function(arr, item) {
                 return arr.indexOf(item);
@@ -143,7 +151,7 @@
             // Because of IE, we also have to check the presence of the constructor property.
             // Make sure that Dom nodes and window objects don't pass through, as well
             if (!obj || type(obj) !== "object" || obj.nodeType || obj.window == obj) {
-                return false;
+                return FALSE;
             }
 
             var key, objConstructor;
@@ -151,11 +159,11 @@
             try {
                 // Not own constructor property must be Object
                 if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, "constructor") && !hasOwnProperty(objConstructor.prototype, "isPrototypeOf")) {
-                    return false;
+                    return FALSE;
                 }
             } catch (e) {
                 // IE8,9 Will throw exceptions on certain host objects
-                return false;
+                return FALSE;
             }
 
             // Own properties are enumerated firstly, so to speed up,
@@ -283,7 +291,9 @@
             return +new Date();
         },
 
-        // 在underscore里面有实现，这个版本借鉴的是kissy
+        /**
+         * 在underscore里面有实现，这个版本借鉴的是kissy
+         */
         throttle = function(fn, ms, context) {
             ms = ms || 100; // 150 -> 100
 
@@ -304,8 +314,10 @@
             });
         },
 
-        // 函数柯里化
-        // 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
+        /**
+         * 函数柯里化
+         * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
+         */
         curry = function(fn) {
             var slice = [].slice,
                 args = slice.call(arguments, 1);
@@ -318,9 +330,11 @@
             };
         },
 
-        // {{ name }} -> {{ o[name] }}
-        // \{{}} -> \{{}}
-        // based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
+        /**
+         * {{ name }} -> {{ o[name] }}
+         * \{{}} -> \{{}}
+         * based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
+         */
         substitute = function(str, o, regexp) {
             if (!isString(str)) {
                 return str;
@@ -336,7 +350,9 @@
             });
         },
 
-        // query字符串转为对象
+        /**
+         * query字符串转为对象
+         */
         unparam = function(str, sep, eq) {
             if (!isString(str)) {
                 return {};
@@ -388,6 +404,33 @@
             "(?:#(.*))?" + // fragment
             "$"
         ),
+
+        /**
+         * parse url
+         * @param  {url}    url     the url to be parsed
+         * @return {Object}         a object with url info
+         */
+        parseUrl = function(url) {
+            url = url || location.href;
+            var ret = {};
+            if (!isString(url)) {
+                return ret;
+            }
+            var match = URI_RE.exec(url);
+            if (match) {
+                return {
+                    scheme: match[1],
+                    credentials: match[2],
+                    domain: match[3],
+                    port: match[4],
+                    path: match[5],
+                    query: match[6],
+                    fragment: match[7]
+                };
+            }
+
+            return ret;
+        },
         getFragment = function(url) {
             url = url || location.href;
             var match = URI_RE.exec(url);
@@ -577,9 +620,10 @@
         curry: curry,
         substitute: substitute,
         unparam: unparam,
+        parseUrl: parseUrl,
         getFragment: getFragment,
         getQueryParam: getQueryParam,
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(tbtx);
+})(tbtx, undefined);

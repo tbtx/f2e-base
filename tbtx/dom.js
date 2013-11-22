@@ -1,8 +1,7 @@
 (function(global, $) {
     var doc = document,
-        scripts = doc.scripts,
-        de = document.documentElement,
-        head = document.getElementsByTagName("head")[0] || de;
+        de = doc.documentElement,
+        head = doc.head || doc.getElementsByTagName("head")[0] || de;
 
     function isType(type) {
         return function(obj) {
@@ -13,7 +12,6 @@
     var isFunction = isType("Function");
 
     var baseElement = head.getElementsByTagName("base")[0];
-
     var IS_CSS_RE = /\.css(?:\?|$)/i;
     var READY_STATE_RE = /^(?:loaded|complete|undefined)$/;
 
@@ -38,7 +36,7 @@
             deferredMap[url].done(callback);
             return deferredMap[url].promise();
         } else {    //
-            deferredMap[url] = jQuery.Deferred();
+            deferredMap[url] = $.Deferred();
             deferredMap[url].done(callback);
         }
 
@@ -163,9 +161,8 @@
 
     // 给传入的相对url加上前缀
     function normalizeUrl(url) {
-        if (/^https?/.test(url)) {
-            // do nothing
-        } else {        // 相对地址转为绝对地址
+        if (!/^(http|file)/i.test(url)) {
+            // 相对地址转为绝对地址
             var prefix = tbtx.staticUrl;
             if (tbtx.startsWith(url, '/')) {
                 url = prefix + url;
@@ -210,6 +207,7 @@
 
     // 获取tbtx所在script的的src
     function getLoaderSrc() {
+        var scripts = doc.scripts;
         var node,
             src;
 
@@ -249,13 +247,11 @@
             return $(window).scrollLeft();
             // return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
         },
-        // $(window).scrollTop()
         scrollY = function() {
             return $(window).scrollTop();
             // return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
         },
 
-        // $(window).height()
         viewportHeight = function() {
             return $(window).height();
             // var de = document.documentElement;      //IE67的严格模式
@@ -271,7 +267,7 @@
             return !!(a.compareDocumentPosition(b) & 16);
         },
         isInDocument = function(element) {
-            return contains(document.documentElement, element);
+            return contains(de, element);
         },
 
         // 距离top多少px才算inView

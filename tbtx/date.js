@@ -83,7 +83,16 @@
         }
     }
 
-    exports.mix({
+    function mixTo(r, s) {
+        var p;
+        for (p in s) {
+            if (s.hasOwnProperty(p)) {
+                r[p] = s[p];
+            }
+        }
+    }
+
+    mixTo(exports, {
         normalizeDate: normalizeDate,
         formatDate: formatDate
     });
