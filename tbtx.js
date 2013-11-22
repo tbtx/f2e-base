@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-21 11:11:57
+ * 2013-11-22 12:31:57
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3075,9 +3075,9 @@
 
     var types = "warning error info debug success".split(" ");
     $.each(types, function(index, type) {
-         MSG[type] = function(msg) {
+        tbtx[type] = MSG[type] = function(msg) {
             MSG.item(msg, type);
-         };
+        };
     });
 })(jQuery);
 
