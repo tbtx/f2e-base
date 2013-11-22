@@ -102,8 +102,8 @@
 
     var types = "warning error info debug success".split(" ");
     $.each(types, function(index, type) {
-         MSG[type] = function(msg) {
+        tbtx[type] = MSG[type] = function(msg) {
             MSG.item(msg, type);
-         };
+        };
     });
 })(jQuery);
