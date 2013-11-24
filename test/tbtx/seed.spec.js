@@ -27,7 +27,7 @@ describe('seed', function() {
 	});
 
 	describe("staticUrl", function() {
-		it("should be the base static url of the static files", function() {
+		xit("should be the base static url of the static files", function() {
 			expect(tbtx.staticUrl).toEqual("file:///E:/tbcdn");
 		});
 	});
