@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>upload</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <p>例子可以看test/component/sns.html</p>
+    <p>引入sns component</p>
+
+<!-- <div id="demo">
+    <a href="javascript:;" data-target="sina">weibo</a>
+    <a href="javascript:;" data-target="qzone">qzone</a>
+    <a href="javascript:;" data-target="douban">douban</a>
+    <a href="javascript:;" data-target="qqweibo">qqweibo</a>
+    <a href="javascript:;" data-target="renren">renren</a>
+</div> -->
+
+<pre><code>
+/**
+ * 支持qq空间/朋友圈,qq微博和新浪微博,人人
+ * 微信请使用二维码
+ * 淘江湖及来往请使用淘宝SNS
+ */
+var s = new tbtx.SNS({
+    element: "#demo",
+    caption: "title",
+    description: "分享内容分享内容分享内容分享内容分享内容分享内容分",
+    url: "http://miiee.taobao.com",
+    pic: ["http://gtms01.alicdn.com/tps/i1/T10yZVFhddXXaicpgG-193-289.jpg", "http://gtms01.alicdn.com/tps/i1/T1sP.WFhFaXXc6Ky6A-575-420.jpg"],
+    snsItem: "a"
+});
+</code></pre>
+
+<p>element指定父元素, snsItem指定分享的item，默认为.tbtx-sns-item</p>
+<p>在snsItem上data-target指定目标网站，target可以传入dataAttr修改为其他</p>
+
+<p>
+    pic根据网站选择一张或多张（某些只支持1张图片）
+</p>
+<p>都需要传入description，某些网站需要标题（caption）</p>
+</body>
+</html>

@@ -1,6 +1,7 @@
 (function(exports, undefined) {
-
     // 语言扩展
+    // 不依赖jQuery
+
     var AP = Array.prototype,
         forEach = AP.forEach,
         OP = Object.prototype,
@@ -603,6 +604,22 @@
         mix: mix,
         classify: classify,
         isNotEmptyString: isNotEmptyString,
+
+        /**
+         * 判断deferred对象是否正在处理中
+         * @param  {deferred object}
+         * @return {Boolean}
+         */
+        isPending: function(val) {
+            if (!val) {
+                return FALSE;
+            }
+            // dark type
+            if (val.resolve && val.promise) {
+                return val.state() === "pending";
+            }
+            return FALSE;
+        },
         isArray: isArray,
         inArray: inArray,
         type: type,

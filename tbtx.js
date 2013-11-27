@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-22 2:30:04
+ * 2013-11-27 12:25:42
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -87,8 +87,9 @@
 
 
 ;(function(exports, undefined) {
-
     // 语言扩展
+    // 不依赖jQuery
+
     var AP = Array.prototype,
         forEach = AP.forEach,
         OP = Object.prototype,
@@ -691,6 +692,22 @@
         mix: mix,
         classify: classify,
         isNotEmptyString: isNotEmptyString,
+
+        /**
+         * 判断deferred对象是否正在处理中
+         * @param  {deferred object}
+         * @return {Boolean}
+         */
+        isPending: function(val) {
+            if (!val) {
+                return FALSE;
+            }
+            // dark type
+            if (val.resolve && val.promise) {
+                return val.state() === "pending";
+            }
+            return FALSE;
+        },
         isArray: isArray,
         inArray: inArray,
         type: type,
@@ -2872,10 +2889,9 @@
 
             $.each($elements, function(index, element) {
                 var $element = $(element);
-                var backgroundColor = $element.css("background-color");
                 $element.css("background-color", flashColor).fadeOut("fast", function() {
                     $element.fadeIn("fast", function() {
-                        $element.css("background-color", backgroundColor || bgColor);
+                        $element.css("background-color", bgColor);
                     });
                 });
             });
@@ -3138,9 +3154,9 @@
             if (code == 601) {
                 userCheckDeferred.reject();
             } else if (code == 100 || code == 608 || code == 1000) {
-                userCheckDeferred.resolve(data);
                 tbtx.data('user', data);
                 tbtx.data('userName', data.trueName ? data.trueName : data.userNick);
+                userCheckDeferred.resolve(data);
             }
         }).fail(function() {
             userCheckDeferred.reject();
@@ -3160,7 +3176,7 @@
     var config = {
         miiee: {
             appkey: "2328604005",
-            uid: "1644022571"       // 实际上该uid为tbtx
+            uid: "1644022571"       // 实际上该uid为tbtx, miiee2690564321
         },
         brand: {
             appkey: "2328604005",       // 暂时使用miiee的appkey

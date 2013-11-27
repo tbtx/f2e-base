@@ -354,10 +354,9 @@
 
             $.each($elements, function(index, element) {
                 var $element = $(element);
-                var backgroundColor = $element.css("background-color");
                 $element.css("background-color", flashColor).fadeOut("fast", function() {
                     $element.fadeIn("fast", function() {
-                        $element.css("background-color", backgroundColor || bgColor);
+                        $element.css("background-color", bgColor);
                     });
                 });
             });

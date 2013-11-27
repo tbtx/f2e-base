@@ -28,9 +28,9 @@
             if (code == 601) {
                 userCheckDeferred.reject();
             } else if (code == 100 || code == 608 || code == 1000) {
-                userCheckDeferred.resolve(data);
                 tbtx.data('user', data);
                 tbtx.data('userName', data.trueName ? data.trueName : data.userNick);
+                userCheckDeferred.resolve(data);
             }
         }).fail(function() {
             userCheckDeferred.reject();
@@ -50,7 +50,7 @@
     var config = {
         miiee: {
             appkey: "2328604005",
-            uid: "1644022571"       // 实际上该uid为tbtx
+            uid: "1644022571"       // 实际上该uid为tbtx, miiee2690564321
         },
         brand: {
             appkey: "2328604005",       // 暂时使用miiee的appkey
