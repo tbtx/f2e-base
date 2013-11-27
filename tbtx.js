@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-27 12:25:42
+ * 2013-11-27 3:40:07
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3113,7 +3113,7 @@
         getuserinfo: '/interface/getuserinfo.htm',
         getlogininfo: '/interface/getlogininfo.htm',       // 临时登陆状态判断
         taobao_login_page : '/applogin.htm',
-        login: '/applogin.htm'+ "?ref=" + encodeURIComponent(location.href)
+        login: '/applogin.htm?ref=' + encodeURIComponent(location.href)
     };
 
 

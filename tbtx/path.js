@@ -14,7 +14,7 @@
         getuserinfo: '/interface/getuserinfo.htm',
         getlogininfo: '/interface/getlogininfo.htm',       // 临时登陆状态判断
         taobao_login_page : '/applogin.htm',
-        login: '/applogin.htm'+ "?ref=" + encodeURIComponent(location.href)
+        login: '/applogin.htm?ref=' + encodeURIComponent(location.href)
     };
 
 
