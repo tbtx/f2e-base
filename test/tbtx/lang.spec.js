@@ -187,6 +187,12 @@ describe('lang', function() {
 			expect(r).toEqual([1, 3, 5]);
 		});
 	});
+	describe('map', function() {
+		it("should map the array", function() {
+			var a = [1, 2, 3];
+			expect(tbtx.map(a, function(v) {return v*2})).toEqual([2, 4, 6]);
+		});
+	});
 
 	describe('keys', function() {
 		it("should get the keys of the object", function() {

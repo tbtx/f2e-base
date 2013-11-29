@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-29 3:42:31
+ * 2013-11-29 4:59:37
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -192,17 +192,35 @@
                 return -1;
         },
 
-        filter = AP.filter ? function(arr, fn, context) {
-            return AP.filter.call(arr, fn, context);
-        } : function(arr, fn, context) {
-            var ret = [];
-            each(arr, function(item, i) {
-                if (fn.call(context || this, item, i, arr)) {
-                    ret.push(item);
+        filter = AP.filter ?
+            function(arr, fn, context) {
+                return AP.filter.call(arr, fn, context);
+            } : function(arr, fn, context) {
+                var ret = [];
+                each(arr, function(item, i) {
+                    if (fn.call(context || this, item, i, arr)) {
+                        ret.push(item);
+                    }
+                });
+                return ret;
+            },
+
+        map = AP.map ?
+            function (arr, fn, context) {
+                return AP.map.call(arr, fn, context || this);
+            } : function (arr, fn, context) {
+                var len = arr.length,
+                    ret = new Array(len);
+                for (var i = 0; i < len; i++) {
+                    var el = typeof arr === 'string' ? arr.charAt(i) : arr[i];
+                    if (el ||
+                        //ie<9 in invalid when typeof arr == string
+                        i in arr) {
+                        ret[i] = fn.call(context || this, el, i, arr);
+                    }
                 }
-            });
-            return ret;
-        },
+                return ret;
+            },
 
         hasEnumBug = !({
             toString: 1
@@ -757,6 +775,7 @@
         each: each,
         indexOf: indexOf,
         filter: filter,
+        map: map,
         keys: keys,
         makeArray: makeArray,
         namespace: namespace,
