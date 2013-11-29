@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-27 3:40:07
+ * 2013-11-29 11:34:47
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1811,6 +1811,42 @@
         return ret;
     }
 
+    var SECONDS_OF_DAY = 24 * 60 * 60;
+    function ago(v1, v2) {
+        v1 = toDate(v1);
+        v2 = toDate(v2);
+
+        var tmp;
+        // 保证v1 > v2
+        if (v1 < v2) {
+            tmp = v1;
+            v1 = v2;
+            v2 = tmp;
+        }
+
+        // diff 秒
+        var floor = Math.floor,
+            diff = (v1.getTime() - v2.getTime()) / 1000,
+            dayDiff = floor(diff / SECONDS_OF_DAY),
+            monthDiff = floor(dayDiff / 30),
+            yearDiff = floor(dayDiff / 365);
+
+        if (yearDiff) {
+            return yearDiff + "年前";
+        }
+        if (monthDiff) {
+            return monthDiff + "个月前";
+        }
+        if (dayDiff) {
+            return dayDiff == 1 ? "昨天": dayDiff + "天前";
+        }
+
+        return diff < 60 && "刚刚" ||
+            diff < 3600 && floor(diff / 60) + "分钟前" ||
+            diff < 7200 && "1小时前" ||
+            diff < SECONDS_OF_DAY && floor(diff / 3600) + "小时前";
+    }
+
     // 字符串/数字 -> Date
     function toDate(date) {
         if (isDate(date)) {
@@ -1835,6 +1871,7 @@
 
     mixTo(exports, {
         normalizeDate: normalizeDate,
+        ago: ago,
         formatDate: formatDate
     });
 })(tbtx);
