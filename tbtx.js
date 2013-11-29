@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-29 11:34:47
+ * 2013-11-29 3:42:31
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -86,7 +86,7 @@
 })(this, 'tbtx');
 
 
-;(function(exports, undefined) {
+;(function(global, exports, undefined) {
     // 语言扩展
     // 不依赖jQuery
 
@@ -95,6 +95,8 @@
         OP = Object.prototype,
         toString = OP.toString,
         FALSE = false,
+        TRUE = true,
+        EMPTY = '',
         class2type = {},
 
         /**
@@ -262,6 +264,48 @@
             for (key in obj) {}
 
             return key === undefined || hasOwnProperty(obj, key);
+        },
+
+        makeArray = function(o) {
+            if (o === null) {
+                return [];
+            }
+            if (isArray(o)) {
+                return o;
+            }
+            var lengthType = typeof o.length,
+                oType = typeof o;
+            // The strings and functions also have 'length'
+            if (lengthType !== 'number' ||
+                // form.elements in ie78 has nodeName 'form'
+                // then caution select
+                // o.nodeName
+                // window
+                o.alert ||
+                oType === 'string' ||
+                // https://github.com/ariya/phantomjs/issues/11478
+                (oType === 'function' && !( 'item' in o && lengthType === 'number'))) {
+                return [o];
+            }
+            var ret = [];
+            for (var i = 0, l = o.length; i < l; i++) {
+                ret[i] = o[i];
+            }
+            return ret;
+        },
+
+        namespace = function () {
+            var args = makeArray(arguments),
+                l = args.length,
+                o = this, i, j, p;
+
+            for (i = 0; i < l; i++) {
+                p = (EMPTY + args[i]).split('.');
+                for (j = (global[p[0]] === o) ? 1 : 0; j < p.length; ++j) {
+                    o = o[p[j]] = o[p[j]] || {};
+                }
+            }
+            return o;
         },
 
         startsWith = function(str, prefix) {
@@ -550,7 +594,6 @@
         reverseEntities = {},
         escapeReg,
         unEscapeReg,
-        EMPTY = '',
         getEscapeReg = function() {
             if (escapeReg) {
                 return escapeReg;
@@ -715,6 +758,8 @@
         indexOf: indexOf,
         filter: filter,
         keys: keys,
+        makeArray: makeArray,
+        namespace: namespace,
         startsWith: startsWith,
         endsWith: endsWith,
         choice: choice,
@@ -731,7 +776,7 @@
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(tbtx, undefined);
+})(this, tbtx, undefined);
 
 
 ;(function(exports) {
@@ -862,7 +907,7 @@
 })(tbtx);
 
 ;(function(tbtx) {
-    var exports = tbtx.Aspect = {};
+    var exports = tbtx.namespace("Aspect");
 
     exports.before = function(methodName, callback, context) {
         return weave.call(this, "before", methodName, callback, context);
@@ -910,7 +955,7 @@
 })(tbtx);
 
 ;(function(tbtx) {
-    var exports = tbtx.Attrs = {};
+    var exports = tbtx.namespace("Attrs");
     // set/get/initAttrs
     // change 手动触发change事件
     // set会触发 change:attrName 事件
@@ -1828,6 +1873,7 @@
         var floor = Math.floor,
             diff = (v1.getTime() - v2.getTime()) / 1000,
             dayDiff = floor(diff / SECONDS_OF_DAY),
+            // 月份跟年粗略计算
             monthDiff = floor(dayDiff / 30),
             yearDiff = floor(dayDiff / 365);
 
@@ -1843,7 +1889,6 @@
 
         return diff < 60 && "刚刚" ||
             diff < 3600 && floor(diff / 60) + "分钟前" ||
-            diff < 7200 && "1小时前" ||
             diff < SECONDS_OF_DAY && floor(diff / 3600) + "小时前";
     }
 

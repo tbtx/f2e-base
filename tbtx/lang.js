@@ -1,4 +1,4 @@
-(function(exports, undefined) {
+(function(global, exports, undefined) {
     // 语言扩展
     // 不依赖jQuery
 
@@ -7,6 +7,8 @@
         OP = Object.prototype,
         toString = OP.toString,
         FALSE = false,
+        TRUE = true,
+        EMPTY = '',
         class2type = {},
 
         /**
@@ -174,6 +176,48 @@
             for (key in obj) {}
 
             return key === undefined || hasOwnProperty(obj, key);
+        },
+
+        makeArray = function(o) {
+            if (o === null) {
+                return [];
+            }
+            if (isArray(o)) {
+                return o;
+            }
+            var lengthType = typeof o.length,
+                oType = typeof o;
+            // The strings and functions also have 'length'
+            if (lengthType !== 'number' ||
+                // form.elements in ie78 has nodeName 'form'
+                // then caution select
+                // o.nodeName
+                // window
+                o.alert ||
+                oType === 'string' ||
+                // https://github.com/ariya/phantomjs/issues/11478
+                (oType === 'function' && !( 'item' in o && lengthType === 'number'))) {
+                return [o];
+            }
+            var ret = [];
+            for (var i = 0, l = o.length; i < l; i++) {
+                ret[i] = o[i];
+            }
+            return ret;
+        },
+
+        namespace = function () {
+            var args = makeArray(arguments),
+                l = args.length,
+                o = this, i, j, p;
+
+            for (i = 0; i < l; i++) {
+                p = (EMPTY + args[i]).split('.');
+                for (j = (global[p[0]] === o) ? 1 : 0; j < p.length; ++j) {
+                    o = o[p[j]] = o[p[j]] || {};
+                }
+            }
+            return o;
         },
 
         startsWith = function(str, prefix) {
@@ -462,7 +506,6 @@
         reverseEntities = {},
         escapeReg,
         unEscapeReg,
-        EMPTY = '',
         getEscapeReg = function() {
             if (escapeReg) {
                 return escapeReg;
@@ -627,6 +670,8 @@
         indexOf: indexOf,
         filter: filter,
         keys: keys,
+        makeArray: makeArray,
+        namespace: namespace,
         startsWith: startsWith,
         endsWith: endsWith,
         choice: choice,
@@ -643,4 +688,4 @@
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
-})(tbtx, undefined);
+})(this, tbtx, undefined);

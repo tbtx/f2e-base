@@ -198,6 +198,22 @@ describe('lang', function() {
 		});
 	});
 
+	describe('makeArray', function() {
+		it("should make arguments to array", function() {
+			var f = function() {
+				return tbtx.makeArray(arguments);
+			}
+			expect(f(1, 2, 3)).toEqual([1, 2, 3]);
+			expect(tbtx.makeArray(null)).toEqual([]);
+		});
+	});
+
+	describe('namespace', function() {
+		it("should return the namepace object", function() {
+			expect(tbtx.namespace("test")).toBe(tbtx.test);
+		});
+	});
+
 	describe('Now', function() {
 		it("should get a number", function() {
 			expect(tbtx.Now()).toEqual(jasmine.any(Number));
