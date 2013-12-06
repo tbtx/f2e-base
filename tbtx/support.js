@@ -1,13 +1,34 @@
 (function($, tbtx) {
     var doc = document;
+    var support = tbtx.namespace("support");
 
-    $.extend($.support, {
+    function transitionEnd() {
+        var el = document.createElement('tbtx');
+
+        var transEndEventNames = {
+            'WebkitTransition': 'webkitTransitionEnd',
+            'MozTransition': 'transitionend',
+            'OTransition': 'oTransitionEnd otransitionend',
+            'transition': 'transitionend'
+        };
+
+        for (var name in transEndEventNames) {
+            if (el.style[name] !== undefined) {
+                return {
+                    end: transEndEventNames[name]
+                };
+            }
+        }
+    }
+
+    $.extend(support, {
+        transition: transitionEnd(),
         placeholder: 'placeholder' in doc.createElement('input')
     });
 
     // fix placeholder
     $(function() {
-        if (!$.support.placeholder) {
+        if (!support.placeholder) {
             /*
                 input, textarea { color: #000; }
                 .placeholder { color: #aaa; }

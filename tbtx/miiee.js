@@ -59,6 +59,9 @@
         tbtx: {
             appkey: "2328604005",
             uid: "1644022571"
+        },
+        maijia: {
+            uid: "1771650130"
         }
     };
 
@@ -71,7 +74,7 @@
 
         var base = 'http://v.t.sina.com.cn/share/share.php?';
         var params = {
-            appkey: config[site].appkey, // appkey
+            appkey: config[site].appkey || "", // appkey
             url: url,
             title: title,
             ralateUid: uid || config[site].uid, // @user

@@ -17,13 +17,16 @@
         urlArgs: "2013.10.15.0",
         paths: {
             "jquery": "base/js/jquery/jquery-1.8.3.min",
-            "easing": "base/js/plugin/jquery.easing.1.3",
             "tbtx": "base/js/tbtx",
+            // component
             "popup": "base/js/component/overlay.popup",
             "slide": "base/js/component/slide",
             "soltMachine": "base/js/component/soltMachine",
-            "validate": "base/js/plugin/jquery.validate.min",
             "validator": "base/js/component/validator",
+            "sns": "base/js/component/sns",
+            // plugin
+            "easing": "base/js/plugin/jquery.easing.1.3",
+            "validate": "base/js/plugin/jquery.validate.min",
             "imagesloaded": "base/js/plugin/imagesloaded.min",
             "lazyload": "base/js/plugin/jquery.lazyload",
 
@@ -35,7 +38,7 @@
             // kissy的require与requirejs有冲突，
             // 这两个不能使用requirejs加载
             "kissy": "http://a.tbcdn.cn/s/kissy/1.2.0/kissy-min",
-            "sns": "http://a.tbcdn.cn/p/snsdk/core"
+            "SNS": "http://a.tbcdn.cn/p/snsdk/core"
         },
         waitSeconds: 10,
         shim: {
@@ -65,6 +68,10 @@
                 deps: ["tbtx"],
                 exports: "tbtx.SoltMachine"
             },
+            "sns": {
+                deps: ["tbtx"],
+                exports: "tbtx.SNS"
+            },
 
             // jq plugin
             "easing": {
@@ -85,7 +92,7 @@
             "kissy": {
                 exports: "KISSY"
             },
-            "sns": {
+            "SNS": {
                 deps: ['kissy']
             },
 

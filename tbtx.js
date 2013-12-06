@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-11-29 4:59:37
+ * 2013-12-04 3:14:41
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3069,14 +3069,35 @@
 
 ;(function($, tbtx) {
     var doc = document;
+    var support = tbtx.namespace("support");
 
-    $.extend($.support, {
+    function transitionEnd() {
+        var el = document.createElement('tbtx');
+
+        var transEndEventNames = {
+            'WebkitTransition': 'webkitTransitionEnd',
+            'MozTransition': 'transitionend',
+            'OTransition': 'oTransitionEnd otransitionend',
+            'transition': 'transitionend'
+        };
+
+        for (var name in transEndEventNames) {
+            if (el.style[name] !== undefined) {
+                return {
+                    end: transEndEventNames[name]
+                };
+            }
+        }
+    }
+
+    $.extend(support, {
+        transition: transitionEnd(),
         placeholder: 'placeholder' in doc.createElement('input')
     });
 
     // fix placeholder
     $(function() {
-        if (!$.support.placeholder) {
+        if (!support.placeholder) {
             /*
                 input, textarea { color: #000; }
                 .placeholder { color: #aaa; }
@@ -3087,6 +3108,7 @@
         }
     });
 })(jQuery, tbtx);
+
 
 ;(function($) {
     var itemTemplate = '<p class="tbtx-msg-item tbtx-msg-{{ type }}">{{ msg }}</p>',
@@ -3286,6 +3308,9 @@
         tbtx: {
             appkey: "2328604005",
             uid: "1644022571"
+        },
+        maijia: {
+            uid: "1771650130"
         }
     };
 
@@ -3298,7 +3323,7 @@
 
         var base = 'http://v.t.sina.com.cn/share/share.php?';
         var params = {
-            appkey: config[site].appkey, // appkey
+            appkey: config[site].appkey || "", // appkey
             url: url,
             title: title,
             ralateUid: uid || config[site].uid, // @user
