@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-08 6:03:58
+ * 2013-12-08 8:00:48
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -312,17 +312,19 @@
             return ret;
         },
 
-        deepCopy = function(src, target) {
-            target = target || {};
-            for(var i in src) {
-                if (typeof src[i] == 'object') {
-                    target[i] = (isArray(src[i])) ? [] : {};
-                    deepCopy(src[i], target[i]);
-                } else {
-                    target[i] = src[i];
+        deepCopy = function(obj) {
+            if(!obj || 'object' !== typeof obj) {
+                return obj;
+            }
+            var o = obj.constructor === Array ? [] : {};
+            var i;
+
+            for(i in obj){
+                if(obj.hasOwnProperty(i)){
+                    o[i] = typeof obj[i] === "object" ? deepCopy(obj[i]) : obj[i];
                 }
             }
-            return target;
+            return o;
         },
 
         namespace = function () {

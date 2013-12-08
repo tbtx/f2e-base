@@ -68,7 +68,7 @@ describe('lang', function() {
 					return 'talk:' + msg;
 				},
 				init: function() {
-					console.log("A init");
+					tbtx.log("A init");
 				}
 			});
 
@@ -78,7 +78,7 @@ describe('lang', function() {
 					return 'Btalk:' + msg;
 				},
 				init: function() {
-					console.log("B init");
+					tbtx.log("B init");
 				}
 			});
 
@@ -225,8 +225,9 @@ describe('lang', function() {
 					}
 				}
 			};
-			console.log(tbtx.deepCopy(src));
+			tbtx.log(tbtx.deepCopy(src));
 			expect(tbtx.deepCopy(src)).toEqual(src);
+			expect(tbtx.deepCopy("abc")).toEqual("abc");
 		});
 	});
 

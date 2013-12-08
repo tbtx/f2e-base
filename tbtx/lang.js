@@ -224,17 +224,19 @@
             return ret;
         },
 
-        deepCopy = function(src, target) {
-            target = target || {};
-            for(var i in src) {
-                if (typeof src[i] == 'object') {
-                    target[i] = (isArray(src[i])) ? [] : {};
-                    deepCopy(src[i], target[i]);
-                } else {
-                    target[i] = src[i];
+        deepCopy = function(obj) {
+            if(!obj || 'object' !== typeof obj) {
+                return obj;
+            }
+            var o = obj.constructor === Array ? [] : {};
+            var i;
+
+            for(i in obj){
+                if(obj.hasOwnProperty(i)){
+                    o[i] = typeof obj[i] === "object" ? deepCopy(obj[i]) : obj[i];
                 }
             }
-            return target;
+            return o;
         },
 
         namespace = function () {
