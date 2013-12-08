@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>draggable</title>
+    <link rel="stylesheet" href="http://a.tbcdn.cn/apps/tbtx/base/css/reset.css">
+</head>
+<body>
+    <div id="demo" data-draggable>
+        draggable
+    </div>
+    <script src="../../jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../tbtx.js"></script>
+    <script src="../../component/draggable.js"></script>
+    <script>
+    $("#demo").on("drag.start", function() {
+        console.log("drag start");
+    }).on("drag.end", function() {
+        console.log("drag end");
+    });
+
+    </script>
+</body>
+</html>

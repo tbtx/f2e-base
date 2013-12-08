@@ -214,6 +214,22 @@ describe('lang', function() {
 		});
 	});
 
+	describe('deepCopy', function() {
+		it("should make a deep copy", function() {
+			var src = {
+				names: ["alex", "john"],
+				titles: {
+					name: "abc",
+					info: {
+						title: "title"
+					}
+				}
+			};
+			console.log(tbtx.deepCopy(src));
+			expect(tbtx.deepCopy(src)).toEqual(src);
+		});
+	});
+
 	describe('namespace', function() {
 		it("should return the namepace object", function() {
 			expect(tbtx.namespace("test")).toBe(tbtx.test);

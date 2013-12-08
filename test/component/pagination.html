@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pagination</title>
+    <link rel="stylesheet" href="http://a.tbcdn.cn/apps/tbtx/base/css/reset.css">
+</head>
+<body>
+    <div id="demo">
+
+    </div>
+    <script src="../../jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../tbtx.js"></script>
+    <script src="../../component/pagination.js"></script>
+    <script>
+    var s = new tbtx.Pagination("#demo", {
+        number: {
+            total: 200,
+            index: 34,
+            display: 5
+        }
+    });
+
+    </script>
+</body>
+</html>

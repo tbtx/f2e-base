@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-04 3:14:41
+ * 2013-12-08 6:03:58
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -310,6 +310,19 @@
                 ret[i] = o[i];
             }
             return ret;
+        },
+
+        deepCopy = function(src, target) {
+            target = target || {};
+            for(var i in src) {
+                if (typeof src[i] == 'object') {
+                    target[i] = (isArray(src[i])) ? [] : {};
+                    deepCopy(src[i], target[i]);
+                } else {
+                    target[i] = src[i];
+                }
+            }
+            return target;
         },
 
         namespace = function () {
@@ -778,6 +791,7 @@
         map: map,
         keys: keys,
         makeArray: makeArray,
+        deepCopy: deepCopy,
         namespace: namespace,
         startsWith: startsWith,
         endsWith: endsWith,

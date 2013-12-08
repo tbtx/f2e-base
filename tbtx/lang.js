@@ -224,6 +224,19 @@
             return ret;
         },
 
+        deepCopy = function(src, target) {
+            target = target || {};
+            for(var i in src) {
+                if (typeof src[i] == 'object') {
+                    target[i] = (isArray(src[i])) ? [] : {};
+                    deepCopy(src[i], target[i]);
+                } else {
+                    target[i] = src[i];
+                }
+            }
+            return target;
+        },
+
         namespace = function () {
             var args = makeArray(arguments),
                 l = args.length,
@@ -690,6 +703,7 @@
         map: map,
         keys: keys,
         makeArray: makeArray,
+        deepCopy: deepCopy,
         namespace: namespace,
         startsWith: startsWith,
         endsWith: endsWith,
