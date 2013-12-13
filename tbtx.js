@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-08 8:00:48
+ * 2013-12-13 4:51:32
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1481,7 +1481,12 @@
         },
          // 从模板中构建 this.element
         parseElementFromTemplate: function() {
-            this.element = $(this.get("template"));
+            var t, template = this.get("template");
+            if (/^#/.test(template) && (t = document.getElementById(template.substring(1)))) {
+                template = t.innerHTML;
+                this.set("template", template);
+            }
+            this.element = $(template);
         },
         // 负责 properties 的初始化，提供给子类覆盖
         initProps: function() {},
@@ -2886,32 +2891,92 @@
         }
     })(tbtx);
 
-    var pageHeight = function() {
-            return $(document).height();
+    var $window,
+        $document,
+        $body,
+        $head,
+
+        getWindow = function() {
+            $window = $window || $(window);
+            return $window;
+        },
+        getDocument = function() {
+            $document = $document || $(doc);
+            return $document;
+        },
+        getBody = function() {
+            $body = $body || $('body');
+            return $body;
+        },
+        getHead = function() {
+            $head = $head || $(head);
+            return $head;
+        },
+
+        pageHeight = function() {
+            return getDocument().height();
             // return doc.body.scrollHeight;
         },
         pageWidth = function() {
-            return $(document).width();
+            return getDocument().width();
             // return doc.body.scrollWidth;
         },
 
         scrollX = function() {
-            return $(window).scrollLeft();
+            return getWindow().scrollLeft();
             // return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
         },
         scrollY = function() {
-            return $(window).scrollTop();
+            return getWindow().scrollTop();
             // return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
         },
 
         viewportHeight = function() {
-            return $(window).height();
+            return getWindow().height();
             // var de = document.documentElement;      //IE67的严格模式
             // return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
         },
         viewportWidth = function() {
-            return $(window).width();
+            return getWindow().width();
             // return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
+        },
+
+        fullViewport = function(selector) {
+            return $(selector).css({
+                width: viewportWidth(),
+                height: viewportHeight()
+            });
+        },
+
+        fullPage = function(selector) {
+            return $(selector).css({
+                width: pageWidth(),
+                height: pageHeight()
+            });
+        },
+
+        getScroller = function() {
+            var scroller = document.body;
+            if (/msie [67]/.test(navigator.userAgent.toLowerCase())) {
+                scroller = document.documentElement;
+            }
+            return scroller;
+        },
+        /**
+         * 停止body的滚动条
+         * @return {[type]} [description]
+         */
+        stopBodyScroll = function() {
+            var scroller = getScroller();
+            $(scroller).css("overflow", "hidden");
+        },
+        /**
+         * 恢复body的滚动条
+         * @return {[type]} [description]
+         */
+        resetBodyScroll = function() {
+            var scroller = getScroller();
+            $(scroller).css("overflow", "auto");
         },
 
         contains = $.contains || function(a, b) {
@@ -3069,6 +3134,16 @@
         scrollX: scrollX,
         viewportHeight: viewportHeight,
         viewportWidth: viewportWidth,
+        fullViewport: fullViewport,
+        fullPage: fullPage,
+
+        getWindow: getWindow,
+        getHead: getHead,
+        getBody: getBody,
+        getDocument: getDocument,
+
+        stopBodyScroll: stopBodyScroll,
+        resetBodyScroll: resetBodyScroll,
 
         contains: contains,
         isInDocument: isInDocument,

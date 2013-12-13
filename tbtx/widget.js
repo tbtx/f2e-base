@@ -117,7 +117,12 @@
         },
          // 从模板中构建 this.element
         parseElementFromTemplate: function() {
-            this.element = $(this.get("template"));
+            var t, template = this.get("template");
+            if (/^#/.test(template) && (t = document.getElementById(template.substring(1)))) {
+                template = t.innerHTML;
+                this.set("template", template);
+            }
+            this.element = $(template);
         },
         // 负责 properties 的初始化，提供给子类覆盖
         initProps: function() {},

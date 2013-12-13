@@ -3,10 +3,14 @@
 *	superman_tbtx 2013-11-15
 */
 (function(){
+	var template = '<div class="tbtx-calendar"><div class="tbtx-calendar-header"><span>{{year}}年</span><span>{{month}}月</span><span><a class="tbtx-calendar-action-today" href="javascript:void(\'today\')">今天</a></span></div><table class="tbtx-calendar-day-table"><thead><tr>{{dayHeader}}</tr></thead><tbody>{{date}}</tbody></table><div class="tbtx-calendar-footer"></div></div>',
+		dateItem = '<td class="tbtx-calendar-week-{{week}} {{cla}}" data-week="{{week}}" data-value="{{value}}" data-year="{{year}}" data-month="{{month}}" data-date="{{date}}">{{date}}</td>',			
+		select = '<select class="tbtx-calendar-{{cla}}" value="{{value}}">{{options}}</select>';
+	
 	function Calendar(date){
 		this.init(date);
 		this.startYear = 1970;
-		this.endYear = 2050;
+		this.endYear = 2051;
 		this.today = new Date();
 	}
 	Calendar.prototype.init = function(D){
@@ -45,33 +49,31 @@
 		return tbtx.substitute(sf,d);
 	};
 	
+	Calendar.prototype.comboboxEleHtml = function(v,c,s,e){
+			var html = '';
+			for(var i = s; i < e; i++){
+				html +='<option value="'+i+'" '+(i == v ? 'selected' : '')+'>'+i+'</option>';	
+			}
+			return tbtx.substitute(select,{
+				cla : c,
+				value : v,
+				options : html
+			});
+		};
+	
+	
+	
 	Calendar.prototype.show = function(J,D,F){
 		if(D){
 			this.init(D);
 		}
-		var template = '<div class="tbtx-calendar"><div class="tbtx-calendar-header"><span>{{year}}年</span><span>{{month}}月</span><span><a class="tbtx-calendar-action-today" href="javascript:void(\'today\')">今天</a></span></div><table class="tbtx-calendar-day-table"><thead><tr>{{dayHeader}}</tr></thead><tbody>{{date}}</tbody></table><div class="tbtx-calendar-footer"></div></div>',
-			dateItem = '<td class="tbtx-calendar-week-{{week}} {{cla}}" data-week="{{week}}" data-value="{{value}}" data-year="{{year}}" data-month="{{month}}" data-date="{{date}}">{{date}}</td>',			
-			select = '<select class="tbtx-calendar-{{cla}}" value="{{value}}">{{options}}</select>';
+		
 		//生成年的HTML
-		var yearHTML = '';
-		for(var i = this.startYear; i <= this.endYear; i++){
-			yearHTML += '<option value="'+i+'" '+(i == this.year ? 'selected' : '')+'>'+i+'</option>';			
-		}
-		yearHTML = tbtx.substitute(select,{
-			cla : 'year',
-			value : this.year,
-			options : yearHTML
-		});
+		var yearHTML = this.comboboxEleHtml(this.year, 'year', this.startYear, this.endYear);
+		
 		//生成月的HTML
-		var monthHTML = '';
-		for(var i = 0; i < 12; i++){
-			monthHTML += '<option value="'+(i)+'" '+( i== this.month?'selected':'')+'>'+(i+1)+'</option>';			
-		}
-		monthHTML = tbtx.substitute(select,{
-			cla : 'month',
-			value : this.today.getMonth(),
-			options : monthHTML
-		});
+		var monthHTML = this.comboboxEleHtml(this.month, 'month', 0, 12);
+		
 		//生成日期表头HTML
 		var dayHeader = '',
 			weeks = ['日','一','二','三','四','五','六'];			
@@ -150,6 +152,11 @@
 		
 		$('td[data-value="'+Calendar.toFormatString(new Date(this.year,this.month,this.date))+'"]',this.jObject).addClass('tbtx-calendar-current-day');
 		
+		//增加选择时间
+		if(this.jObject.hasClass('tbtx-timepicker')){
+			
+		}
+		
 		var _this = this;
 		var chang = function(){
 			var year= parseInt(yearObj.val());			
@@ -191,6 +198,7 @@
 		}
 		
 	};
+	
 	Calendar.prototype.hide = function(F){		
 			this.jObject.remove();
 			if(typeof(F)=="function"){

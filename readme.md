@@ -54,6 +54,16 @@
 	scrollspy 滚动侦测
 	soltMachine 老虎机
 
+## gallery
+	json2.js
+	require.js + config.js 模块加载
+	store.min.js 客户端存储
+
+## arale调整
+	Widget移除自动render, parseElementFromTemplate增加id
+	detector 增加mobile判断
+
+
 ## 测试框架jasmine
 
 

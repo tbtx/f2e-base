@@ -40,7 +40,7 @@ describe('Base and Widget', function() {
 
             var w = new Widget({
                 id: "test-widget",
-                template: "<div><div class='test'>test</div></div>",
+                template: "#template-demo",
                 events: {
                     "click .test": "test"
                 }

@@ -490,7 +490,7 @@
                 return $.isFunction(val) ? val : utils.helper(val);
             }
         };
-        var Item = new Class(Widget)
+        var Item = new Class(Widget);
         Item.include({
             attrs: {
                 rule: {
@@ -942,6 +942,23 @@
         });
         module.exports.Validator = Validator;
     })();
+
     tbtx.Validator = module.exports.Validator;
+    $.extend(tbtx.Validator, module.exports.Rule, {
+        query: function(selector) {
+            return Widget.query(selector);
+        },
+        // TODO 校验单项静态方法的实现需要优化
+        validate: function(options) {
+            var element = $(options.element);
+            var validator = new module.exports.Core({
+                element: element.parents()
+            });
+            validator.addItem(options);
+            validator.query(element).execute();
+            validator.destroy();
+        }
+    });
+
 })(jQuery, tbtx);
 

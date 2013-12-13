@@ -24,6 +24,8 @@
             "soltMachine": "base/js/component/soltMachine",
             "validator": "base/js/component/validator",
             "sns": "base/js/component/sns",
+            "draggable": "base/js/component/draggable",
+            "pagination": "base/js/component/pagination",
             // plugin
             "easing": "base/js/plugin/jquery.easing.1.3",
             "validate": "base/js/plugin/jquery.validate.min",
@@ -71,6 +73,14 @@
             "sns": {
                 deps: ["tbtx"],
                 exports: "tbtx.SNS"
+            },
+            "draggable": {
+                deps: ["tbtx"],
+                exports: "tbtx.draggable"
+            },
+            "pagination": {
+                deps: ["tbtx"],
+                exports: "tbtx.Pagination"
             },
 
             // jq plugin
