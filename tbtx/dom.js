@@ -234,27 +234,27 @@
         }
     })(tbtx);
 
-    var $window,
-        $document,
-        $body,
-        $head,
+    // jQuery singleton instances
+    var $instances = [
+        ["window", function() {
+            return $(window);
+        }],
+        ["document", function() {
+            return $(doc);
+        }],
+        ["head", function() {
+            return $(head);
+        }],
+        ["body", function() {
+            return $('body');
+        }]
+    ];
+    tbtx.each($instances, function(instance) {
+        tbtx["get" + tbtx.ucfirst(instance[0])] = tbtx.singleton(instance[1]);
+    });
 
-        getWindow = function() {
-            $window = $window || $(window);
-            return $window;
-        },
-        getDocument = function() {
-            $document = $document || $(doc);
-            return $document;
-        },
-        getBody = function() {
-            $body = $body || $('body');
-            return $body;
-        },
-        getHead = function() {
-            $head = $head || $(head);
-            return $head;
-        },
+    var getDocument = tbtx.getDocument,
+        getWindow = tbtx.getWindow,
 
         pageHeight = function() {
             return getDocument().height();
@@ -479,11 +479,6 @@
         viewportWidth: viewportWidth,
         fullViewport: fullViewport,
         fullPage: fullPage,
-
-        getWindow: getWindow,
-        getHead: getHead,
-        getBody: getBody,
-        getDocument: getDocument,
 
         stopBodyScroll: stopBodyScroll,
         resetBodyScroll: resetBodyScroll,

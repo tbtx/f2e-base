@@ -696,6 +696,20 @@
             }
             return FALSE;
         },
+
+        // 单例模式
+        singleton: function(fn, context) {
+            var result;
+            return function() {
+                return result || (result = fn.apply(context, arguments));
+            };
+        },
+
+        // upercase str's first letter
+        ucfirst: function(str) {
+            return str.charAt(0).toUpperCase() + str.substring(1);
+        },
+
         isArray: isArray,
         inArray: inArray,
         type: type,

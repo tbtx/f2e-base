@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-13 4:51:32
+ * 2013-12-15 7:43:20
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -784,6 +784,20 @@
             }
             return FALSE;
         },
+
+        // 单例模式
+        singleton: function(fn, context) {
+            var result;
+            return function() {
+                return result || (result = fn.apply(context, arguments));
+            };
+        },
+
+        // upercase str's first letter
+        ucfirst: function(str) {
+            return str.charAt(0).toUpperCase() + str.substring(1);
+        },
+
         isArray: isArray,
         inArray: inArray,
         type: type,
@@ -2891,27 +2905,27 @@
         }
     })(tbtx);
 
-    var $window,
-        $document,
-        $body,
-        $head,
+    // jQuery singleton instances
+    var $instances = [
+        ["window", function() {
+            return $(window);
+        }],
+        ["document", function() {
+            return $(doc);
+        }],
+        ["head", function() {
+            return $(head);
+        }],
+        ["body", function() {
+            return $('body');
+        }]
+    ];
+    tbtx.each($instances, function(instance) {
+        tbtx["get" + tbtx.ucfirst(instance[0])] = tbtx.singleton(instance[1]);
+    });
 
-        getWindow = function() {
-            $window = $window || $(window);
-            return $window;
-        },
-        getDocument = function() {
-            $document = $document || $(doc);
-            return $document;
-        },
-        getBody = function() {
-            $body = $body || $('body');
-            return $body;
-        },
-        getHead = function() {
-            $head = $head || $(head);
-            return $head;
-        },
+    var getDocument = tbtx.getDocument,
+        getWindow = tbtx.getWindow,
 
         pageHeight = function() {
             return getDocument().height();
@@ -3136,11 +3150,6 @@
         viewportWidth: viewportWidth,
         fullViewport: fullViewport,
         fullPage: fullPage,
-
-        getWindow: getWindow,
-        getHead: getHead,
-        getBody: getBody,
-        getDocument: getDocument,
 
         stopBodyScroll: stopBodyScroll,
         resetBodyScroll: resetBodyScroll,
