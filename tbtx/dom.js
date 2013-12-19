@@ -1,4 +1,13 @@
-(function(global, $) {
+(function(global, $, tbtx) {
+    var noop = tbtx.noop,
+        each = tbtx.each,
+        map = tbtx.map,
+        ucfirst = tbtx.ucfirst,
+        startsWith = tbtx.startsWith,
+        singleton = tbtx.singleton,
+        throttle = tbtx.throttle,
+        exports = tbtx;
+
     var doc = document,
         de = doc.documentElement,
         head = doc.head || doc.getElementsByTagName("head")[0] || de;
@@ -27,7 +36,7 @@
 
     // 存储每个url的deferred对象
     var deferredMap = {};
-    // 存储每个script的下一个脚本信息，也就是链式调用时resolve的data
+    // 存储每个script的下一个脚本信息，也就是链式调用时then的request的参数
     var resolveDate = {};
 
     function request(url, callback, charset) {
@@ -105,7 +114,7 @@
                 node = null;
 
                 if (resolveDate[url]) {
-                    deferredMap[url].resolve(resolveDate[url], tbtx.noop);
+                    deferredMap[url].resolve(resolveDate[url], noop);
                 } else {
                     deferredMap[url].resolve();
                 }
@@ -159,18 +168,16 @@
             node.getAttribute("src", 4);
     }
 
-    // 给传入的相对url加上前缀
+    var SCHEME_RE = /^(http|file)/i;
+    /**
+     * 请求的相对url转为绝对
+     * @param  {string} url
+     * @return {string} normalizedUrl
+     */
     function normalizeUrl(url) {
-        if (!/^(http|file)/i.test(url)) {
-            // 相对地址转为绝对地址
-            var prefix = tbtx.staticUrl;
-            if (tbtx.startsWith(url, '/')) {
-                url = prefix + url;
-            } else {
-                url = prefix + '/' + url;
-            }
+        if (!SCHEME_RE.test(url)) {
+            url = tbtx.staticUrl + "/" + url;
         }
-
         return url;
     }
 
@@ -187,16 +194,18 @@
             var chain,
                 length = url.length;
 
-            $.each(url, function(index, u) {
+            url = map(url, function(item) {
+                return normalizeUrl(item);
+            });
 
-                u = normalizeUrl(u);
-                if (index < length - 1 ) {
-                    resolveDate[u] = normalizeUrl(url[index + 1]);
+            each(url, function(u, index) {
+                if (index < length - 1) {
+                    resolveDate[u] = url[index + 1];
                 }
                 if (chain) {
                     chain = chain.then(request);
                 } else {
-                    chain = request(u, tbtx.noop, charset);
+                    chain = request(u, noop, charset);
                 }
             });
 
@@ -224,15 +233,17 @@
     // file:///E:/tbcdn or cdn(如a.tbcdn.cn/apps/tbtx)
     // 使用tbtx所在script获取到staticUrl
     // 除非脚本名不是tbtx.js or tbtx.min.js，使用默认的staticUrl
-    (function(exports) {
+    setTimeout(function() {
         var loaderSrc = getLoaderSrc();
         if (loaderSrc) {
             var pathArray = loaderSrc.split('/'),
                 deep = 3;
             pathArray.splice(pathArray.length - deep, deep);  // delete base js tbtx.js
-            exports.staticUrl = pathArray.join("/");
+            tbtx.staticUrl = pathArray.join("/");
         }
-    })(tbtx);
+    }, 0);
+
+    // end request
 
     // jQuery singleton instances
     var $instances = [
@@ -249,12 +260,12 @@
             return $('body');
         }]
     ];
-    tbtx.each($instances, function(instance) {
-        tbtx["get" + tbtx.ucfirst(instance[0])] = tbtx.singleton(instance[1]);
+    each($instances, function(instance) {
+        exports["get" + ucfirst(instance[0])] = singleton(instance[1]);
     });
 
-    var getDocument = tbtx.getDocument,
-        getWindow = tbtx.getWindow,
+    var getDocument = exports.getDocument,
+        getWindow = exports.getWindow,
 
         pageHeight = function() {
             return getDocument().height();
@@ -298,28 +309,26 @@
             });
         },
 
-        getScroller = tbtx.singleton(function() {
+        getScroller = singleton(function() {
             var scroller = document.body;
             if (/msie [67]/.test(navigator.userAgent.toLowerCase())) {
                 scroller = document.documentElement;
             }
-            return scroller;
+            return $(scroller);
         }),
         /**
          * 停止body的滚动条
          * @return {[type]} [description]
          */
         stopBodyScroll = function() {
-            var scroller = getScroller();
-            $(scroller).css("overflow", "hidden");
+            getScroller().css("overflow", "hidden");
         },
         /**
          * 恢复body的滚动条
          * @return {[type]} [description]
          */
         resetBodyScroll = function() {
-            var scroller = getScroller();
-            $(scroller).css("overflow", "auto");
+            getScroller().css("overflow", "auto");
         },
 
         contains = $.contains || function(a, b) {
@@ -420,8 +429,7 @@
             var $elements = $(selector);
             bgColor = bgColor || "#FFF";
             flashColor = flashColor || "#FF9";
-
-            $.each($elements, function(index, element) {
+            $elements.each(function(index, element) {
                 var $element = $(element);
                 $element.css("background-color", flashColor).fadeOut("fast", function() {
                     $element.fadeIn("fast", function() {
@@ -448,7 +456,7 @@
                     }
                 };
 
-                $window.scroll(tbtx.throttle(checkHandler));
+                $window.scroll(throttle(checkHandler));
                 // 一开始检测一下
                 checkHandler();
             }
@@ -503,4 +511,4 @@
         flash: flash,
         flyToTop: flyToTop
     });
-})(this, jQuery);
+})(this, jQuery, tbtx);
