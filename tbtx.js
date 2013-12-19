@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-19 10:09:58
+ * 2013-12-19 12:42:43
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3217,115 +3217,132 @@
 })(jQuery, tbtx);
 
 
-;(function($) {
-    var itemTemplate = '<p class="tbtx-msg-item tbtx-msg-{{ type }}">{{ msg }}</p>',
-        containerTemplate = '<div id="tbtx-msg"></div>';
+;(function($, tbtx) {
+    var Class = tbtx.Class,
+        Widget = tbtx.Widget,
+        singleton = tbtx.singleton;
 
     var ua = (window.navigator.userAgent || "").toLowerCase(),
         isIE6 = ua.indexOf("msie 6") !== -1;
 
-    var MSG = tbtx.MSG = {
-        last: 10000,     // item持续时间
-        duration: 200,  // 动画时间
-        isInited: false,
-
-        init: function() {
-            var self = this;
-            this.$container = $(containerTemplate).appendTo('body').on('click', 'p', function() {
-                self.clearItem($(this));
-            });
-
-            tbtx.loadCss("base/css/msg.css");
-            self.isInited = true;
-
-        },
-        // IE6调整位置
-        pin: function() {
-            var self = MSG;
-            self.$container.css({
-                top: tbtx.scrollY() + tbtx.viewportHeight() - 24 - self.$container.height()
-            });
+    var MsgItemWidget = new Class(Widget, {
+        attrs: {
+            type: "",
+            msg: "",
+            duration: 200,
+            template: '<p></p>',
+            className: "tbtx-msg-item"
         },
 
-        show: function() {
-            var self = this;
-            self.$container.show();
-            if (isIE6) {
-                $(window).on('resize scroll', self.pin);
-            }
-        },
+        render: function() {
+            MsgItemWidget.superclass.render.apply(this, arguments);
 
-        hide: function() {
-            var self = this;
-            self.$container.hide();
-            if (isIE6) {
-                $(window).off('resize scroll', self.pin);
-            }
-        },
-
-        // 清除某条消息
-        clearItem: function($item, last) {
-            var width = $item.width();
-            var self = this;
-
-            $item.animate({
-                left: -width,
-                opacity: 0
-            }, self.duration, function() {
-                $item.remove();
-                self.checkItems();
-            });
-        },
-
-        // 检测是否还有消息, 隐藏消息container
-        checkItems: function() {
-            var self = MSG;
-            if (!self.$container.find('p').length) {
-                self.hide();
-            }
-        },
-        item: function(msg, type) {
-            var self = this;
-            if (!self.isInited) {
-                self.init();
-            }
-
-            self.show();
-            var html = tbtx.substitute(itemTemplate, {
-                type: type,
-                msg: msg
-            });
-            var $item = $(html).appendTo(self.$container);
-
-            // 最多存在10条消息
-            var $items = self.$container.children('p');
-            if ($items.length > 10) {
-                self.clearItem($items.first());
-            }
-
-            var width = $item.width();
-            $item.css({
+            var width = this.element.width();
+            this.element.css({
                 left: -width,
                 opacity: 0
             }).animate({
                 left: 0,
                 opacity: 1
-            }, self.duration, function() {
-                setTimeout(function() {
-                    self.clearItem($item);
-                }, self.last);
+            }, this.get("duration"));
+
+            return this;
+        },
+
+        _onRenderType: function(val) {
+            this.element.addClass('tbtx-msg-' + val);
+        },
+        _onRenderMsg: function(val) {
+            this.element.html(val);
+        },
+
+        destroy: function() {
+            var width = this.element.width(),
+                self = this;
+            this.element.animate({
+                left: -width,
+                opacity: 0
+            }, this.get("duration"), function() {
+                MsgItemWidget.superclass.destroy.call(self);
             });
         }
+    });
+
+    var MsgWidget = new Class(Widget, {
+        attrs: {
+            items: {
+                value: "p",
+                getter: function(val) {
+                    return this.$(val);
+                }
+            },
+            last: 10000
+        },
+        events: {
+            "click p": "_removeHandler"
+        },
+        add: function(msg, type) {
+            var items = this.get("items");
+            if (items.length > 10) {
+                this.remove(items.first());
+            }
+
+            var item = new MsgItemWidget({
+                msg: msg,
+                type: type,
+                parentNode: this.element
+            }).render();
+
+            var self = this;
+            setTimeout(function() {
+                self.remove(item.element);
+            }, this.get("last"));
+        },
+
+        remove: function($item) {
+            var widget = Widget.query($item);
+            if (widget) {
+                widget.destroy();
+            }
+        },
+
+        _removeHandler: function(ev) {
+            this.remove($(ev.target));
+        }
+    });
+
+    var pin = function($element) {
+        $element.css({
+            position: "absolute",
+            bottom: 24 - tbtx.scrollY()
+        });
     };
+    var getWidget = singleton(function() {
+        tbtx.loadCss("base/css/msg.css");
+        var widget = new MsgWidget({
+            id: "tbtx-msg"
+        }).render();
 
+        if (isIE6) {
+            pin(widget.element);
+            tbtx.getWindow().on("scroll resize", function() {
+                if (widget.get("items").length) {
+                    pin(widget.element);
+                }
+            });
+        }
 
+        return widget;
+    });
+
+    var MSG = tbtx.MSG = {};
     var types = "warning error info debug success".split(" ");
-    $.each(types, function(index, type) {
+    tbtx.each(types, function(type) {
         tbtx[type] = MSG[type] = function(msg) {
-            MSG.item(msg, type);
+            getWidget().add(msg, type);
         };
     });
-})(jQuery);
+})(jQuery, tbtx);
 
 ;(function(tbtx) {
     var parseResult = tbtx.parseUrl(location.href);
