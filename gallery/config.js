@@ -14,7 +14,7 @@
 
     require.config({
         baseUrl: baseUrl,
-        urlArgs: "2013.10.15.0",
+        urlArgs: "2013.12.19.0",
         paths: {
             "jquery": "base/js/jquery/jquery-1.8.3.min",
             "tbtx": "base/js/tbtx",

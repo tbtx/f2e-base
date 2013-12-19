@@ -1,4 +1,6 @@
 (function($, tbtx) {
+    var isPending = tbtx.isPending;
+
     // cookie写入JSToken，服务器端处理后清掉，如果url的token跟cookie的不对应则
     // 参数非法，防止重复提交
     var miieeJSToken = function() {
@@ -117,10 +119,48 @@
         }
     };
 
+    var requireFailCode = -1,
+        successCode = 100,
+        requestMap = {},
+
+        Request = function(url, data) {
+            data = data || {};
+            if (!data.jtoken) {
+                data.jtoken = miieeJSToken();
+            }
+
+            var deferred = requestMap[url];
+            // 正在处理中
+            if (deferred && isPending(deferred)) {
+                return;
+            }
+
+            deferred = requestMap[url] = $.Deferred();
+            $.ajax({
+                url: url,
+                type: 'post',
+                dataType: 'json',
+                data: data
+            })
+            .done(function(response) {
+                var code = response && response.code;
+                if (code == successCode) {
+                    deferred.resolve(response);
+                } else {
+                    deferred.reject(code, response);
+                }
+            })
+            .fail(function() {
+                deferred.reject(requireFailCode);
+            });
+
+            return deferred.promise();
+        };
 
     tbtx.mix({
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
+        Request: Request,
 
         shareToSinaWB: shareToSinaWB,
         addToFavourite: addToFavourite

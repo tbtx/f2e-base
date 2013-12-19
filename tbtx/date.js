@@ -27,8 +27,8 @@
     function formatDate(format, date) {
         format = format || "Y-m-d h:i:s";
 
-        var o = normalizeDate(date);
-        var i;
+        var o = normalizeDate(date),
+            i;
 
         var ret = format;
         for (i in o) {

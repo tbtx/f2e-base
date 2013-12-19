@@ -41,9 +41,6 @@
             }
         }
     }
-    function ucfirst(str) {
-        return str.charAt(0).toUpperCase() + str.substring(1);
-    }
 
 
     // 所有初始化过的 Widget 实例

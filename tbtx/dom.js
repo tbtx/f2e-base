@@ -356,6 +356,15 @@
             }
         },
 
+        scrollTo = function(selector) {
+            var $target = $(selector);
+            var offsetTop = $target.offset().top;
+
+            $('body,html').animate({
+                scrollTop: offsetTop - (viewportHeight() - $target.innerHeight())/2
+            });
+        },
+
         // 针对absolute or fixed
         adjust = function(selector, isAbsolute, top) {
             var $element = $(selector);
@@ -487,6 +496,7 @@
         isInDocument: isInDocument,
         // support fn
         isInView: isInView,
+        scrollTo: scrollTo,
         adjust: adjust,
         limitLength: limitLength,
         initWangWang: initWangWang,
