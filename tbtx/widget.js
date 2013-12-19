@@ -51,6 +51,8 @@
 
     var Widget = new Class(Base);
 
+    Widget.DEFAULT_PARENT_NODE = "body";
+    
     Widget.include({
         propsInAttrs: ["initElement", "element", "events"],
 
@@ -76,7 +78,7 @@
             model: null,
             // 组件的默认父节点
             // document.body在脚本放在头部时无法访问
-            parentNode: 'body'
+            parentNode: Widget.DEFAULT_PARENT_NODE
         },
 
         init: function(config) {

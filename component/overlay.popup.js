@@ -1,28 +1,18 @@
 /*
  * overlay.popup
- * 2013-12-19 6:10:53
+ * 2013-12-20 12:07:25
  */
 (function($, global) {
     var tbtx = global.tbtx,
-        substitute = tbtx.substitute,
-        throttle = tbtx.throttle,
-        pageWidth = tbtx.pageWidth,
-        pageHeight = tbtx.pageHeight,
-        viewportWidth = tbtx.viewportWidth,
         isInDocument = tbtx.isInDocument,
         Class = tbtx.Class,
         Widget = tbtx.Widget,
+        DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE,
         each = tbtx.each;
 
-    // 最佳实践是添加className而非cssText，但是这里为了减少组件对CSS的依赖
-    var template = "<div id='{{ overlay }}' class='{{ class }}'></div>",
-        cssTemplate = "; display: none; position: absolute; top: 0; left: 0; height: 100%; width: 100%; opacity: {{ opacity }}; filter:alpha(opacity={{ alpha }}); background: {{ color }};",
-        defaults = {
-            'class': 'overlay',
-            'opacity': 0.5,
-            'color': '#000',
-            'hideOnClick': false// 点击遮罩层是否关闭
-        };
+    var ua = (window.navigator.userAgent || "").toLowerCase(), 
+        isIE6 = ua.indexOf("msie 6") !== -1,
+        doc = tbtx.getDocument();
 
     var Overlay = new Class(Widget);
 
@@ -30,9 +20,9 @@
 
         attrs: {
             // 基本属性
-            width: null,
-            height: null,
             visible: false,
+            parentNode: DEFAULT_PARENT_NODE,
+
             // 定位配置
             align: {
                 // element 的定位点，默认为左上角
@@ -42,40 +32,78 @@
                 // 基准定位元素的定位点，默认为左上角
                 baseXY: [ 0, 0 ]
             },
-            className: "overlay",
-            parentNode: 'body',
 
-            style: {
-                position: "absolute"
-            },
             opacity: 0.5,
             color: "#000",
             hideOnClick: false
         },
 
+        init: function(config) {
+            var parentNode = config.parentNode || DEFAULT_PARENT_NODE,
+                isMask;
+
+            // 没指定isMask 并且parentNode不是body
+            // 认定为普通遮罩而非全屏
+            if (typeof config.isMask === "undefined" && parentNode !== DEFAULT_PARENT_NODE) {
+                isMask = false;
+            } else {
+               isMask = true;
+            }
+            var defaults;
+
+            if (isMask) {
+                defaults = {
+                    style: {
+                        position: isIE6 ? "absolute" : "fixed",
+                        top: 0,
+                        left: 0
+                    },
+                    align: {
+                        // undefined 表示相对于当前可视范围定位
+                        baseElement: isIE6 ? 'body' : undefined
+                    },
+                    width: isIE6 ? doc.outerWidth(true) : "100%",
+                    height: isIE6 ? doc.outerHeight(true) : "100%",
+                    className: "mask"
+                };
+            } else {
+                var width = config.width,
+                    height = config.height;
+                defaults = {
+                    width: (parentNode !== DEFAULT_PARENT_NODE && !width) ? $(parentNode).innerWidth() : null,
+                    height: (parentNode !== DEFAULT_PARENT_NODE && !height) ? $(parentNode).innerHeight() : null,
+                    align: {
+                        baseElement: parentNode || tbtx.VIEWPORT
+                    },
+                    className: "overlay"
+                };
+            };
+            Overlay.superclass.init.call(this, $.extend({}, defaults, config));
+        },
+
         setup: function() {
             var self = this;
 
-            // this.delegateEvents('click', this._hide);
+            if (this.get("hideOnClick")) {
+                this.delegateEvents('click', this.hide);
+            }
             this._setupResize();
 
+            this.after("render", function() {
+                var _pos = this.element.css("position");
+                if (_pos === "static" || _pos === "relative") {
+                    this.element.css({
+                        position: "absolute",
+                        left: "-9999px",
+                        top: "-9999px"
+                    });
+                }
+            });
             // 统一在显示之后重新设定位置
-            // this.after("show", function() {
-            //     self._setPosition();
-            // });
+            this.after("show", function() {
+                self._setPosition();
+            });
 
-            // this.after("render", function() {
-            //     var _pos = this.element.css("position");
-            //     if (_pos === "static" || _pos === "relative") {
-            //         this.element.css({
-            //             position: "absolute",
-            //             left: "-9999px",
-            //             top: "-9999px"
-            //         });
-            //     }
-            // });
-
-            // this.render();
         },
 
         _setupResize: function() {
@@ -84,7 +112,7 @@
 
         _setPosition: function() {
             if (!isInDocument(this.element[0])) return;
-            align || (align = this.get("align"));
+            var align = this.get("align");
             // 如果align为空，表示不需要使用js对齐
             if (!align) return;
             var isHidden = this.element.css("display") === "none";
@@ -113,14 +141,17 @@
             }
             return this;
         },
-        show: function() {
-            this.render();
+        show: function(effect) {
+            if (!this.rendered) {
+                this.render();
+            }
+            this.element.show();
             this.set("visible", true);
             return this;
         },
 
         hide: function() {
-            this.remove();
+            this.element.hide();
             this.set("visible", false);
             return this;
         },
@@ -142,25 +173,13 @@
         _onRenderAlign: function(val) {
             this._setPosition(val);
         },
-        _onRenderVisible: function(val) {
-            tbtx.log(val);
-            if (val == "show") {
-                this._show();
-            }
-            if (val == "hide") {
-                this._hide();
-            }
+        _onRenderOpacity: function(val) {
+             this.element.css("opacity", val);
+        },
+        _onRenderColor: function(val) {
+             this.element.css("backgroundColor", val);
         },
 
-        _show: function() {
-            this.render();
-        },
-
-        _hide: function() {
-
-        },
-
-        // 仅仅加到dom里，不显示
         render: function(selector) {
             if (!this.rendered) {
                 this._renderAndBindAttrs();
@@ -172,77 +191,7 @@
                 this.element.prependTo(parentNode);
             }
             return this;
-            // 不要重复render
-            if (this.get("status") == "show") {
-                return;
-            }
-
-            this.$element = $(substitute(template, this.options));
-            this.$element[0].style.cssText += substitute(cssTemplate, this.options);
-
-
-            // 默认不设置z-index，只有传入时才设置
-            this.options.zindex && this.$element.css({
-                zindex: this.options.zindex
-            });
-
-            // 让overlay处在下面
-            if (selector) {
-                this.$element.insertBefore(selector);
-            } else {
-                this.$element.prependTo('body');
-            }
-        },
-
-        // remove: function() {
-        //     this.$element.remove();
-        // },
-
-        // show: function(selector) {
-        //     this.render(selector);      // 每次渲染，因为关闭的时候remove掉了
-
-        //     this.$element.show();
-        //     this.set("status", "show");
-
-        //     this.resize();
-        //     this.bind(); // 只有显示的时候进行事件监听
-        // },
-        // hide: function(effect) {
-        //     if (effect && typeof effect == 'string') {
-        //         this.$element[effect]();
-        //     } else {
-        //         this.$element.hide();
-        //     }
-        //     this.set("status", "hide");
-        //     this.unbind();
-        //     this.remove();
-        // },
-        // resize: function() {
-        //     this.$element.css({
-        //         width: viewportWidth(),
-        //         height: pageHeight()
-        //     });
-        // },
-
-        // // event on & off
-        // bind: function() {
-        //     $(window).on('resize', this.resizeProxy);
-        //     var self = this;
-        //     // hide与before配合时hide会改变，不能一开始就proxy
-        //     if (this.options.hideOnClick) {
-        //         this.hideProxy = function() {
-        //             self.hide();
-        //         };
-        //         this.$element.on('click', this.hideProxy);
-        //     }
-        // },
-        // unbind: function() {
-        //     $(window).off('resize', this.resizeProxy);
-
-        //     if (this.options.hideOnClick) {
-        //         this.$element.off('click', this.hideProxy);
-        //     }
-        // }
+        }
     });
 
     // resize overlay
@@ -286,168 +235,285 @@
 
 ;(function($, global) {
 	var tbtx = global.tbtx,
-        throttle = tbtx.throttle,
         Class = tbtx.Class,
+        Widget = tbtx.Widget,
         Overlay = tbtx.Overlay,
-        adjust = tbtx.adjust,
-        detector = tbtx.detector,
-        isNotSupportFixed = detector.browser.ie && detector.browser.version < 7;
-
-	var defaults = {
-		withOverlay: true,
-		overlayOption: {
-
-		},
-		destoryOnHide: false,
-		top: "center"
-    };
+        isInDocument = tbtx.isInDocument,
+        DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE;
+    
+    var ua = (window.navigator.userAgent || "").toLowerCase(), 
+        isIE6 = ua.indexOf("msie 6") !== -1;
 
     function isType(type) {
         return function(obj) {
             return {}.toString.call(obj) == "[object " + type + "]";
         };
     }
-
     var isFunction = isType("Function"),
     	isString = isType("String");
 
-	var Popup = new Class(tbtx.Widget);
+	var Popup = new Class(Overlay);
 
 	Popup.include({
-		init: function(selector, options) {
-            this.config(options);
+        attrs: {
+            withOverlay: true,
+            overlayOption: {
 
-            this.mask = '';     // 标示popup，在事件里作为数据传递
-			this.$element = $(selector);
+            },
+            destoryOnHide: false,
 
-			// html append to body
-			if (!this.$element.parent().length && typeof selector == "string") {
-				this.$element.appendTo('body').hide();
-			}
+            className: "popup",
+            style: {
+                display: "none",
+                position: isIE6 ? "absolute" : "fixed",
+            },
+           
+            opacity: null,
+            color: null,
+            hideOnClick: null,
 
-			this.$element.data('tbtx.pop', this);
-
-			if (this.options.withOverlay) {
-				this.overlay = new Overlay(this.options.overlayOption);
-			}
-
-			// 在事件处理程序中使用this
-            this.adjustProxy = this.proxy(throttle(this.adjust));
-            var self = this;
-            this.hideProxy  = function() {
-                self.hide();
-            };
-		},
-
-        config: function(options) {
-            this.options = $.extend(true, {}, defaults, options);
+            parentNode: DEFAULT_PARENT_NODE,
+            mask: ''     // 标示popup类型，在事件里作为数据传递，命名害死人
         },
 
-		show: function(effect, callback) {
-            // 不能像overlay那样通过是否在dom里来判断是否显示
-            if (this.visibile) {
-                return;
+        events: {
+            "click .J-popup-close": "hide",
+            "click .close": "hide"  
+        },
+
+		init: function(selector, config) {
+            config = config || {};
+            var isHtml = isString(selector) && (selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3);
+            if (isHtml) {
+                config.template = selector;
+            } else {
+                config.element = selector;
             }
-            this.visibile = true;
-			// show(function)
-			if (effect && isFunction(effect)) {
-				callback = effect;
-				effect = undefined;
-			}
+            
+            if (config.align) {
+                config.align.baseElement = config.parentNode || tbtx.VIEWPORT;
+            }
 
-			var position = isNotSupportFixed ? 'absolute' : 'fixed';
-			this.$element.css({
-				position: position
-			});
-			// 先显示元素，再显示overlay，否则没有定位获取的高度会偏高
-			if (this.overlay) {
-				this.overlay.show(this.$element);
-			}
-			this.adjust();
+            Popup.superclass.init.call(this, config);
 
+            // tbtx.log(this);
+   //          this.config(options);
 
-			if (effect && typeof effect == "string") {
-				this.$element[effect]({
-					complete: callback
-				});
-			} else {
-				this.$element.show();
-				isFunction(callback) && callback();
-			}
+   //          this.mask = '';     // 标示popup，在事件里作为数据传递
+			// this.$element = $(selector);
 
-			var self = this;
-			setTimeout(function () {
-                self.$element.trigger('tbtx.popup.show', {
-                    mask: self.mask
-                });
+			// // html append to body
+			// if (!this.$element.parent().length && typeof selector == "string") {
+			// 	this.$element.appendTo('body').hide();
+			// }
 
-            }, 0);
+			// this.$element.data('tbtx.pop', this);
 
-			this.bind();
+			// if (this.options.withOverlay) {
+			// 	this.overlay = new Overlay(this.options.overlayOption);
+			// }
 
+			// // 在事件处理程序中使用this
+   //          this.adjustProxy = this.proxy(throttle(this.adjust));
+   //          var self = this;
+   //          this.hideProxy  = function() {
+   //              self.hide();
+   //          };
 		},
 
-		hide: function(effect, callback) {
-            if (!this.visibile) {
-                return;
+        initProps: function() {
+            if (this.get("parentNode") === DEFAULT_PARENT_NODE) {
+                this.set("width", null);
+                this.set("height", null);
             }
-            this.visibile = false;
+        },
 
-			if (effect && isFunction(effect)) {
-				callback = effect;
-				effect = undefined;
-			}
+        setup: function() {
+            if (this.get("withOverlay")) {
+                var config = this.get("overlayOption") || {},
+                    parentNode = this.get("parentNode");
+                config.parentNode = this.get("parentNode");
 
-			if (effect && isString(effect)) {
-				this.$element[effect]({
-					complete: callback
-				});
-			} else {
-				this.$element.hide();
-				isFunction(callback) && callback();
-			}
-			var self = this;
-			setTimeout(function () {
-                self.$element.trigger('tbtx.popup.hide', {
-                    mask: self.mask
+                this.overlay = new Overlay(config).render();
+            }
+
+            this.element.data("tbtx.pop", this);
+
+            Popup.superclass.setup.call(this);
+        },
+
+        show: function(effect, callback) {
+            if (!this.rendered) {
+                this.render();
+            }
+            this.overlay && this.overlay.show();
+            this.element.show();
+            this.set("visible", true);
+            return this;
+        },
+
+        hide: function(effect, callback) {
+            this.overlay && this.overlay.hide();
+            this.element.hide();
+            this.set("visible", false);
+            return this;
+        },
+
+         _setPosition: function() {
+            if (!isInDocument(this.element[0])) return;
+            var align = this.get("align");
+            // 如果align为空，表示不需要使用js对齐
+            if (!align) return;
+            var isHidden = this.element.css("display") === "none";
+            // 在定位时，为避免元素高度不定，先显示出来
+            if (isHidden) {
+                this.element.css({
+                    visibility: "hidden",
+                    display: "block"
                 });
-            }, 0);
+            }
+            
+            // 替换了调整方法
+            this.adjust();
 
-			if (this.overlay) {
-				this.overlay.hide(effect);
-			}
+            // 定位完成后，还原
+            if (isHidden) {
+                this.element.css({
+                    visibility: "",
+                    display: "none"
+                });
+            }
+            return this;
+        },
 
-			this.unbind();
+        // 重新overlay的prepend为append
+        render: function(selector) {
+            if (!this.rendered) {
+                this._renderAndBindAttrs();
+                this.rendered = true;
+            }
+            // 插入到文档流中
+            var parentNode = this.get("parentNode");
+            if (parentNode && !isInDocument(this.element[0])) {
+                this.element.appendTo(parentNode);
+            }
+            return this;
+        },
 
-			if (this.options.destoryOnHide) {
-				this.$element.remove();
-			}
-            // ie 下 a标签
-            return false;
-		},
+        // 不使用父类的设置宽高函数
+        _onRenderWidth: function(val) {
+            // this.element.css("width", val);
+        },
+        _onRenderHeight: function(val) {
+            // this.element.css("height", val);
+        },
+
+		// show: function(effect, callback) {
+  //           // 不能像overlay那样通过是否在dom里来判断是否显示
+  //           if (this.visibile) {
+  //               return;
+  //           }
+  //           this.visibile = true;
+		// 	// show(function)
+		// 	if (effect && isFunction(effect)) {
+		// 		callback = effect;
+		// 		effect = undefined;
+		// 	}
+
+		// 	var position = isNotSupportFixed ? 'absolute' : 'fixed';
+		// 	this.$element.css({
+		// 		position: position
+		// 	});
+		// 	// 先显示元素，再显示overlay，否则没有定位获取的高度会偏高
+		// 	if (this.overlay) {
+		// 		this.overlay.show(this.$element);
+		// 	}
+		// 	this.adjust();
+
+
+		// 	if (effect && typeof effect == "string") {
+		// 		this.$element[effect]({
+		// 			complete: callback
+		// 		});
+		// 	} else {
+		// 		this.$element.show();
+		// 		isFunction(callback) && callback();
+		// 	}
+
+		// 	var self = this;
+		// 	setTimeout(function () {
+  //               self.$element.trigger('tbtx.popup.show', {
+  //                   mask: self.mask
+  //               });
+
+  //           }, 0);
+
+		// 	this.bind();
+
+		// },
+
+		// hide: function(effect, callback) {
+  //           if (!this.visibile) {
+  //               return;
+  //           }
+  //           this.visibile = false;
+
+		// 	if (effect && isFunction(effect)) {
+		// 		callback = effect;
+		// 		effect = undefined;
+		// 	}
+
+		// 	if (effect && isString(effect)) {
+		// 		this.$element[effect]({
+		// 			complete: callback
+		// 		});
+		// 	} else {
+		// 		this.$element.hide();
+		// 		isFunction(callback) && callback();
+		// 	}
+		// 	var self = this;
+		// 	setTimeout(function () {
+  //               self.$element.trigger('tbtx.popup.hide', {
+  //                   mask: self.mask
+  //               });
+  //           }, 0);
+
+		// 	if (this.overlay) {
+		// 		this.overlay.hide(effect);
+		// 	}
+
+		// 	this.unbind();
+
+		// 	if (this.options.destoryOnHide) {
+		// 		this.$element.remove();
+		// 	}
+  //           // ie 下 a标签
+  //           return false;
+		// },
 
 		adjust: function() {
+            tbtx.center(this.element, this.get("parentNode"));
             // absolute才需要调整
-            adjust(this.$element, isNotSupportFixed, this.options.top);
-		},
-
-		bind: function() {
-            this.$element.on('click', '.J-popup-close', this.hideProxy);
-            this.$element.on('click', '.close', this.hideProxy);
-			$(window).on('scroll resize', this.adjustProxy);
-		},
-
-		unbind: function() {
-            this.$element.off('click', '.J-popup-close', this.hideProxy);
-            this.$element.off('click', '.close', this.hideProxy);
-			$(window).off('scroll resize', this.adjustProxy);
+            // adjust(this.$element, isNotSupportFixed, this.options.top);
 		}
+
+		// bind: function() {
+  //           this.$element.on('click', '.J-popup-close', this.hideProxy);
+  //           this.$element.on('click', '.close', this.hideProxy);
+		// 	$(window).on('scroll resize', this.adjustProxy);
+		// },
+
+		// unbind: function() {
+  //           this.$element.off('click', '.J-popup-close', this.hideProxy);
+  //           this.$element.off('click', '.close', this.hideProxy);
+		// 	$(window).off('scroll resize', this.adjustProxy);
+		// }
 	});
 
 
 
-    $.fn.Popup = function(options) {
-    	return $(this).data('tbtx.pop') || new Popup(this, options);
+    $.fn.Popup = function(config) {
+    	return $(this).data('tbtx.pop') || new Popup(this, config);
     };
 
     tbtx.Popup = Popup;

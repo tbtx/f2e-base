@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-19 6:10:53
+ * 2013-12-20 12:07:25
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1429,6 +1429,8 @@
 
     var Widget = new Class(Base);
 
+    Widget.DEFAULT_PARENT_NODE = "body";
+    
     Widget.include({
         propsInAttrs: ["initElement", "element", "events"],
 
@@ -1454,7 +1456,7 @@
             model: null,
             // 组件的默认父节点
             // document.body在脚本放在头部时无法访问
-            parentNode: 'body'
+            parentNode: Widget.DEFAULT_PARENT_NODE
         },
 
         init: function(config) {
