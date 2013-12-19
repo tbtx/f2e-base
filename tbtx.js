@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-19 12:42:43
+ * 2013-12-19 12:49:46
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2966,13 +2966,13 @@
             });
         },
 
-        getScroller = function() {
+        getScroller = tbtx.singleton(function() {
             var scroller = document.body;
             if (/msie [67]/.test(navigator.userAgent.toLowerCase())) {
                 scroller = document.documentElement;
             }
             return scroller;
-        },
+        }),
         /**
          * 停止body的滚动条
          * @return {[type]} [description]
