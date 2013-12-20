@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Document</title>
+	<title>Popup</title>
 	<style>
 	* {
 		margin: 0;
@@ -13,6 +13,8 @@
 	}
 	body {
 		background: #39c;
+		padding-top: 20px;
+		position: relative;
 	}
 
 	#pop {
@@ -40,7 +42,6 @@
 		demo
 	</div>
 
-
 	<div id="pop">
 		asfasfasfasfasf
 		<a href="javascript:;" class="J-popup-close">X</a>
@@ -54,15 +55,22 @@
 	var p = $('#pop').Popup({
 		parentNode: "#demo"
 	});
-	// var p = new tbtx.Popup('<p><a href="javascript:;" class="J-popup-close">close</a></p>');
+	tbtx.log(p);
+
+	var p2 = new tbtx.Popup('<p><a href="javascript:;" class="J-popup-close">close</a></p>').show();
 
 	// p.before('hide', function() {
 	// 	console.log("hide");
 	// });
 	p.show();
 
+	var p3 = $('<div>123</div>').Popup({
+		parentNode: "#demo"
+	}).show();
 
-	$('#pop').on('tbtx.popup.show', function() {
+	p.mask = "afa";
+	$('#pop').on('tbtx.popup.show', function(e, data) {
+		console.log(arguments);
 		console.log('tbtx.popup.show');
 	}).on('tbtx.popup.hide', function() {
 		console.log('tbtx.popup.hide');

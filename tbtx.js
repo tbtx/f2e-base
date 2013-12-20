@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-20 12:07:25
+ * 2013-12-20 2:51:15
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -798,6 +798,10 @@
             return str.charAt(0).toUpperCase() + str.substring(1);
         },
 
+        lcfirst: function(str) {
+            return str.charAt(0).toLowerCase() + str.substring(1);
+        },
+
         isArray: isArray,
         inArray: inArray,
         type: type,
@@ -1430,7 +1434,7 @@
     var Widget = new Class(Base);
 
     Widget.DEFAULT_PARENT_NODE = "body";
-    
+
     Widget.include({
         propsInAttrs: ["initElement", "element", "events"],
 
@@ -1456,7 +1460,9 @@
             model: null,
             // 组件的默认父节点
             // document.body在脚本放在头部时无法访问
-            parentNode: Widget.DEFAULT_PARENT_NODE
+            parentNode: Widget.DEFAULT_PARENT_NODE,
+
+            renderMethod: "appendTo"
         },
 
         init: function(config) {
@@ -1598,16 +1604,19 @@
                 this.rendered = true;
             }
             // 插入到文档流中
-            var parentNode = this.get("parentNode");
-            if (parentNode && !isInDocument(this.element[0])) {
+            var parentNode = this.get("parentNode"),
+                relatedNode = this.get("relatedNode"),
+                targetNode = relatedNode || parentNode,
+                renderMethod = this.get("renderMethod");
+            if (targetNode && !isInDocument(this.element[0])) {
                 // 隔离样式，添加统一的命名空间
                 // https://github.com/aliceui/aliceui.org/issues/9
                 var outerBoxClass = this.constructor.outerBoxClass;
                 if (outerBoxClass) {
                     var outerBox = this._outerBox = $("<div></div>").addClass(outerBoxClass);
-                    outerBox.append(this.element).appendTo(parentNode);
+                    outerBox.append(this.element)[renderMethod](targetNode);
                 } else {
-                    this.element.appendTo(parentNode);
+                    this.element[renderMethod](targetNode);
                 }
             }
             return this;

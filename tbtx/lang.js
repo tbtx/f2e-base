@@ -710,6 +710,10 @@
             return str.charAt(0).toUpperCase() + str.substring(1);
         },
 
+        lcfirst: function(str) {
+            return str.charAt(0).toLowerCase() + str.substring(1);
+        },
+
         isArray: isArray,
         inArray: inArray,
         type: type,

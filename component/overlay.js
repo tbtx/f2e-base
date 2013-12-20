@@ -60,14 +60,14 @@
                     },
                     width: isIE6 ? doc.outerWidth(true) : "100%",
                     height: isIE6 ? doc.outerHeight(true) : "100%",
-                    className: "mask"
+                    className: "tbtx-mask overlay"
                 };
             } else {
                 var width = config.width,
                     height = config.height;
                 defaults = {
-                    width: (parentNode !== DEFAULT_PARENT_NODE && !width) ? $(parentNode).innerWidth() : null,
-                    height: (parentNode !== DEFAULT_PARENT_NODE && !height) ? $(parentNode).innerHeight() : null,
+                    width: (parentNode !== DEFAULT_PARENT_NODE && !width) ? $(parentNode).innerWidth() : width,
+                    height: (parentNode !== DEFAULT_PARENT_NODE && !height) ? $(parentNode).innerHeight() : height,
                     align: {
                         baseElement: parentNode || tbtx.VIEWPORT
                     },
@@ -119,15 +119,7 @@
                     display: "block"
                 });
             }
-            tbtx.pin({
-                element: this.element,
-                x: align.selfXY[0],
-                y: align.selfXY[1]
-            }, {
-                element: align.baseElement,
-                x: align.baseXY[0],
-                y: align.baseXY[1]
-            });
+            this.adjust(align);
             // 定位完成后，还原
             if (isHidden) {
                 this.element.css({
@@ -137,6 +129,19 @@
             }
             return this;
         },
+
+        adjust: function(align) {
+            tbtx.pin({
+                element: this.element,
+                x: align.selfXY[0],
+                y: align.selfXY[1]
+            }, {
+                element: align.baseElement,
+                x: align.baseXY[0],
+                y: align.baseXY[1]
+            });
+        },
+
         show: function(effect) {
             if (!this.rendered) {
                 this.render();
@@ -170,23 +175,10 @@
             this._setPosition(val);
         },
         _onRenderOpacity: function(val) {
-             this.element.css("opacity", val);
+            this.element.css("opacity", val);
         },
         _onRenderColor: function(val) {
-             this.element.css("backgroundColor", val);
-        },
-
-        render: function(selector) {
-            if (!this.rendered) {
-                this._renderAndBindAttrs();
-                this.rendered = true;
-            }
-            // 插入到文档流中
-            var parentNode = this.get("parentNode");
-            if (parentNode && !isInDocument(this.element[0])) {
-                this.element.prependTo(parentNode);
-            }
-            return this;
+            this.element.css("backgroundColor", val);
         }
     });
 

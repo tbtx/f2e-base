@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Document</title>
+	<title>overlay</title>
 	<style>
 	* {
 		margin: 0;
@@ -17,14 +17,14 @@
 	#demo {
 		width: 300px;
 		height: 300px;
-		background: #900;
+		background: #FFF;
 		position: relative;
 	}
 
 	#demo-2 {
 		width: 300px;
 		height: 300px;
-		background: #090;
+		background: #FFF;
 		position: relative;
 	}
 	</style>
@@ -128,8 +128,8 @@
 	<p> a lot of contents </p>
 	<p> a lot of contents </p>
 	<p> a lot of contents </p>
-	<div id="demo"></div>
-	<div id="demo-2"></div>
+	<div id="demo">123</div>
+	<div id="demo-2">123</div>
 	<script src="../../jquery/jquery-1.8.3.min.js"></script>
 	<script src="../../tbtx.js"></script>
 	<script src="../../component/overlay.js"></script>
@@ -143,8 +143,9 @@
 		hideOnClick: true
 	}).show();
 
-	var o2 = new tbtx.Overlay({
+	var o3 = new tbtx.Overlay({
 		parentNode: "#demo-2",
+		color: "blue",
 		width: 200,
 		height: 200
 	}).show();

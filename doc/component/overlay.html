@@ -18,18 +18,16 @@
     // 获取overlay实例
     var o = new tbtx.Overlay(option);
 
-    o.show(); // o.show('fadeIn')
-    o.hide(); // o.hide('fadeOut')
-    o.config(option);       // 一般一个页面中只需要一个遮罩层，如果需要多个，可通过config改变配置，然后重新show的时候即使用新的配置
+    o.show();
+    o.hide();
 </code></pre>
 
 <pre><code>
      def = {
-            'id': 'overlay',    遮罩层id
-            'class': 'overlay', 遮罩层class
+            'className': 'overlay', 遮罩层class
             'opacity': 0.5,     透明度
             'color': '#000',    背景颜色
-            'zindex': , // 遮罩层z-index, 可以不传
+            'zIndex': , // 遮罩层z-index, 可以不传
             'hideOnClick': false, // 点击遮罩层是否关闭
         };
 </code></pre>

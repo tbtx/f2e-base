@@ -11,8 +11,6 @@
 <pre><code>
     依赖jquery和tbtx.js
     http://a.tbcdn.cn/apps/tbtx/base/js/component/overlay.popup.js
-
-    如果不使用overlay，可以只引入http://a.tbcdn.cn/apps/tbtx/base/js/component/popup.js，同时指定withOverlay为false
 </code></pre>
 
 <a href="../../test/component/popup.html" target="_blank">参考实例</a>
@@ -26,10 +24,7 @@
     o.hide()       // o.show('fadeOut', function)
 </code></pre>
 
-弹出的元素不需要指定position，只需要指定弹出层的z-index和display: none;即可
-
-IE6下使用absolute定位，其余使用fix定位
-
+已经存在于dom中的元素需要手动remove，通过字符串生成的会在destroy时自动remove
 <pre><code>
      var defaults = {
         withOverlay: true,      // 是否使用遮罩层
@@ -37,7 +32,6 @@ IE6下使用absolute定位，其余使用fix定位
 
         },
         destoryOnHide: false,   // 隐藏的时候是否删除元素，适用于只需要弹出一次的元素
-        top: "center"           // 位置, 实际调用tbtx.adjust, "center"/50
     };
 </code></pre>
 

@@ -60,7 +60,7 @@
 	store.min.js 客户端存储
 
 ## arale调整
-	Widget移除自动render, parseElementFromTemplate增加id
+	Widget移除自动render, parseElementFromTemplate增加id, 增加renderMethod和relatedNode来扩展插入方式
 	detector 增加mobile判断
 
 
