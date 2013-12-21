@@ -1,5 +1,6 @@
-(function(tbtx) {
-    var parseResult = tbtx.parseUrl(location.href);
+(function(S) {
+    var parseResult = S.parseUrl(location.href);
+    S.data("urlInfo", parseResult);
 
     var ROOT = parseResult.scheme + "://" + parseResult.domain;
     if (parseResult.port) {
@@ -18,7 +19,7 @@
     };
 
 
-    tbtx.mix({
+    S.mix({
         ROOT: ROOT,
         path: path
     });

@@ -1,7 +1,7 @@
-(function($, tbtx) {
-    var Class = tbtx.Class,
-        Widget = tbtx.Widget,
-        isArray = tbtx.isArray;
+(function($, S) {
+    var Class = S.Class,
+        Widget = S.Widget,
+        isArray = S.isArray;
 
     var SNS = new Class(Widget);
 
@@ -120,7 +120,7 @@
                 normalizeMap = this.get("normalizeMap"),
                 defaultParams = this.get("defaultParams"),
                 self = this;
-            tbtx.each(["caption", "description", "pic", "url"], function(item, index) {
+            S.each(["caption", "description", "pic", "url"], function(item, index) {
                 ret[normalizeMap[target][item] || item] = self.get(item);
             });
 
@@ -129,5 +129,5 @@
         }
     });
 
-    tbtx.SNS = SNS;
+    S.SNS = SNS;
 })(jQuery, tbtx);

@@ -1,9 +1,9 @@
-(function($, tbtx) {
+(function($, S) {
     var doc = document;
-    var support = tbtx.namespace("support");
+    var support = S.namespace("support");
 
     function transitionEnd() {
-        var el = document.createElement('tbtx');
+        var el = document.createElement('support');
 
         var transEndEventNames = {
             'WebkitTransition': 'webkitTransitionEnd',
@@ -28,12 +28,12 @@
 
     // fix placeholder
     $(function() {
-        if (!support.placeholder) {
+        if (!support.placeholder && $("input[placeholder], textarea[placeholder]").length) {
             /*
                 input, textarea { color: #000; }
                 .placeholder { color: #aaa; }
              */
-            tbtx.loadScript("base/js/plugin/jquery.placeholder.js", function() {
+            S.loadScript("base/js/plugin/jquery.placeholder.js", function() {
                 $('input, textarea').placeholder();
             });
         }

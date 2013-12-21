@@ -11,6 +11,34 @@ describe('lang', function() {
 		});
 	});
 
+	describe("isPending", function() {
+		it("should adjust if a deferred is pending", function() {
+			var deferred = $.Deferred();
+			expect(tbtx.isPending(deferred)).toBeTruthy();
+		});
+	});
+
+	describe("singleton", function() {
+		it("should get only one instance", function() {
+			var getInstance = tbtx.singleton(function() {
+				return {};
+			});
+
+			expect(getInstance()).toBe(getInstance());
+		});
+	});
+
+	describe("ucfirst and lcfirst", function() {
+		it("should uppercase a str's first letter", function() {
+			expect(tbtx.ucfirst("abc")).toEqual("Abc");
+			expect(tbtx.ucfirst("Abc")).toEqual("Abc");
+		});
+		it("should uppercase a str's first letter", function() {
+			expect(tbtx.lcfirst("abc")).toEqual("abc");
+			expect(tbtx.lcfirst("Abc")).toEqual("abc");
+		});
+	});
+
 	describe("type", function() {
 		it("should get the type of the argument", function() {
 			expect(tbtx.type("")).toEqual("string");

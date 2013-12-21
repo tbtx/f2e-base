@@ -1,6 +1,7 @@
-(function(global, exports, undefined) {
+(function(global, S, undefined) {
     // 语言扩展
     // 不依赖jQuery
+    // 内部使用S，简化tbtx
 
     var AP = Array.prototype,
         forEach = AP.forEach,
@@ -458,7 +459,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        tbtx.log(e + 'decodeURIComponent error : ' + val, 'error');
+                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
                     }
                 }
                 ret[key] = val;
@@ -648,7 +649,7 @@
         return cls;
     }
 
-    var mix = exports.mix = function(des, source, blacklist, over) {
+    var mix = S.mix = function(des, source, blacklist, over) {
         var i;
         if (!des || des === source) {
             return des;
@@ -675,8 +676,8 @@
         return des;
     };
 
-    // exports
-    exports.mix({
+    // S
+    S.mix({
         mix: mix,
         classify: classify,
         isNotEmptyString: isNotEmptyString,
@@ -697,7 +698,13 @@
             return FALSE;
         },
 
-        // 单例模式
+        /**
+         * 单例模式
+         * return only one instance
+         * @param  {Function} fn      the function to return the instance
+         * @param  {object}   context
+         * @return {Function}
+         */
         singleton: function(fn, context) {
             var result;
             return function() {

@@ -1,10 +1,8 @@
-(function($, tbtx) {
-    var exports = tbtx;
-
-    var Class = tbtx.Class,
-        Events = tbtx.Events,
-        Aspect = tbtx.Aspect,
-        Attrs = tbtx.Attrs;
+(function($, S) {
+    var Class = S.Class,
+        Events = S.Events,
+        Aspect = S.Aspect,
+        Attrs = S.Attrs;
 
     // Base
     // _onChange属性名 会自动监听attr变化
@@ -383,6 +381,6 @@
         return o == null || o === undefined;
     }
 
-    exports.Base = Base;
-    exports.Widget = Widget;
+    S.Base = Base;
+    S.Widget = Widget;
 })(jQuery, tbtx);

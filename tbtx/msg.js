@@ -1,7 +1,7 @@
-(function($, tbtx) {
-    var Class = tbtx.Class,
-        Widget = tbtx.Widget,
-        singleton = tbtx.singleton;
+(function($, S) {
+    var Class = S.Class,
+        Widget = S.Widget,
+        singleton = S.singleton;
 
     var ua = (window.navigator.userAgent || "").toLowerCase(),
         isIE6 = ua.indexOf("msie 6") !== -1;
@@ -95,18 +95,18 @@
     var pin = function($element) {
         $element.css({
             position: "absolute",
-            bottom: 24 - tbtx.scrollY()
+            bottom: 24 - S.scrollY()
         });
     };
     var getWidget = singleton(function() {
-        tbtx.loadCss("base/css/msg.css");
+        S.loadCss("base/css/msg.css");
         var widget = new MsgWidget({
             id: "tbtx-msg"
         }).render();
 
         if (isIE6) {
             pin(widget.element);
-            tbtx.getWindow().on("scroll resize", function() {
+            S.getWindow().on("scroll resize", function() {
                 if (widget.get("items").length) {
                     pin(widget.element);
                 }
@@ -116,10 +116,10 @@
         return widget;
     });
 
-    var MSG = tbtx.MSG = {};
+    var MSG = S.MSG = {};
     var types = "warning error info debug success".split(" ");
-    tbtx.each(types, function(type) {
-        tbtx[type] = MSG[type] = function(msg) {
+    S.each(types, function(type) {
+        S[type] = MSG[type] = function(msg) {
             getWidget().add(msg, type);
         };
     });
