@@ -39,6 +39,18 @@ describe('lang', function() {
 		});
 	});
 
+	describe("later", function() {
+		it("should get execute a fn after some mils", function() {
+			var globalName;
+			var f = function(name) {
+				globalName = name;
+				expect(globalName).toEqual(name);
+			};
+
+			var r = tbtx.later(f, 2000, false, window, ["alex"]);
+		});
+	});
+
 	describe("type", function() {
 		it("should get the type of the argument", function() {
 			expect(tbtx.type("")).toEqual("string");

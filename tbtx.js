@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-21 3:33:37
+ * 2013-12-21 4:58:46
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -809,6 +809,48 @@
             return str.charAt(0).toLowerCase() + str.substring(1);
         },
 
+        /**
+         * [later description]
+         * @param  {Function} fn       要执行的函数
+         * @param  {number}   when     延迟时间
+         * @param  {boolean}   periodic 是否周期执行
+         * @param  {object}   context  context
+         * @param  {Array}   data     传递的参数
+         * @return {object}            timer，cancel and interval
+         */
+        later: function (fn, when, periodic, context, data) {
+            when = when || 0;
+            var m = fn,
+                d = makeArray(data),
+                f,
+                r;
+
+            if (typeof fn === 'string') {
+                m = context[fn];
+            }
+
+            if (!m) {
+                S.error('method undefined');
+            }
+
+            f = function () {
+                m.apply(context, d);
+            };
+
+            r = (periodic) ? setInterval(f, when) : setTimeout(f, when);
+
+            return {
+                id: r,
+                interval: periodic,
+                cancel: function () {
+                    if (this.interval) {
+                        clearInterval(r);
+                    } else {
+                        clearTimeout(r);
+                    }
+                }
+            };
+        },
         isArray: isArray,
         inArray: inArray,
         type: type,
