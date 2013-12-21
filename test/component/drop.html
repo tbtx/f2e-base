@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Drop</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    img {
+        border: none;
+    }
+    body {
+        background: #39c;
+        padding-top: 20px;
+        position: relative;
+    }
+    .tbtx-drop {
+        background: #FFF;
+    }
+    </style>
+</head>
+<body>
+    <div id="demo">
+        demo
+    </div>
+
+    <script src="../../jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../tbtx.js"></script>
+    <script src="../../component/overlay.js"></script>
+    <script src="../../component/drop.js"></script>
+    <script>
+    new tbtx.Drop({
+        trigger: "#demo",
+        template: "<div>hello</div>",
+        effect: "slide"
+    });
+    </script>
+</body>
+</html>

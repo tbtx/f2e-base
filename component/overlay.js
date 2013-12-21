@@ -179,10 +179,21 @@
         },
         _onRenderColor: function(val) {
             this.element.css("backgroundColor", val);
+        },
+        // 除了 element 和 relativeElements，点击 body 后都会隐藏 element
+        _blurHide: function(arr) {
+            arr = $.makeArray(arr);
+            arr.push(this.element);
+            this._relativeElements = arr;
+            Overlay.blurOverlays.push(this);
         }
     });
 
     Overlay.allOverlays = [];
+    Overlay.blurOverlays = [];
+    S.getDocument().on("click", function(e) {
+        hideBlurOverlays(e);
+    });
     // resize overlay
     S.on("window.resize", function() {
         each(Overlay.allOverlays, function(item) {
@@ -202,5 +213,23 @@
             }
         }
     }
+    function hideBlurOverlays(e) {
+        $(Overlay.blurOverlays).each(function(index, item) {
+            // 当实例为空或隐藏时，不处理
+            if (!item || !item.get("visible")) {
+                return;
+            }
+            // 遍历 _relativeElements ，当点击的元素落在这些元素上时，不处理
+            for (var i = 0; i < item._relativeElements.length; i++) {
+                var el = $(item._relativeElements[i])[0];
+                if (el === e.target || $.contains(el, e.target)) {
+                    return;
+                }
+            }
+            // 到这里，判断触发了元素的 blur 事件，隐藏元素
+            item.hide();
+        });
+    }
+
     S.Overlay = Overlay;
 })(jQuery, this);
