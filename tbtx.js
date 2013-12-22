@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-22 11:35:36
+ * 2013-12-23 12:08:28
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -594,9 +594,15 @@
             return match[7] || "";
         },
         getQueryParam = function(name, url) {
+            if (S.isUri(name)) {
+                url = name;
+                name = "";
+            }
             url = url || location.href;
+            
             var match = URI_RE.exec(url),
                 ret = unparam(match[6]);
+
             if (name) {
                 return ret[name] || '';
             }
@@ -772,6 +778,17 @@
             // dark type
             if (val.resolve && val.promise) {
                 return val.state() === "pending";
+            }
+            return FALSE;
+        },
+
+        isUri: function(val) {
+            var match;
+            if (isString(val)) {
+                match = URI_RE.exec(val);
+                if (match && match[1]) {
+                    return TRUE;
+                }
             }
             return FALSE;
         },

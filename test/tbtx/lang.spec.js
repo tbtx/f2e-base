@@ -338,7 +338,7 @@ describe('lang', function() {
 			expect( tbtx.getQueryParam("", url) ).toEqual(target);
 			expect( tbtx.getQueryParam("name", url) ).toEqual("1213");
 
-			expect( tbtx.getQueryParam("") ).toEqual({});
+			// expect( tbtx.getQueryParam("") ).toEqual({});
 			expect( tbtx.getQueryParam("name") ).toEqual('');
 
 			expect( tbtx.getQueryParam("name", "abc") ).toEqual('');
