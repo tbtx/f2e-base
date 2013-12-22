@@ -1,5 +1,6 @@
 (function(S) {
     var parseResult = S.parseUrl(location.href);
+    parseResult.query = S.getQueryParam();
     S.data("urlInfo", parseResult);
 
     var ROOT = parseResult.scheme + "://" + parseResult.domain;

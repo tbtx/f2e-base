@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-22 5:18:56
+ * 2013-12-22 11:35:36
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3388,6 +3388,7 @@
 
 ;(function(S) {
     var parseResult = S.parseUrl(location.href);
+    parseResult.query = S.getQueryParam();
     S.data("urlInfo", parseResult);
 
     var ROOT = parseResult.scheme + "://" + parseResult.domain;
