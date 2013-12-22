@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-22 3:11:01
+ * 2013-12-22 3:21:30
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3082,39 +3082,6 @@
             }, 800);
         },
 
-        // 针对absolute or fixed
-        adjust = function(selector, isAbsolute, top) {
-            var $element = $(selector);
-
-            var h = $element.outerHeight(),
-                w = $element.outerWidth();
-
-            top = typeof top == "number" ? top : "center";
-            if (!isAbsolute) {
-                isAbsolute = false; // 默认fix定位
-            }
-
-            var t;
-            if (top != "center") { // @number
-                t = isAbsolute ? scrollY() + top : top;
-            } else {
-                t = isAbsolute ? scrollY() + ((viewportHeight() - h) / 2) : (viewportHeight() - h) / 2;
-            }
-            if (t < 0) {
-                t = 0;
-            }
-
-            var l = isAbsolute ? scrollX() + ((viewportWidth() - w) / 2) : (viewportWidth() - w) / 2;
-            if (l < 0) {
-                l = 0;
-            }
-
-            $element.css({
-                top: t,
-                left: l
-            });
-        },
-
         limitLength = function(selector, attr, suffix) {
             var $elements = $(selector);
             suffix = suffix || '...';
@@ -3236,7 +3203,6 @@
         // support fn
         isInView: isInView,
         scrollTo: scrollTo,
-        adjust: adjust,
         limitLength: limitLength,
         initWangWang: initWangWang,
         flash: flash,
