@@ -26,12 +26,21 @@
         right: 10px;
         bottom: 20px;
     }
+
+    #demo-2 {
+        position: absolute;
+        bottom: 1000px;
+        left: 50%;
+        background: #000;
+    }
     </style>
 </head>
 <body>
    <div class="div-1">hello</div>
     <div class="div-1">hello2</div>
     <div id="demo" data-offset="250"><a href="" class="J-fly-to-top">scroll</a></div>
+
+    <div id="demo-2">isInview</div>
 
     <input type="text" placeholder="1">
     <textarea name="" placeholder="2" id="" cols="30" rows="10"></textarea>
@@ -51,6 +60,9 @@
         //     { element: "#div-1", x: 'center', y: 'center' }, 
         //     { element: tbtx.VIEWPORT, x: 'center', y: 'center' }
         // );
+        tbtx.on("window.scroll", function() {
+            tbtx.log(tbtx.isInView("#demo-2", "center"));
+        });
     </script>
 </body>
 </html>

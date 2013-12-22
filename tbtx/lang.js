@@ -64,10 +64,6 @@
             return type(val) === 'string';
         },
 
-        isFunction = function(val) {
-            return type(val) === 'function';
-        },
-
         isNotEmptyString = function(val) {
             return isString(val) && val !== '';
         },
@@ -85,9 +81,8 @@
          */
         indexOf = AP.indexOf ?
             function(arr, item) {
-                return arr.indexOf(item);
-        } :
-            function(arr, item) {
+                    return arr.indexOf(item);
+            } : function(arr, item) {
                 var i;
                 if (isString(arr)) {
                     for (i = 0; i < arr.length; i++) {
@@ -190,8 +185,6 @@
 
             // Own properties are enumerated firstly, so to speed up,
             // if last one is own, then all properties are own.
-
-
             for (key in obj) {}
 
             return key === undefined || hasOwnProperty(obj, key);
@@ -229,8 +222,8 @@
             if(!obj || 'object' !== typeof obj) {
                 return obj;
             }
-            var o = obj.constructor === Array ? [] : {};
-            var i;
+            var o = obj.constructor === Array ? [] : {},
+                i;
 
             for(i in obj){
                 if(obj.hasOwnProperty(i)){
@@ -270,13 +263,14 @@
          */
         choice = function(m, n) {
             var array,
-                random;
+                random,
+                tmp;
             if (isArray(m)) {
                 array = m;
                 m = 0;
                 n = array.length;
             }
-            var tmp;
+
             if (m > n) {
                 tmp = m;
                 m = n;
@@ -322,7 +316,7 @@
 
         // oo实现
         Class = function(parent, properties) {
-            if (!isFunction(parent)) {
+            if (!S.isFunction(parent)) {
                 properties = parent;
                 parent = null;
             }
@@ -404,7 +398,6 @@
             return function() {
                 var innerArgs = slice.call(arguments),
                     retArgs = args.concat(innerArgs);
-
                 return fn.apply(null, retArgs);
             };
         },
@@ -517,16 +510,13 @@
         },
         getQueryParam = function(name, url) {
             url = url || location.href;
-            var match = URI_RE.exec(url);
-
-
-            var ret = unparam(match[6]);
+            var match = URI_RE.exec(url),
+                ret = unparam(match[6]);
             if (name) {
                 return ret[name] || '';
             }
             return ret;
         },
-
 
         htmlEntities = {
             '&amp;': '&',
@@ -552,7 +542,6 @@
             escapeReg = new RegExp(str, 'g');
             return escapeReg;
         },
-
         getUnEscapeReg = function() {
             if (unEscapeReg) {
                 return unEscapeReg;
@@ -583,9 +572,13 @@
         }
     })();
 
-    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, i) {
-        class2type["[object " + name + "]"] = name.toLowerCase();
+    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, lc) {
+        class2type["[object " + name + "]"] = (lc =name.toLowerCase());
+        S['is' + name] = function(o) {
+            return type(o) === lc;
+        };
     });
+    S.isArray = Array.isArray || S.isArray;
 
     function hasOwnProperty(o, p) {
         return OP.hasOwnProperty.call(o, p);
@@ -763,7 +756,6 @@
                 }
             };
         },
-        isArray: isArray,
         inArray: inArray,
         type: type,
         each: each,

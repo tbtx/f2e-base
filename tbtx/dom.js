@@ -5,19 +5,13 @@
         ucfirst = S.ucfirst,
         startsWith = S.startsWith,
         singleton = S.singleton,
-        throttle = S.throttle;
+        throttle = S.throttle,
+        isArray = S.isArray,
+        isFunction = S.isFunction;
 
     var doc = document,
         de = doc.documentElement,
         head = doc.head || doc.getElementsByTagName("head")[0] || de;
-
-    function isType(type) {
-        return function(obj) {
-            return {}.toString.call(obj) == "[object " + type + "]";
-        };
-    }
-    var isArray = Array.isArray || isType("Array");
-    var isFunction = isType("Function");
 
     var baseElement = head.getElementsByTagName("base")[0];
     var IS_CSS_RE = /\.css(?:\?|$)/i;
@@ -182,12 +176,10 @@
 
     function loadCss(url, callback, charset) {
         url = normalizeUrl(url);
-
         return request(url, callback, charset);
     }
 
     function loadScript(url, callback, charset) {
-
         // url传入数组，按照数组中脚本的顺序进行加载
         if (isArray(url)) {
             var chain,
@@ -239,7 +231,6 @@
         pathArray.splice(pathArray.length - deep, deep);  // delete base js tbtx.js
         S.staticUrl = pathArray.join("/");
     }
-
     // end request
 
     // jQuery singleton instances
@@ -336,26 +327,26 @@
             return contains(de, element);
         },
 
-        // 距离top多少px才算inView
+        // 距离topline多少px才算inView
         // 元素是否出现在视口内
         // 超出也不在view
         isInView = function(selector, top) {
             top = top || 0;
 
-            var $element = $(selector);
+            var $element = $(selector),
+                viewportHeight = S.viewportHeight(),
+                scrollY = S.scrollY();
 
-            var portHeight = viewportHeight(),
-                elementHeight = $element.innerHeight();
-
-            if (top == "center") {
-                top = (portHeight - elementHeight)/2;
+            if (top == "center" || typeof top !== "number") {
+                top = (viewportHeight - $element.innerHeight())/2;
             }
 
-            var offset = $element.offset(),
-                base = portHeight + scrollY(), // 视口底端所在top
-                pos = offset.top + top;         // 元素所在top
+            // 视口上下位置
+            var topLine = scrollY,
+                bottomLine = topLine + viewportHeight,
+                baseline = $element.offset().top + top;
 
-            if ( (base > pos) && (base < pos + elementHeight + portHeight)) {
+            if (baseline > topLine && baseline < bottomLine) {
                 return true;
             } else {
                 return false;
@@ -363,12 +354,19 @@
         },
 
         scrollTo = function(selector) {
-            var $target = $(selector);
-            var offsetTop = $target.offset().top;
+            var top;
+            if (typeof selector == "number") {
+                top = selector;
+            } else {
+                var $target = $(selector),
+                    offsetTop = $target.offset().top;
+
+                top = offsetTop - (viewportHeight() - $target.innerHeight())/2;
+            }
 
             $('body,html').animate({
-                scrollTop: offsetTop - (viewportHeight() - $target.innerHeight())/2
-            });
+                scrollTop: top
+            }, 800);
         },
 
         // 针对absolute or fixed
@@ -457,9 +455,7 @@
                 $listener = $flyer.length ? $flyer : $container;
 
             $listener.on('click', function(){
-                $('body,html').animate({
-                    scrollTop: 0
-                }, 800);
+                scrollTo(0);
                 return false;
             });
         },

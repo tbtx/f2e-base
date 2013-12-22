@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-21 4:58:46
+ * 2013-12-22 3:06:28
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -24,7 +24,6 @@
             if (global['console'] !== undefined && console.log) {
                 console[cat && console[cat] ? cat : 'log'](msg);
             }
-
             return this;
         },
 
@@ -60,13 +59,11 @@
          * @param  {any} value 存放值
          */
         data: function() {
-            var self = this;
-            return self._data.data.apply(self._data, arguments);
+            return this._data.data.apply(this._data, arguments);
         },
 
         removeData: function() {
-            var self = this;
-            return self._data.removeData.apply(self._data, arguments);
+            return this._data.removeData.apply(this._data, arguments);
         },
 
         /**
@@ -152,10 +149,6 @@
             return type(val) === 'string';
         },
 
-        isFunction = function(val) {
-            return type(val) === 'function';
-        },
-
         isNotEmptyString = function(val) {
             return isString(val) && val !== '';
         },
@@ -173,9 +166,8 @@
          */
         indexOf = AP.indexOf ?
             function(arr, item) {
-                return arr.indexOf(item);
-        } :
-            function(arr, item) {
+                    return arr.indexOf(item);
+            } : function(arr, item) {
                 var i;
                 if (isString(arr)) {
                     for (i = 0; i < arr.length; i++) {
@@ -278,8 +270,6 @@
 
             // Own properties are enumerated firstly, so to speed up,
             // if last one is own, then all properties are own.
-
-
             for (key in obj) {}
 
             return key === undefined || hasOwnProperty(obj, key);
@@ -317,8 +307,8 @@
             if(!obj || 'object' !== typeof obj) {
                 return obj;
             }
-            var o = obj.constructor === Array ? [] : {};
-            var i;
+            var o = obj.constructor === Array ? [] : {},
+                i;
 
             for(i in obj){
                 if(obj.hasOwnProperty(i)){
@@ -358,13 +348,14 @@
          */
         choice = function(m, n) {
             var array,
-                random;
+                random,
+                tmp;
             if (isArray(m)) {
                 array = m;
                 m = 0;
                 n = array.length;
             }
-            var tmp;
+
             if (m > n) {
                 tmp = m;
                 m = n;
@@ -410,7 +401,7 @@
 
         // oo实现
         Class = function(parent, properties) {
-            if (!isFunction(parent)) {
+            if (!S.isFunction(parent)) {
                 properties = parent;
                 parent = null;
             }
@@ -492,7 +483,6 @@
             return function() {
                 var innerArgs = slice.call(arguments),
                     retArgs = args.concat(innerArgs);
-
                 return fn.apply(null, retArgs);
             };
         },
@@ -605,16 +595,13 @@
         },
         getQueryParam = function(name, url) {
             url = url || location.href;
-            var match = URI_RE.exec(url);
-
-
-            var ret = unparam(match[6]);
+            var match = URI_RE.exec(url),
+                ret = unparam(match[6]);
             if (name) {
                 return ret[name] || '';
             }
             return ret;
         },
-
 
         htmlEntities = {
             '&amp;': '&',
@@ -640,7 +627,6 @@
             escapeReg = new RegExp(str, 'g');
             return escapeReg;
         },
-
         getUnEscapeReg = function() {
             if (unEscapeReg) {
                 return unEscapeReg;
@@ -671,9 +657,13 @@
         }
     })();
 
-    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, i) {
-        class2type["[object " + name + "]"] = name.toLowerCase();
+    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, lc) {
+        class2type["[object " + name + "]"] = (lc =name.toLowerCase());
+        S['is' + name] = function(o) {
+            return type(o) === lc;
+        };
     });
+    S.isArray = Array.isArray || S.isArray;
 
     function hasOwnProperty(o, p) {
         return OP.hasOwnProperty.call(o, p);
@@ -851,7 +841,6 @@
                 }
             };
         },
-        isArray: isArray,
         inArray: inArray,
         type: type,
         each: each,
@@ -2496,7 +2485,6 @@
     detector = parse(userAgent + " " + appVersion + " " + vendor);
     detector.parse = parse;
 
-
     // exports add
     function mixTo(r, s) {
         var p;
@@ -2506,7 +2494,6 @@
             }
         }
     }
-
     var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/g;
     var decideMobile = function(ua) {
         var match = mobilePattern.exec(ua);
@@ -2731,19 +2718,13 @@
         ucfirst = S.ucfirst,
         startsWith = S.startsWith,
         singleton = S.singleton,
-        throttle = S.throttle;
+        throttle = S.throttle,
+        isArray = S.isArray,
+        isFunction = S.isFunction;
 
     var doc = document,
         de = doc.documentElement,
         head = doc.head || doc.getElementsByTagName("head")[0] || de;
-
-    function isType(type) {
-        return function(obj) {
-            return {}.toString.call(obj) == "[object " + type + "]";
-        };
-    }
-    var isArray = Array.isArray || isType("Array");
-    var isFunction = isType("Function");
 
     var baseElement = head.getElementsByTagName("base")[0];
     var IS_CSS_RE = /\.css(?:\?|$)/i;
@@ -2908,12 +2889,10 @@
 
     function loadCss(url, callback, charset) {
         url = normalizeUrl(url);
-
         return request(url, callback, charset);
     }
 
     function loadScript(url, callback, charset) {
-
         // url传入数组，按照数组中脚本的顺序进行加载
         if (isArray(url)) {
             var chain,
@@ -2965,7 +2944,6 @@
         pathArray.splice(pathArray.length - deep, deep);  // delete base js tbtx.js
         S.staticUrl = pathArray.join("/");
     }
-
     // end request
 
     // jQuery singleton instances
@@ -3062,26 +3040,26 @@
             return contains(de, element);
         },
 
-        // 距离top多少px才算inView
+        // 距离topline多少px才算inView
         // 元素是否出现在视口内
         // 超出也不在view
         isInView = function(selector, top) {
             top = top || 0;
 
-            var $element = $(selector);
+            var $element = $(selector),
+                viewportHeight = S.viewportHeight(),
+                scrollY = S.scrollY();
 
-            var portHeight = viewportHeight(),
-                elementHeight = $element.innerHeight();
-
-            if (top == "center") {
-                top = (portHeight - elementHeight)/2;
+            if (top == "center" || typeof top !== "number") {
+                top = (viewportHeight - $element.innerHeight())/2;
             }
 
-            var offset = $element.offset(),
-                base = portHeight + scrollY(), // 视口底端所在top
-                pos = offset.top + top;         // 元素所在top
+            // 视口上下位置
+            var topLine = scrollY,
+                bottomLine = topLine + viewportHeight,
+                baseline = $element.offset().top + top;
 
-            if ( (base > pos) && (base < pos + elementHeight + portHeight)) {
+            if (baseline > topLine && baseline < bottomLine) {
                 return true;
             } else {
                 return false;
@@ -3089,12 +3067,19 @@
         },
 
         scrollTo = function(selector) {
-            var $target = $(selector);
-            var offsetTop = $target.offset().top;
+            var top;
+            if (typeof selector == "number") {
+                top = selector;
+            } else {
+                var $target = $(selector),
+                    offsetTop = $target.offset().top;
+
+                top = offsetTop - (viewportHeight() - $target.innerHeight())/2;
+            }
 
             $('body,html').animate({
-                scrollTop: offsetTop - (viewportHeight() - $target.innerHeight())/2
-            });
+                scrollTop: top
+            }, 800);
         },
 
         // 针对absolute or fixed
@@ -3183,9 +3168,7 @@
                 $listener = $flyer.length ? $flyer : $container;
 
             $listener.on('click', function(){
-                $('body,html').animate({
-                    scrollTop: 0
-                }, 800);
+                scrollTo(0);
                 return false;
             });
         },

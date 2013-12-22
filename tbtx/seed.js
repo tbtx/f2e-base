@@ -18,7 +18,6 @@
             if (global['console'] !== undefined && console.log) {
                 console[cat && console[cat] ? cat : 'log'](msg);
             }
-
             return this;
         },
 
@@ -54,13 +53,11 @@
          * @param  {any} value 存放值
          */
         data: function() {
-            var self = this;
-            return self._data.data.apply(self._data, arguments);
+            return this._data.data.apply(this._data, arguments);
         },
 
         removeData: function() {
-            var self = this;
-            return self._data.removeData.apply(self._data, arguments);
+            return this._data.removeData.apply(this._data, arguments);
         },
 
         /**
