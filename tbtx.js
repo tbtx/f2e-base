@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-22 3:21:30
+ * 2013-12-22 5:18:56
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1870,11 +1870,13 @@
             }
 
             doc.cookie = name + '=' + text;
+            return this;
         },
 
         remove: function(name, domain, path, secure) {
             // 置空，并立刻过期
             this.set(name, '', domain, -1, path, secure);
+            return this;
         }
     };
 
@@ -3023,6 +3025,7 @@
          */
         stopBodyScroll = function() {
             getScroller().css("overflow", "hidden");
+            return this;
         },
         /**
          * 恢复body的滚动条
@@ -3030,6 +3033,7 @@
          */
         resetBodyScroll = function() {
             getScroller().css("overflow", "auto");
+            return this;
         },
 
         contains = $.contains || function(a, b) {
@@ -3059,11 +3063,7 @@
                 bottomLine = topLine + viewportHeight,
                 baseline = $element.offset().top + top;
 
-            if (baseline > topLine && baseline < bottomLine) {
-                return true;
-            } else {
-                return false;
-            }
+            return baseline > topLine && baseline < bottomLine;
         },
 
         scrollTo = function(selector) {
@@ -3080,6 +3080,7 @@
             $('body,html').animate({
                 scrollTop: top
             }, 800);
+            return this;
         },
 
         limitLength = function(selector, attr, suffix) {
@@ -3098,6 +3099,7 @@
                 conent = conent.slice(0, max - suffix.length) + suffix;
                 $element.text(conent);
             });
+            return this;
         },
 
         flash = function(selector, flashColor, bgColor) {
@@ -3112,6 +3114,7 @@
                     });
                 });
             });
+            return this;
         },
         // 返回顶部
         flyToTop = function(selector) {
@@ -3138,6 +3141,7 @@
                 scrollTo(0);
                 return false;
             });
+            return this;
         },
 
         initWangWang = function(callback) {
@@ -3148,6 +3152,7 @@
             } else {
                 loadScript(["http://a.tbcdn.cn/s/kissy/1.2.0/kissy-min.js", webww], callback);
             }
+            return this;
         };
 
     setTimeout(function() {
@@ -3411,7 +3416,8 @@
 
 ;(function($, S) {
     var isPending = S.isPending,
-        PATH = S.path;
+        PATH = S.path,
+        TIMEOUT = 10000;
 
     // cookie写入JSToken，服务器端处理后清掉，如果url的token跟cookie的不对应则
     // 参数非法，防止重复提交
@@ -3434,14 +3440,14 @@
             url: isTemp ?  PATH.getlogininfo : PATH.getuserinfo,
             dataType: 'json',
             data: {},
-            timeout: 5000
-        }).done(function(json) {
-            var data = json.result && json.result.data,
-                code = json.code;
+            timeout: TIMEOUT
+        }).done(function(response) {
+            var data = response.result && response.result.data,
+                code = response.code;
 
             if (code == 601) {
                 userCheckDeferred.reject();
-            } else if (code == 100 || code == 608 || code == 1000) {
+            } else if (S.inArray([100, 608, 1000], code)) {
                 S.data('user', data);
                 S.data('userName', data.trueName ? data.trueName : data.userNick);
                 userCheckDeferred.resolve(data);
@@ -3478,7 +3484,6 @@
             uid: "1771650130"
         }
     };
-
     var shareToSinaWB = function(selecotr, title, url, pic, site, uid) {
         uid = uid || '';
         site = site || "miiee";
@@ -3502,41 +3507,13 @@
         });
     };
 
-    var addToFavourite = function(title, url) {
-        url = url || document.location.href;
-        title = title || document.title;
-
-        var def = function() {
-            S.MSG.info('按下 ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D 来收藏本页.');
-        };
-
-        try {
-            // Internet Explorer
-            window.external.AddFavorite(url, title);
-        } catch (e) {       // 两个e不要一样
-            try {
-                // Mozilla
-                window.sidebar.addPanel(title, url, "");
-            } catch (ex) {
-                // Opera
-                // 果断无视opera
-                if (typeof(opera) == "object") {
-                    def();
-                    return true;
-                } else {
-                    // Unknown
-                    def();
-                }
-            }
-        }
-    };
-
-    var requireFailCode = -1,
+    var requestFailCode = -1,
         requestMap = {},
         /**
          * 适用于用到jtoken的请求
          */
-        Request = function(url, data) {
+        Request = function(url, data, successCode) {
+            successCode = successCode || Request.successCode || [100];
             data = data || {};
             if (!data.jtoken) {
                 data.jtoken = miieeJSToken();
@@ -3553,24 +3530,23 @@
                 url: url,
                 type: 'post',
                 dataType: 'json',
-                data: data
+                data: data,
+                timeout: TIMEOUT
             })
             .done(function(response) {
                 var code = response && response.code;
-                if (S.inArray(code, Request.successCode)) {
+                if (S.inArray(successCode, code)) {
                     deferred.resolve(response);
                 } else {
                     deferred.reject(code, response);
                 }
             })
             .fail(function() {
-                deferred.reject(requireFailCode);
+                deferred.reject(requestFailCode);
             });
 
             return deferred.promise();
         };
-
-        Request.successCode = [100];
 
     S.mix({
         miieeJSToken: miieeJSToken,
@@ -3598,7 +3574,36 @@
                 return false;
             }
         },
+
         shareToSinaWB: shareToSinaWB,
-        addToFavourite: addToFavourite
+
+        addToFavourite: function(title, url) {
+            url = url || document.location.href;
+            title = title || document.title;
+
+            var def = function() {
+                S.MSG.info('按下 ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D 来收藏本页.');
+            };
+
+            try {
+                // Internet Explorer
+                window.external.AddFavorite(url, title);
+            } catch (e) {       // 两个e不要一样
+                try {
+                    // Mozilla
+                    window.sidebar.addPanel(title, url, "");
+                } catch (ex) {
+                    // Opera
+                    // 果断无视opera
+                    if (typeof(opera) == "object") {
+                        def();
+                        return true;
+                    } else {
+                        // Unknown
+                        def();
+                    }
+                }
+            }
+        }
     });
 })(jQuery, tbtx);

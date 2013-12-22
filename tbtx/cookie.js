@@ -63,11 +63,13 @@
             }
 
             doc.cookie = name + '=' + text;
+            return this;
         },
 
         remove: function(name, domain, path, secure) {
             // 置空，并立刻过期
             this.set(name, '', domain, -1, path, secure);
+            return this;
         }
     };
 

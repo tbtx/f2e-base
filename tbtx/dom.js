@@ -310,6 +310,7 @@
          */
         stopBodyScroll = function() {
             getScroller().css("overflow", "hidden");
+            return this;
         },
         /**
          * 恢复body的滚动条
@@ -317,6 +318,7 @@
          */
         resetBodyScroll = function() {
             getScroller().css("overflow", "auto");
+            return this;
         },
 
         contains = $.contains || function(a, b) {
@@ -346,11 +348,7 @@
                 bottomLine = topLine + viewportHeight,
                 baseline = $element.offset().top + top;
 
-            if (baseline > topLine && baseline < bottomLine) {
-                return true;
-            } else {
-                return false;
-            }
+            return baseline > topLine && baseline < bottomLine;
         },
 
         scrollTo = function(selector) {
@@ -367,6 +365,7 @@
             $('body,html').animate({
                 scrollTop: top
             }, 800);
+            return this;
         },
 
         limitLength = function(selector, attr, suffix) {
@@ -385,6 +384,7 @@
                 conent = conent.slice(0, max - suffix.length) + suffix;
                 $element.text(conent);
             });
+            return this;
         },
 
         flash = function(selector, flashColor, bgColor) {
@@ -399,6 +399,7 @@
                     });
                 });
             });
+            return this;
         },
         // 返回顶部
         flyToTop = function(selector) {
@@ -425,6 +426,7 @@
                 scrollTo(0);
                 return false;
             });
+            return this;
         },
 
         initWangWang = function(callback) {
@@ -435,6 +437,7 @@
             } else {
                 loadScript(["http://a.tbcdn.cn/s/kissy/1.2.0/kissy-min.js", webww], callback);
             }
+            return this;
         };
 
     setTimeout(function() {
