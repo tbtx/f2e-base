@@ -1,6 +1,6 @@
 /*
  * overlay.popup
- * 2013-12-23 9:59:06
+ * 2013-12-23 5:57:50
  */
 (function($, global) {
     var S = global.tbtx,
@@ -45,8 +45,8 @@
 
             // 没指定isMask 并且parentNode不是body
             // 认定为普通遮罩而非全屏
-            if (typeof config.isMask === "undefined" && parentNode !== DEFAULT_PARENT_NODE) {
-                isMask = false;
+            if (typeof config.isMask === "undefined") {
+                isMask = parentNode === DEFAULT_PARENT_NODE ? true : false;
             }
 
             var defaults;

@@ -31,11 +31,13 @@
             "validate": "base/js/plugin/jquery.validate.min",
             "imagesloaded": "base/js/plugin/imagesloaded.min",
             "lazyload": "base/js/plugin/jquery.lazyload",
-
+            // gallery
             "swfobject": "base/js/plugin/swfobject",
             "handlebars": "miiee/js/handlebars",
             "Tween": "miiee/js/order/TweenMax.min",
             "moment": "miiee/js/moment.min",
+            "es5-shim": "base/js/gallery/es5-shim.min",
+            "store": "base/js/gallery/store.min",
 
             // kissy的require与requirejs有冲突，
             // 这两个不能使用requirejs加载

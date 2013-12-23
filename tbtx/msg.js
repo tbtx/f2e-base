@@ -93,9 +93,14 @@
     });
 
     var pin = function($element) {
-        $element.css({
-            position: "absolute",
-            bottom: 24 - S.scrollY()
+        S.pin({
+            element: $element,
+            x: 0,
+            y: "100%+24"
+        }, {
+            element: S.VIEWPORT,
+            x: 0,
+            y: "100%"
         });
     };
     var getWidget = singleton(function() {
@@ -106,7 +111,7 @@
 
         if (isIE6) {
             pin(widget.element);
-            S.getWindow().on("scroll resize", function() {
+            S.on("window.scroll window.resize", function() {
                 if (widget.get("items").length) {
                     pin(widget.element);
                 }

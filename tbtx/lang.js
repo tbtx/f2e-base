@@ -779,6 +779,24 @@
         indexOf: indexOf,
         filter: filter,
         map: map,
+
+        unique: function(arr) {
+            var ret = [],
+                i,
+                hash = {};
+
+            for (i = 0; i < arr.length; i++) {
+                var item = arr[i];
+                var key = typeof(item) + item;
+                if (hash[key] !== 1) {
+                    ret.push(item);
+                    hash[key] = 1;
+                }
+            }
+
+            return ret;
+        },
+
         keys: keys,
         makeArray: makeArray,
         deepCopy: deepCopy,
