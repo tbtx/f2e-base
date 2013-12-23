@@ -1,5 +1,5 @@
-(function(tbtx) {
-    var exports = tbtx.namespace("Attrs");
+(function(S) {
+    var exports = S.namespace("Attrs");
     // set/get/initAttrs
     // change 手动触发change事件
     // set会触发 change:attrName 事件

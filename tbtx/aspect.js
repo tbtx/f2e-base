@@ -1,5 +1,5 @@
-(function(tbtx) {
-    var exports = tbtx.namespace("Aspect");
+(function(S) {
+    var exports = S.namespace("Aspect");
 
     exports.before = function(methodName, callback, context) {
         return weave.call(this, "before", methodName, callback, context);

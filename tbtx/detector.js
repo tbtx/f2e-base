@@ -463,7 +463,6 @@
     detector = parse(userAgent + " " + appVersion + " " + vendor);
     detector.parse = parse;
 
-
     // exports add
     function mixTo(r, s) {
         var p;
@@ -473,7 +472,6 @@
             }
         }
     }
-
     var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/g;
     var decideMobile = function(ua) {
         var match = mobilePattern.exec(ua);

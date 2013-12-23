@@ -1,9 +1,10 @@
 (function($, global) {
-    var tbtx = global.tbtx,
-        Class = tbtx.Class,
-        Widget = tbtx.Widget,
-        Overlay = tbtx.Overlay,
-        isInDocument = tbtx.isInDocument,
+    var S = global.tbtx,
+        Class = S.Class,
+        Widget = S.Widget,
+        Overlay = S.Overlay,
+        isInDocument = S.isInDocument,
+        VIEWPORT = S.VIEWPORT,
         DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE;
 
     var ua = (window.navigator.userAgent || "").toLowerCase(),
@@ -57,7 +58,7 @@
             }
 
             if (config.align) {
-                config.align.baseElement = config.parentNode || tbtx.VIEWPORT;
+                config.align.baseElement = config.parentNode || VIEWPORT;
             }
 
             Popup.superclass.init.call(this, config);
@@ -159,9 +160,9 @@
             // 定位的base是VIEWPORT
             var parentNode = this.get("parentNode");
             if (parentNode === DEFAULT_PARENT_NODE) {
-                parentNode = tbtx.VIEWPORT;
+                parentNode = VIEWPORT;
             }
-            tbtx.center(this.element, parentNode);
+            S.center(this.element, parentNode);
         },
 
         destroy: function() {
@@ -176,5 +177,5 @@
         return $(this).data('tbtx.pop') || new Popup(this, config);
     };
 
-    tbtx.Popup = Popup;
+    S.Popup = Popup;
 })(jQuery, this);

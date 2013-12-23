@@ -1,11 +1,13 @@
-(function($, tbtx) {
-    var isPending = tbtx.isPending;
+(function($, S) {
+    var isPending = S.isPending,
+        PATH = S.path,
+        TIMEOUT = 10000;
 
     // cookie写入JSToken，服务器端处理后清掉，如果url的token跟cookie的不对应则
     // 参数非法，防止重复提交
     var miieeJSToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
-        tbtx.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
+        S.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
         return token;
     };
 
@@ -19,19 +21,19 @@
         userCheckDeferred = $.Deferred();
         $.ajax({
             type: "POST",
-            url: isTemp ?  tbtx.path.getlogininfo : tbtx.path.getuserinfo,
+            url: isTemp ?  PATH.getlogininfo : PATH.getuserinfo,
             dataType: 'json',
             data: {},
-            timeout: 5000
-        }).done(function(json) {
-            var data = json.result && json.result.data,
-                code = json.code;
+            timeout: TIMEOUT
+        }).done(function(response) {
+            var data = response.result && response.result.data,
+                code = response.code;
 
             if (code == 601) {
                 userCheckDeferred.reject();
-            } else if (code == 100 || code == 608 || code == 1000) {
-                tbtx.data('user', data);
-                tbtx.data('userName', data.trueName ? data.trueName : data.userNick);
+            } else if (S.inArray([100, 608, 1000], code)) {
+                S.data('user', data);
+                S.data('userName', data.trueName ? data.trueName : data.userNick);
                 userCheckDeferred.resolve(data);
             }
         }).fail(function() {
@@ -41,7 +43,7 @@
         userCheckDeferred.done(callSuccess).fail(callFailed).fail(function() {
             // J-login 链接改为登陆
             $('.J-login').attr({
-                href: tbtx.path.login,
+                href: PATH.login,
                 target: "_self"
             });
         });
@@ -66,7 +68,6 @@
             uid: "1771650130"
         }
     };
-
     var shareToSinaWB = function(selecotr, title, url, pic, site, uid) {
         uid = uid || '';
         site = site || "miiee";
@@ -90,40 +91,13 @@
         });
     };
 
-    var addToFavourite = function(title, url) {
-        url = url || document.location.href;
-        title = title || document.title;
-
-        var def = function() {
-            tbtx.MSG.info('按下 ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D 来收藏本页.');
-        };
-
-        try {
-            // Internet Explorer
-            window.external.AddFavorite(url, title);
-        } catch (e) {       // 两个e不要一样
-            try {
-                // Mozilla
-                window.sidebar.addPanel(title, url, "");
-            } catch (ex) {
-                // Opera
-                // 果断无视opera
-                if (typeof(opera) == "object") {
-                    def();
-                    return true;
-                } else {
-                    // Unknown
-                    def();
-                }
-            }
-        }
-    };
-
-    var requireFailCode = -1,
-        successCode = 100,
+    var requestFailCode = -1,
         requestMap = {},
-
-        Request = function(url, data) {
+        /**
+         * 适用于用到jtoken的请求
+         */
+        Request = function(url, data, successCode) {
+            successCode = successCode || Request.successCode || [100];
             data = data || {};
             if (!data.jtoken) {
                 data.jtoken = miieeJSToken();
@@ -140,29 +114,80 @@
                 url: url,
                 type: 'post',
                 dataType: 'json',
-                data: data
+                data: data,
+                timeout: TIMEOUT
             })
             .done(function(response) {
                 var code = response && response.code;
-                if (code == successCode) {
+                if (S.inArray(successCode, code)) {
                     deferred.resolve(response);
                 } else {
                     deferred.reject(code, response);
                 }
             })
             .fail(function() {
-                deferred.reject(requireFailCode);
+                deferred.reject(requestFailCode);
             });
 
             return deferred.promise();
         };
 
-    tbtx.mix({
+    S.mix({
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
         Request: Request,
 
+        /**
+         * 概率选中, 用于概率执行某操作
+         * 从1开始记
+         * 如70%的概率则为 bingoRange 70, range 100 or 7-10
+         * @param  {number} bingoRange 选中的范围
+         * @param  {number} range      总范围
+         * @return {boolean}           是否中
+         */
+        bingo: function(bingoRange, range) {
+            if (bingoRange > range) {
+                return false;
+            }
+            range = range || 100;
+
+            var seed = S.choice(1, range + 1);
+            if (seed <= bingoRange) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+
         shareToSinaWB: shareToSinaWB,
-        addToFavourite: addToFavourite
+
+        addToFavourite: function(title, url) {
+            url = url || document.location.href;
+            title = title || document.title;
+
+            var def = function() {
+                S.MSG.info('按下 ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D 来收藏本页.');
+            };
+
+            try {
+                // Internet Explorer
+                window.external.AddFavorite(url, title);
+            } catch (e) {       // 两个e不要一样
+                try {
+                    // Mozilla
+                    window.sidebar.addPanel(title, url, "");
+                } catch (ex) {
+                    // Opera
+                    // 果断无视opera
+                    if (typeof(opera) == "object") {
+                        def();
+                        return true;
+                    } else {
+                        // Unknown
+                        def();
+                    }
+                }
+            }
+        }
     });
 })(jQuery, tbtx);

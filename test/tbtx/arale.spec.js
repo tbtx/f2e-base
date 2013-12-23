@@ -45,10 +45,6 @@ describe('Base and Widget', function() {
                     "click .test": "test"
                 }
             });
-            w.test = function() {
-                tbtx.log("test");
-            };
-            w.render();
 
             tbtx.log(w);
         });

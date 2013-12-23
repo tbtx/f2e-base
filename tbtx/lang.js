@@ -1,6 +1,7 @@
-(function(global, exports, undefined) {
+(function(global, S, undefined) {
     // 语言扩展
     // 不依赖jQuery
+    // 内部使用S，简化tbtx
 
     var AP = Array.prototype,
         forEach = AP.forEach,
@@ -63,10 +64,6 @@
             return type(val) === 'string';
         },
 
-        isFunction = function(val) {
-            return type(val) === 'function';
-        },
-
         isNotEmptyString = function(val) {
             return isString(val) && val !== '';
         },
@@ -84,9 +81,8 @@
          */
         indexOf = AP.indexOf ?
             function(arr, item) {
-                return arr.indexOf(item);
-        } :
-            function(arr, item) {
+                    return arr.indexOf(item);
+            } : function(arr, item) {
                 var i;
                 if (isString(arr)) {
                     for (i = 0; i < arr.length; i++) {
@@ -189,8 +185,6 @@
 
             // Own properties are enumerated firstly, so to speed up,
             // if last one is own, then all properties are own.
-
-
             for (key in obj) {}
 
             return key === undefined || hasOwnProperty(obj, key);
@@ -228,8 +222,8 @@
             if(!obj || 'object' !== typeof obj) {
                 return obj;
             }
-            var o = obj.constructor === Array ? [] : {};
-            var i;
+            var o = obj.constructor === Array ? [] : {},
+                i;
 
             for(i in obj){
                 if(obj.hasOwnProperty(i)){
@@ -269,13 +263,14 @@
          */
         choice = function(m, n) {
             var array,
-                random;
+                random,
+                tmp;
             if (isArray(m)) {
                 array = m;
                 m = 0;
                 n = array.length;
             }
-            var tmp;
+
             if (m > n) {
                 tmp = m;
                 m = n;
@@ -321,7 +316,7 @@
 
         // oo实现
         Class = function(parent, properties) {
-            if (!isFunction(parent)) {
+            if (!S.isFunction(parent)) {
                 properties = parent;
                 parent = null;
             }
@@ -403,7 +398,6 @@
             return function() {
                 var innerArgs = slice.call(arguments),
                     retArgs = args.concat(innerArgs);
-
                 return fn.apply(null, retArgs);
             };
         },
@@ -458,7 +452,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        tbtx.log(e + 'decodeURIComponent error : ' + val, 'error');
+                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
                     }
                 }
                 ret[key] = val;
@@ -515,17 +509,20 @@
             return match[7] || "";
         },
         getQueryParam = function(name, url) {
+            if (S.isUri(name)) {
+                url = name;
+                name = "";
+            }
             url = url || location.href;
-            var match = URI_RE.exec(url);
 
+            var match = URI_RE.exec(url),
+                ret = unparam(match[6]);
 
-            var ret = unparam(match[6]);
             if (name) {
                 return ret[name] || '';
             }
             return ret;
         },
-
 
         htmlEntities = {
             '&amp;': '&',
@@ -551,7 +548,6 @@
             escapeReg = new RegExp(str, 'g');
             return escapeReg;
         },
-
         getUnEscapeReg = function() {
             if (unEscapeReg) {
                 return unEscapeReg;
@@ -582,9 +578,13 @@
         }
     })();
 
-    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, i) {
-        class2type["[object " + name + "]"] = name.toLowerCase();
+    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, lc) {
+        class2type["[object " + name + "]"] = (lc =name.toLowerCase());
+        S['is' + name] = function(o) {
+            return type(o) === lc;
+        };
     });
+    S.isArray = Array.isArray || S.isArray;
 
     function hasOwnProperty(o, p) {
         return OP.hasOwnProperty.call(o, p);
@@ -648,7 +648,7 @@
         return cls;
     }
 
-    var mix = exports.mix = function(des, source, blacklist, over) {
+    var mix = S.mix = function(des, source, blacklist, over) {
         var i;
         if (!des || des === source) {
             return des;
@@ -675,8 +675,8 @@
         return des;
     };
 
-    // exports
-    exports.mix({
+    // S
+    S.mix({
         mix: mix,
         classify: classify,
         isNotEmptyString: isNotEmptyString,
@@ -697,7 +697,24 @@
             return FALSE;
         },
 
-        // 单例模式
+        isUri: function(val) {
+            var match;
+            if (isString(val)) {
+                match = URI_RE.exec(val);
+                if (match && match[1]) {
+                    return TRUE;
+                }
+            }
+            return FALSE;
+        },
+
+        /**
+         * 单例模式
+         * return only one instance
+         * @param  {Function} fn      the function to return the instance
+         * @param  {object}   context
+         * @return {Function}
+         */
         singleton: function(fn, context) {
             var result;
             return function() {
@@ -714,7 +731,48 @@
             return str.charAt(0).toLowerCase() + str.substring(1);
         },
 
-        isArray: isArray,
+        /**
+         * [later description]
+         * @param  {Function} fn       要执行的函数
+         * @param  {number}   when     延迟时间
+         * @param  {boolean}   periodic 是否周期执行
+         * @param  {object}   context  context
+         * @param  {Array}   data     传递的参数
+         * @return {object}            timer，cancel and interval
+         */
+        later: function (fn, when, periodic, context, data) {
+            when = when || 0;
+            var m = fn,
+                d = makeArray(data),
+                f,
+                r;
+
+            if (typeof fn === 'string') {
+                m = context[fn];
+            }
+
+            if (!m) {
+                S.error('method undefined');
+            }
+
+            f = function () {
+                m.apply(context, d);
+            };
+
+            r = (periodic) ? setInterval(f, when) : setTimeout(f, when);
+
+            return {
+                id: r,
+                interval: periodic,
+                cancel: function () {
+                    if (this.interval) {
+                        clearInterval(r);
+                    } else {
+                        clearTimeout(r);
+                    }
+                }
+            };
+        },
         inArray: inArray,
         type: type,
         each: each,

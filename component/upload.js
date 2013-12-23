@@ -1,4 +1,4 @@
-+function($, T) {
++function($, S) {
     var iframeCount = 0;
     function Uploader(options) {
         if (!(this instanceof Uploader)) {
@@ -278,7 +278,5 @@
     MultipleUploader.Uploader = Uploader;
 
     // module.exports = MultipleUploader;
-    T.mix(T, {
-        Uploader: MultipleUploader
-    });
+    S.Uploader = MultipleUploader;
 }(jQuery, tbtx);  

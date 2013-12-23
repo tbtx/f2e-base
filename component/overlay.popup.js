@@ -1,18 +1,19 @@
 /*
  * overlay.popup
- * 2013-12-20 4:38:23
+ * 2013-12-23 9:59:06
  */
 (function($, global) {
-    var tbtx = global.tbtx,
-        isInDocument = tbtx.isInDocument,
-        Class = tbtx.Class,
-        Widget = tbtx.Widget,
+    var S = global.tbtx,
+        isInDocument = S.isInDocument,
+        Class = S.Class,
+        Widget = S.Widget,
+        VIEWPORT = S.VIEWPORT,
         DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE,
-        each = tbtx.each;
+        each = S.each;
 
     var ua = (window.navigator.userAgent || "").toLowerCase(), 
         isIE6 = ua.indexOf("msie 6") !== -1,
-        doc = tbtx.getDocument();
+        doc = S.getDocument();
 
     var Overlay = new Class(Widget);
 
@@ -28,7 +29,7 @@
                 // element 的定位点，默认为左上角
                 selfXY: [ 0, 0 ],
                 // 基准定位元素，默认为当前可视区域
-                baseElement: tbtx.VIEWPORT,
+                baseElement: VIEWPORT,
                 // 基准定位元素的定位点，默认为左上角
                 baseXY: [ 0, 0 ]
             },
@@ -46,9 +47,8 @@
             // 认定为普通遮罩而非全屏
             if (typeof config.isMask === "undefined" && parentNode !== DEFAULT_PARENT_NODE) {
                 isMask = false;
-            } else {
-               isMask = true;
             }
+
             var defaults;
 
             if (isMask) {
@@ -73,7 +73,7 @@
                     width: (parentNode !== DEFAULT_PARENT_NODE && !width) ? $(parentNode).innerWidth() : width,
                     height: (parentNode !== DEFAULT_PARENT_NODE && !height) ? $(parentNode).innerHeight() : height,
                     align: {
-                        baseElement: parentNode || tbtx.VIEWPORT
+                        baseElement: parentNode || VIEWPORT
                     },
                     className: "overlay"
                 };
@@ -135,7 +135,7 @@
         },
 
         adjust: function(align) {
-            tbtx.pin({
+            S.pin({
                 element: this.element,
                 x: align.selfXY[0],
                 y: align.selfXY[1]
@@ -183,34 +183,30 @@
         },
         _onRenderColor: function(val) {
             this.element.css("backgroundColor", val);
+        },
+        // 除了 element 和 relativeElements，点击 body 后都会隐藏 element
+        _blurHide: function(arr) {
+            arr = $.makeArray(arr);
+            arr.push(this.element);
+            this._relativeElements = arr;
+            Overlay.blurOverlays.push(this);
         }
     });
 
-    // resize overlay
-    var $window = tbtx.getWindow();
-    var winWidth = $window.width();
-    var winHeight = $window.height();
-    var timeout;
     Overlay.allOverlays = [];
-    $window.on("resize", function() {
-        timeout && clearTimeout(timeout);
-        timeout = setTimeout(function() {
-            var winNewWidth = $window.width();
-            var winNewHeight = $window.height();
-            // IE678 莫名其妙触发 resize
-            // http://stackoverflow.com/questions/1852751/window-resize-event-firing-in-internet-explorer
-            if (winWidth !== winNewWidth || winHeight !== winNewHeight) {
-                each(Overlay.allOverlays, function(item) {
-                    // 当实例为空或隐藏时，不处理
-                    if (!item || !item.get("visible")) {
-                        return;
-                    }
-                    item._setPosition();
-                });
+    Overlay.blurOverlays = [];
+    S.getDocument().on("click", function(e) {
+        hideBlurOverlays(e);
+    });
+    // resize overlay
+    S.on("window.resize", function() {
+        each(Overlay.allOverlays, function(item) {
+            // 当实例为空或隐藏时，不处理
+            if (!item || !item.get("visible")) {
+                return;
             }
-            winWidth = winNewWidth;
-            winHeight = winNewHeight;
-        }, 80);
+            item._setPosition();
+        });
     });
 
     function erase(target, array) {
@@ -221,16 +217,35 @@
             }
         }
     }
-    tbtx.Overlay = Overlay;
+    function hideBlurOverlays(e) {
+        $(Overlay.blurOverlays).each(function(index, item) {
+            // 当实例为空或隐藏时，不处理
+            if (!item || !item.get("visible")) {
+                return;
+            }
+            // 遍历 _relativeElements ，当点击的元素落在这些元素上时，不处理
+            for (var i = 0; i < item._relativeElements.length; i++) {
+                var el = $(item._relativeElements[i])[0];
+                if (el === e.target || $.contains(el, e.target)) {
+                    return;
+                }
+            }
+            // 到这里，判断触发了元素的 blur 事件，隐藏元素
+            item.hide();
+        });
+    }
+
+    S.Overlay = Overlay;
 })(jQuery, this);
 
 
 ;(function($, global) {
-    var tbtx = global.tbtx,
-        Class = tbtx.Class,
-        Widget = tbtx.Widget,
-        Overlay = tbtx.Overlay,
-        isInDocument = tbtx.isInDocument,
+    var S = global.tbtx,
+        Class = S.Class,
+        Widget = S.Widget,
+        Overlay = S.Overlay,
+        isInDocument = S.isInDocument,
+        VIEWPORT = S.VIEWPORT,
         DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE;
 
     var ua = (window.navigator.userAgent || "").toLowerCase(),
@@ -284,7 +299,7 @@
             }
 
             if (config.align) {
-                config.align.baseElement = config.parentNode || tbtx.VIEWPORT;
+                config.align.baseElement = config.parentNode || VIEWPORT;
             }
 
             Popup.superclass.init.call(this, config);
@@ -386,9 +401,9 @@
             // 定位的base是VIEWPORT
             var parentNode = this.get("parentNode");
             if (parentNode === DEFAULT_PARENT_NODE) {
-                parentNode = tbtx.VIEWPORT;
+                parentNode = VIEWPORT;
             }
-            tbtx.center(this.element, parentNode);
+            S.center(this.element, parentNode);
         },
 
         destroy: function() {
@@ -403,5 +418,5 @@
         return $(this).data('tbtx.pop') || new Popup(this, config);
     };
 
-    tbtx.Popup = Popup;
+    S.Popup = Popup;
 })(jQuery, this);

@@ -1,7 +1,7 @@
-(function($, tbtx) {
-    var Class = tbtx.Class,
-        Base = tbtx.Base,
-        Widget = tbtx.Widget;
+(function($, S) {
+    var Class = S.Class,
+        Base = S.Base,
+        Widget = S.Widget;
 
     var module = {
         exports: {}
@@ -943,8 +943,8 @@
         module.exports.Validator = Validator;
     })();
 
-    tbtx.Validator = module.exports.Validator;
-    $.extend(tbtx.Validator, module.exports.Rule, {
+    S.Validator = module.exports.Validator;
+    $.extend(S.Validator, module.exports.Rule, {
         query: function(selector) {
             return Widget.query(selector);
         },

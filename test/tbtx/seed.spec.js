@@ -1,5 +1,5 @@
 describe('seed', function() {
-	window.$ = null;
+
 	describe("log", function() {
 		it("should get the log info if the console.log exists", function(){
 			tbtx.log('tbtx');
@@ -14,11 +14,12 @@ describe('seed', function() {
 		});
 	});
 
-	describe("data", function() {
+	describe("data and removeData", function() {
 		it("should data a value with name", function(){
 			var v = "hello";
 			tbtx.data('msg', v);
 			expect(tbtx.data('msg')).toEqual(v);
+
 		});
 
 		it("should get the value with name", function(){

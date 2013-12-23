@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-20 4:38:23
+ * 2013-12-23 9:59:06
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -24,7 +24,6 @@
             if (global['console'] !== undefined && console.log) {
                 console[cat && console[cat] ? cat : 'log'](msg);
             }
-
             return this;
         },
 
@@ -60,13 +59,11 @@
          * @param  {any} value 存放值
          */
         data: function() {
-            var self = this;
-            return self._data.data.apply(self._data, arguments);
+            return this._data.data.apply(this._data, arguments);
         },
 
         removeData: function() {
-            var self = this;
-            return self._data.removeData.apply(self._data, arguments);
+            return this._data.removeData.apply(this._data, arguments);
         },
 
         /**
@@ -86,9 +83,10 @@
 })(this, 'tbtx');
 
 
-;(function(global, exports, undefined) {
+;(function(global, S, undefined) {
     // 语言扩展
     // 不依赖jQuery
+    // 内部使用S，简化tbtx
 
     var AP = Array.prototype,
         forEach = AP.forEach,
@@ -151,10 +149,6 @@
             return type(val) === 'string';
         },
 
-        isFunction = function(val) {
-            return type(val) === 'function';
-        },
-
         isNotEmptyString = function(val) {
             return isString(val) && val !== '';
         },
@@ -172,9 +166,8 @@
          */
         indexOf = AP.indexOf ?
             function(arr, item) {
-                return arr.indexOf(item);
-        } :
-            function(arr, item) {
+                    return arr.indexOf(item);
+            } : function(arr, item) {
                 var i;
                 if (isString(arr)) {
                     for (i = 0; i < arr.length; i++) {
@@ -277,8 +270,6 @@
 
             // Own properties are enumerated firstly, so to speed up,
             // if last one is own, then all properties are own.
-
-
             for (key in obj) {}
 
             return key === undefined || hasOwnProperty(obj, key);
@@ -316,8 +307,8 @@
             if(!obj || 'object' !== typeof obj) {
                 return obj;
             }
-            var o = obj.constructor === Array ? [] : {};
-            var i;
+            var o = obj.constructor === Array ? [] : {},
+                i;
 
             for(i in obj){
                 if(obj.hasOwnProperty(i)){
@@ -357,13 +348,14 @@
          */
         choice = function(m, n) {
             var array,
-                random;
+                random,
+                tmp;
             if (isArray(m)) {
                 array = m;
                 m = 0;
                 n = array.length;
             }
-            var tmp;
+
             if (m > n) {
                 tmp = m;
                 m = n;
@@ -409,7 +401,7 @@
 
         // oo实现
         Class = function(parent, properties) {
-            if (!isFunction(parent)) {
+            if (!S.isFunction(parent)) {
                 properties = parent;
                 parent = null;
             }
@@ -491,7 +483,6 @@
             return function() {
                 var innerArgs = slice.call(arguments),
                     retArgs = args.concat(innerArgs);
-
                 return fn.apply(null, retArgs);
             };
         },
@@ -546,7 +537,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        tbtx.log(e + 'decodeURIComponent error : ' + val, 'error');
+                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
                     }
                 }
                 ret[key] = val;
@@ -603,17 +594,20 @@
             return match[7] || "";
         },
         getQueryParam = function(name, url) {
+            if (S.isUri(name)) {
+                url = name;
+                name = "";
+            }
             url = url || location.href;
-            var match = URI_RE.exec(url);
 
+            var match = URI_RE.exec(url),
+                ret = unparam(match[6]);
 
-            var ret = unparam(match[6]);
             if (name) {
                 return ret[name] || '';
             }
             return ret;
         },
-
 
         htmlEntities = {
             '&amp;': '&',
@@ -639,7 +633,6 @@
             escapeReg = new RegExp(str, 'g');
             return escapeReg;
         },
-
         getUnEscapeReg = function() {
             if (unEscapeReg) {
                 return unEscapeReg;
@@ -670,9 +663,13 @@
         }
     })();
 
-    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, i) {
-        class2type["[object " + name + "]"] = name.toLowerCase();
+    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, lc) {
+        class2type["[object " + name + "]"] = (lc =name.toLowerCase());
+        S['is' + name] = function(o) {
+            return type(o) === lc;
+        };
     });
+    S.isArray = Array.isArray || S.isArray;
 
     function hasOwnProperty(o, p) {
         return OP.hasOwnProperty.call(o, p);
@@ -736,7 +733,7 @@
         return cls;
     }
 
-    var mix = exports.mix = function(des, source, blacklist, over) {
+    var mix = S.mix = function(des, source, blacklist, over) {
         var i;
         if (!des || des === source) {
             return des;
@@ -763,8 +760,8 @@
         return des;
     };
 
-    // exports
-    exports.mix({
+    // S
+    S.mix({
         mix: mix,
         classify: classify,
         isNotEmptyString: isNotEmptyString,
@@ -785,7 +782,24 @@
             return FALSE;
         },
 
-        // 单例模式
+        isUri: function(val) {
+            var match;
+            if (isString(val)) {
+                match = URI_RE.exec(val);
+                if (match && match[1]) {
+                    return TRUE;
+                }
+            }
+            return FALSE;
+        },
+
+        /**
+         * 单例模式
+         * return only one instance
+         * @param  {Function} fn      the function to return the instance
+         * @param  {object}   context
+         * @return {Function}
+         */
         singleton: function(fn, context) {
             var result;
             return function() {
@@ -802,7 +816,48 @@
             return str.charAt(0).toLowerCase() + str.substring(1);
         },
 
-        isArray: isArray,
+        /**
+         * [later description]
+         * @param  {Function} fn       要执行的函数
+         * @param  {number}   when     延迟时间
+         * @param  {boolean}   periodic 是否周期执行
+         * @param  {object}   context  context
+         * @param  {Array}   data     传递的参数
+         * @return {object}            timer，cancel and interval
+         */
+        later: function (fn, when, periodic, context, data) {
+            when = when || 0;
+            var m = fn,
+                d = makeArray(data),
+                f,
+                r;
+
+            if (typeof fn === 'string') {
+                m = context[fn];
+            }
+
+            if (!m) {
+                S.error('method undefined');
+            }
+
+            f = function () {
+                m.apply(context, d);
+            };
+
+            r = (periodic) ? setInterval(f, when) : setTimeout(f, when);
+
+            return {
+                id: r,
+                interval: periodic,
+                cancel: function () {
+                    if (this.interval) {
+                        clearInterval(r);
+                    } else {
+                        clearTimeout(r);
+                    }
+                }
+            };
+        },
         inArray: inArray,
         type: type,
         each: each,
@@ -959,8 +1014,8 @@
     Events.mixTo(exports);
 })(tbtx);
 
-;(function(tbtx) {
-    var exports = tbtx.namespace("Aspect");
+;(function(S) {
+    var exports = S.namespace("Aspect");
 
     exports.before = function(methodName, callback, context) {
         return weave.call(this, "before", methodName, callback, context);
@@ -1007,8 +1062,8 @@
     }
 })(tbtx);
 
-;(function(tbtx) {
-    var exports = tbtx.namespace("Attrs");
+;(function(S) {
+    var exports = S.namespace("Attrs");
     // set/get/initAttrs
     // change 手动触发change事件
     // set会触发 change:attrName 事件
@@ -1380,13 +1435,11 @@
     }
 })(tbtx);
 
-;(function($, tbtx) {
-    var exports = tbtx;
-
-    var Class = tbtx.Class,
-        Events = tbtx.Events,
-        Aspect = tbtx.Aspect,
-        Attrs = tbtx.Attrs;
+;(function($, S) {
+    var Class = S.Class,
+        Events = S.Events,
+        Aspect = S.Aspect,
+        Attrs = S.Attrs;
 
     // Base
     // _onChange属性名 会自动监听attr变化
@@ -1765,8 +1818,8 @@
         return o == null || o === undefined;
     }
 
-    exports.Base = Base;
-    exports.Widget = Widget;
+    S.Base = Base;
+    S.Widget = Widget;
 })(jQuery, tbtx);
 
 ;(function(exports) {
@@ -1834,11 +1887,13 @@
             }
 
             doc.cookie = name + '=' + text;
+            return this;
         },
 
         remove: function(name, domain, path, secure) {
             // 置空，并立刻过期
             this.set(name, '', domain, -1, path, secure);
+            return this;
         }
     };
 
@@ -2449,7 +2504,6 @@
     detector = parse(userAgent + " " + appVersion + " " + vendor);
     detector.parse = parse;
 
-
     // exports add
     function mixTo(r, s) {
         var p;
@@ -2459,7 +2513,6 @@
             }
         }
     }
-
     var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/g;
     var decideMobile = function(ua) {
         var match = mobilePattern.exec(ua);
@@ -2677,27 +2730,20 @@
     }
 })(jQuery, tbtx);
 
-;(function(global, $, tbtx) {
-    var noop = tbtx.noop,
-        each = tbtx.each,
-        map = tbtx.map,
-        ucfirst = tbtx.ucfirst,
-        startsWith = tbtx.startsWith,
-        singleton = tbtx.singleton,
-        throttle = tbtx.throttle,
-        exports = tbtx;
+;(function(global, $, S) {
+    var noop = S.noop,
+        each = S.each,
+        map = S.map,
+        ucfirst = S.ucfirst,
+        startsWith = S.startsWith,
+        singleton = S.singleton,
+        throttle = S.throttle,
+        isArray = S.isArray,
+        isFunction = S.isFunction;
 
     var doc = document,
         de = doc.documentElement,
         head = doc.head || doc.getElementsByTagName("head")[0] || de;
-
-    function isType(type) {
-        return function(obj) {
-            return {}.toString.call(obj) == "[object " + type + "]";
-        };
-    }
-    var isArray = Array.isArray || isType("Array");
-    var isFunction = isType("Function");
 
     var baseElement = head.getElementsByTagName("base")[0];
     var IS_CSS_RE = /\.css(?:\?|$)/i;
@@ -2855,19 +2901,17 @@
      */
     function normalizeUrl(url) {
         if (!SCHEME_RE.test(url)) {
-            url = tbtx.staticUrl + "/" + url;
+            url = S.staticUrl + "/" + url;
         }
         return url;
     }
 
     function loadCss(url, callback, charset) {
         url = normalizeUrl(url);
-
         return request(url, callback, charset);
     }
 
     function loadScript(url, callback, charset) {
-
         // url传入数组，按照数组中脚本的顺序进行加载
         if (isArray(url)) {
             var chain,
@@ -2912,16 +2956,13 @@
     // file:///E:/tbcdn or cdn(如a.tbcdn.cn/apps/tbtx)
     // 使用tbtx所在script获取到staticUrl
     // 除非脚本名不是tbtx.js or tbtx.min.js，使用默认的staticUrl
-    setTimeout(function() {
-        var loaderSrc = getLoaderSrc();
-        if (loaderSrc) {
-            var pathArray = loaderSrc.split('/'),
-                deep = 3;
-            pathArray.splice(pathArray.length - deep, deep);  // delete base js tbtx.js
-            tbtx.staticUrl = pathArray.join("/");
-        }
-    }, 0);
-
+    var loaderSrc = getLoaderSrc();
+    if (loaderSrc) {
+        var pathArray = loaderSrc.split('/'),
+            deep = 3;
+        pathArray.splice(pathArray.length - deep, deep);  // delete base js tbtx.js
+        S.staticUrl = pathArray.join("/");
+    }
     // end request
 
     // jQuery singleton instances
@@ -2940,11 +2981,11 @@
         }]
     ];
     each($instances, function(instance) {
-        exports["get" + ucfirst(instance[0])] = singleton(instance[1]);
+        S["get" + ucfirst(instance[0])] = singleton(instance[1]);
     });
 
-    var getDocument = exports.getDocument,
-        getWindow = exports.getWindow,
+    var getDocument = S.getDocument,
+        getWindow = S.getWindow,
 
         pageHeight = function() {
             return getDocument().height();
@@ -3001,6 +3042,7 @@
          */
         stopBodyScroll = function() {
             getScroller().css("overflow", "hidden");
+            return this;
         },
         /**
          * 恢复body的滚动条
@@ -3008,6 +3050,7 @@
          */
         resetBodyScroll = function() {
             getScroller().css("overflow", "auto");
+            return this;
         },
 
         contains = $.contains || function(a, b) {
@@ -3018,72 +3061,43 @@
             return contains(de, element);
         },
 
-        // 距离top多少px才算inView
+        // 距离topline多少px才算inView
         // 元素是否出现在视口内
         // 超出也不在view
         isInView = function(selector, top) {
             top = top || 0;
 
-            var $element = $(selector);
+            var $element = $(selector),
+                viewportHeight = S.viewportHeight(),
+                scrollY = S.scrollY();
 
-            var portHeight = viewportHeight(),
-                elementHeight = $element.innerHeight();
-
-            if (top == "center") {
-                top = (portHeight - elementHeight)/2;
+            if (top == "center" || typeof top !== "number") {
+                top = (viewportHeight - $element.innerHeight())/2;
             }
 
-            var offset = $element.offset(),
-                base = portHeight + scrollY(), // 视口底端所在top
-                pos = offset.top + top;         // 元素所在top
+            // 视口上下位置
+            var topLine = scrollY,
+                bottomLine = topLine + viewportHeight,
+                baseline = $element.offset().top + top;
 
-            if ( (base > pos) && (base < pos + elementHeight + portHeight)) {
-                return true;
-            } else {
-                return false;
-            }
+            return baseline > topLine && baseline < bottomLine;
         },
 
         scrollTo = function(selector) {
-            var $target = $(selector);
-            var offsetTop = $target.offset().top;
+            var top;
+            if (typeof selector == "number") {
+                top = selector;
+            } else {
+                var $target = $(selector),
+                    offsetTop = $target.offset().top;
+
+                top = offsetTop - (viewportHeight() - $target.innerHeight())/2;
+            }
 
             $('body,html').animate({
-                scrollTop: offsetTop - (viewportHeight() - $target.innerHeight())/2
-            });
-        },
-
-        // 针对absolute or fixed
-        adjust = function(selector, isAbsolute, top) {
-            var $element = $(selector);
-
-            var h = $element.outerHeight(),
-                w = $element.outerWidth();
-
-            top = typeof top == "number" ? top : "center";
-            if (!isAbsolute) {
-                isAbsolute = false; // 默认fix定位
-            }
-
-            var t;
-            if (top != "center") { // @number
-                t = isAbsolute ? scrollY() + top : top;
-            } else {
-                t = isAbsolute ? scrollY() + ((viewportHeight() - h) / 2) : (viewportHeight() - h) / 2;
-            }
-            if (t < 0) {
-                t = 0;
-            }
-
-            var l = isAbsolute ? scrollX() + ((viewportWidth() - w) / 2) : (viewportWidth() - w) / 2;
-            if (l < 0) {
-                l = 0;
-            }
-
-            $element.css({
-                top: t,
-                left: l
-            });
+                scrollTop: top
+            }, 800);
+            return this;
         },
 
         limitLength = function(selector, attr, suffix) {
@@ -3102,6 +3116,7 @@
                 conent = conent.slice(0, max - suffix.length) + suffix;
                 $element.text(conent);
             });
+            return this;
         },
 
         flash = function(selector, flashColor, bgColor) {
@@ -3116,6 +3131,7 @@
                     });
                 });
             });
+            return this;
         },
         // 返回顶部
         flyToTop = function(selector) {
@@ -3125,19 +3141,13 @@
             var offset = $container.data("offset");
             if (offset) {
                 // fade in #back-top
-                var $window = $(window);
-
-                var checkHandler = function() {
-                    if ($window.scrollTop() > offset) {
+                S.on("window.scroll", function(top) {
+                    if (top > offset) {
                         $container.fadeIn();
                     } else {
                         $container.fadeOut();
                     }
-                };
-
-                $window.scroll(throttle(checkHandler));
-                // 一开始检测一下
-                checkHandler();
+                });
             }
 
             // 默认监听J-fly-to-top, 没找到则监听自身
@@ -3145,24 +3155,55 @@
                 $listener = $flyer.length ? $flyer : $container;
 
             $listener.on('click', function(){
-                $('body,html').animate({
-                    scrollTop: 0
-                }, 800);
+                scrollTo(0);
                 return false;
             });
+            return this;
         },
 
         initWangWang = function(callback) {
-            callback = callback || function() {};
+            callback = callback || noop;
             var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
             if (global.KISSY) {
                 loadScript(webww, callback);
             } else {
                 loadScript(["http://a.tbcdn.cn/s/kissy/1.2.0/kissy-min.js", webww], callback);
             }
+            return this;
         };
 
-    tbtx.mix({
+    setTimeout(function() {
+        var $window = getWindow();
+        var winWidth = $window.width();
+        var winHeight = $window.height();
+        var scrollTop = $window.scrollTop();
+        $window.on("resize", throttle(function() {
+            // 干掉JSHint的检测
+            var winNewWidth = $window.width();
+            var winNewHeight = $window.height();
+            // IE678 莫名其妙触发 resize
+            // http://stackoverflow.com/questions/1852751/window-resize-event-firing-in-internet-explorer
+            if (winWidth !== winNewWidth || winHeight !== winNewHeight) {
+                S.trigger("window.resize", winNewWidth, winNewHeight);
+            }
+            winWidth = winNewWidth;
+            winHeight = winNewHeight;
+        }, 80)).on("scroll", throttle(function() {
+            var scrollNewTop = $window.scrollTop();
+            if (scrollTop !== scrollNewTop) {
+                S.trigger("window.scroll", scrollNewTop, scrollTop);
+                // if (scrollTop > scrollNewTop) {
+                //     S.trigger("window.scroll.up", scrollNewTop, scrollTop);
+                // } else {
+                //     S.trigger("window.scroll.down", scrollNewTop, scrollTop);
+                // }
+            }
+
+            scrollTop = scrollNewTop;
+        }, 80));
+    }, 0);
+
+    S.mix({
         // load
         loadCss: loadCss,
         loadScript: loadScript,
@@ -3184,7 +3225,6 @@
         // support fn
         isInView: isInView,
         scrollTo: scrollTo,
-        adjust: adjust,
         limitLength: limitLength,
         initWangWang: initWangWang,
         flash: flash,
@@ -3193,12 +3233,12 @@
 })(this, jQuery, tbtx);
 
 
-;(function($, tbtx) {
+;(function($, S) {
     var doc = document;
-    var support = tbtx.namespace("support");
+    var support = S.namespace("support");
 
     function transitionEnd() {
-        var el = document.createElement('tbtx');
+        var el = document.createElement('support');
 
         var transEndEventNames = {
             'WebkitTransition': 'webkitTransitionEnd',
@@ -3223,12 +3263,12 @@
 
     // fix placeholder
     $(function() {
-        if (!support.placeholder) {
+        if (!support.placeholder && $("input[placeholder], textarea[placeholder]").length) {
             /*
                 input, textarea { color: #000; }
                 .placeholder { color: #aaa; }
              */
-            tbtx.loadScript("base/js/plugin/jquery.placeholder.js", function() {
+            S.loadScript("base/js/plugin/jquery.placeholder.js", function() {
                 $('input, textarea').placeholder();
             });
         }
@@ -3236,10 +3276,10 @@
 })(jQuery, tbtx);
 
 
-;(function($, tbtx) {
-    var Class = tbtx.Class,
-        Widget = tbtx.Widget,
-        singleton = tbtx.singleton;
+;(function($, S) {
+    var Class = S.Class,
+        Widget = S.Widget,
+        singleton = S.singleton;
 
     var ua = (window.navigator.userAgent || "").toLowerCase(),
         isIE6 = ua.indexOf("msie 6") !== -1;
@@ -3333,18 +3373,18 @@
     var pin = function($element) {
         $element.css({
             position: "absolute",
-            bottom: 24 - tbtx.scrollY()
+            bottom: 24 - S.scrollY()
         });
     };
     var getWidget = singleton(function() {
-        tbtx.loadCss("base/css/msg.css");
+        S.loadCss("base/css/msg.css");
         var widget = new MsgWidget({
             id: "tbtx-msg"
         }).render();
 
         if (isIE6) {
             pin(widget.element);
-            tbtx.getWindow().on("scroll resize", function() {
+            S.getWindow().on("scroll resize", function() {
                 if (widget.get("items").length) {
                     pin(widget.element);
                 }
@@ -3354,17 +3394,19 @@
         return widget;
     });
 
-    var MSG = tbtx.MSG = {};
+    var MSG = S.MSG = {};
     var types = "warning error info debug success".split(" ");
-    tbtx.each(types, function(type) {
-        tbtx[type] = MSG[type] = function(msg) {
+    S.each(types, function(type) {
+        S[type] = MSG[type] = function(msg) {
             getWidget().add(msg, type);
         };
     });
 })(jQuery, tbtx);
 
-;(function(tbtx) {
-    var parseResult = tbtx.parseUrl(location.href);
+;(function(S) {
+    var parseResult = S.parseUrl(location.href);
+    parseResult.query = S.getQueryParam();
+    S.data("urlInfo", parseResult);
 
     var ROOT = parseResult.scheme + "://" + parseResult.domain;
     if (parseResult.port) {
@@ -3383,21 +3425,23 @@
     };
 
 
-    tbtx.mix({
+    S.mix({
         ROOT: ROOT,
         path: path
     });
 })(tbtx);
 
 
-;(function($, tbtx) {
-    var isPending = tbtx.isPending;
+;(function($, S) {
+    var isPending = S.isPending,
+        PATH = S.path,
+        TIMEOUT = 10000;
 
     // cookie写入JSToken，服务器端处理后清掉，如果url的token跟cookie的不对应则
     // 参数非法，防止重复提交
     var miieeJSToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
-        tbtx.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
+        S.cookie.set('MIIEE_JTOKEN', token, '', '', '/');
         return token;
     };
 
@@ -3411,19 +3455,19 @@
         userCheckDeferred = $.Deferred();
         $.ajax({
             type: "POST",
-            url: isTemp ?  tbtx.path.getlogininfo : tbtx.path.getuserinfo,
+            url: isTemp ?  PATH.getlogininfo : PATH.getuserinfo,
             dataType: 'json',
             data: {},
-            timeout: 5000
-        }).done(function(json) {
-            var data = json.result && json.result.data,
-                code = json.code;
+            timeout: TIMEOUT
+        }).done(function(response) {
+            var data = response.result && response.result.data,
+                code = response.code;
 
             if (code == 601) {
                 userCheckDeferred.reject();
-            } else if (code == 100 || code == 608 || code == 1000) {
-                tbtx.data('user', data);
-                tbtx.data('userName', data.trueName ? data.trueName : data.userNick);
+            } else if (S.inArray([100, 608, 1000], code)) {
+                S.data('user', data);
+                S.data('userName', data.trueName ? data.trueName : data.userNick);
                 userCheckDeferred.resolve(data);
             }
         }).fail(function() {
@@ -3433,7 +3477,7 @@
         userCheckDeferred.done(callSuccess).fail(callFailed).fail(function() {
             // J-login 链接改为登陆
             $('.J-login').attr({
-                href: tbtx.path.login,
+                href: PATH.login,
                 target: "_self"
             });
         });
@@ -3458,7 +3502,6 @@
             uid: "1771650130"
         }
     };
-
     var shareToSinaWB = function(selecotr, title, url, pic, site, uid) {
         uid = uid || '';
         site = site || "miiee";
@@ -3482,40 +3525,13 @@
         });
     };
 
-    var addToFavourite = function(title, url) {
-        url = url || document.location.href;
-        title = title || document.title;
-
-        var def = function() {
-            tbtx.MSG.info('按下 ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D 来收藏本页.');
-        };
-
-        try {
-            // Internet Explorer
-            window.external.AddFavorite(url, title);
-        } catch (e) {       // 两个e不要一样
-            try {
-                // Mozilla
-                window.sidebar.addPanel(title, url, "");
-            } catch (ex) {
-                // Opera
-                // 果断无视opera
-                if (typeof(opera) == "object") {
-                    def();
-                    return true;
-                } else {
-                    // Unknown
-                    def();
-                }
-            }
-        }
-    };
-
-    var requireFailCode = -1,
-        successCode = 100,
+    var requestFailCode = -1,
         requestMap = {},
-
-        Request = function(url, data) {
+        /**
+         * 适用于用到jtoken的请求
+         */
+        Request = function(url, data, successCode) {
+            successCode = successCode || Request.successCode || [100];
             data = data || {};
             if (!data.jtoken) {
                 data.jtoken = miieeJSToken();
@@ -3532,29 +3548,80 @@
                 url: url,
                 type: 'post',
                 dataType: 'json',
-                data: data
+                data: data,
+                timeout: TIMEOUT
             })
             .done(function(response) {
                 var code = response && response.code;
-                if (code == successCode) {
+                if (S.inArray(successCode, code)) {
                     deferred.resolve(response);
                 } else {
                     deferred.reject(code, response);
                 }
             })
             .fail(function() {
-                deferred.reject(requireFailCode);
+                deferred.reject(requestFailCode);
             });
 
             return deferred.promise();
         };
 
-    tbtx.mix({
+    S.mix({
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
         Request: Request,
 
+        /**
+         * 概率选中, 用于概率执行某操作
+         * 从1开始记
+         * 如70%的概率则为 bingoRange 70, range 100 or 7-10
+         * @param  {number} bingoRange 选中的范围
+         * @param  {number} range      总范围
+         * @return {boolean}           是否中
+         */
+        bingo: function(bingoRange, range) {
+            if (bingoRange > range) {
+                return false;
+            }
+            range = range || 100;
+
+            var seed = S.choice(1, range + 1);
+            if (seed <= bingoRange) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+
         shareToSinaWB: shareToSinaWB,
-        addToFavourite: addToFavourite
+
+        addToFavourite: function(title, url) {
+            url = url || document.location.href;
+            title = title || document.title;
+
+            var def = function() {
+                S.MSG.info('按下 ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D 来收藏本页.');
+            };
+
+            try {
+                // Internet Explorer
+                window.external.AddFavorite(url, title);
+            } catch (e) {       // 两个e不要一样
+                try {
+                    // Mozilla
+                    window.sidebar.addPanel(title, url, "");
+                } catch (ex) {
+                    // Opera
+                    // 果断无视opera
+                    if (typeof(opera) == "object") {
+                        def();
+                        return true;
+                    } else {
+                        // Unknown
+                        def();
+                    }
+                }
+            }
+        }
     });
 })(jQuery, tbtx);
