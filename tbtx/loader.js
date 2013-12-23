@@ -29,6 +29,10 @@
         return $.extend(true, _config, val);
     };
 
+    S.define = function(name, dependencies, factory) {
+
+    };
+
     S.require = function(name, callback) {
         callback = callback || noop;
 
