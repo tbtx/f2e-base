@@ -1,4 +1,4 @@
-(function(global, $) {
+(function($) {
     var placeholder;
 
     // 以下代码引用，稍微修改了点
@@ -228,4 +228,4 @@
             ret.call($(element));
         }
     } : function(){};
-})(this, jQuery);
+})(jQuery);
