@@ -4,8 +4,7 @@
         isArray = S.isArray,
         each = S.each,
         unique = S.unique,
-        indexOf = S.indexOf,
-        loadScript = S.loadScript;
+        indexOf = S.indexOf;
 
     var Loader = S.namespace("Loader"),
 
@@ -38,40 +37,47 @@
         }
 
         // 获取各个的依赖，将依赖最多的排在前面来进行unique
-        var depsToOrder = [];
-        each(names, function(name) {
-            depsToOrder.push(getDeps(name));
-        });
-        depsToOrder.sort(function(v1, v2) {
-            return v1.length < v2.length;
-        });
+        var deps = sortDeps(names);
 
         // 加上自身，unique
-        var deps = [];
-        each(depsToOrder, function(item) {
-            deps = deps.concat(item);
-        });
         deps = deps.concat(names);
         deps = unique(deps);
 
-        var scripts = S.map(deps, function(item) {
-            var ret = _data.paths[item] || baseUrl + item;
+        var scripts = getScripts(deps, baseUrl);
+        return S.loadScript(scripts, callback);
+    };
+
+    function getScripts(deps, baseUrl) {
+        return S.map(deps, function(item) {
+            var path = _data.paths[item] || item,
+                ret =  baseUrl + path;
             if (!S.endsWith(ret, ".js")) {
                 ret += ".js";
             }
             ret += "?" + _data.urlArgs;
             return ret;
         });
+    }
 
-        return loadScript(scripts, callback);
-    };
+    function sortDeps(names) {
+        var depsSorted = [];
+        each(names, function(name) {
+            depsSorted.push(getDeps(name));
+        });
+        depsSorted.sort(function(v1, v2) {
+            return v1.length < v2.length;
+        });
 
+        var ret = [];
+        each(depsSorted, function(item) {
+            ret = ret.concat(item);
+        });
+        return ret;
+    }
     /*
      * 获取模块依赖
-     * 暂时只处理单个组件之间的依赖
+     * 暂时只处理组件之间的依赖
      * 外部的依赖请自行处理
-     *
-     * 如果依赖多个模块，请按照模块从大到小的包含顺序写
      */
     function getDeps(name) {
         var ret = [],
@@ -80,9 +86,9 @@
             // 依赖配置
             depsConfig = _data.deps,
             deps = depsConfig[name],
+            dep,
             anotherDeps,
-            anotherDep,
-            dep;
+            anotherDep;
 
         if (_dependenciesMap[name]) {
             return _dependenciesMap[name];
@@ -111,10 +117,4 @@
         _dependenciesMap[name] = ret;
         return ret;
     }
-
-    function Module() {
-    }
-    Module.prototype = {
-
-    };
 })(tbtx);

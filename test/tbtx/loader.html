@@ -6,7 +6,6 @@
     <title>Loader</title>
     <script src="../../jquery/jquery-1.8.3.min.js"></script>
     <script src="../../tbtx.js"></script>
-    <script src="../../tbtx/loader.js"></script>
 </head>
 
 <body>
@@ -14,15 +13,15 @@
 
 <script>
     tbtx.Loader.config({
-        deps: {
-            tooltip: ["popup", "drop"]
+        paths: {
+            popup: "overlay.popup"
         }
     });
     tbtx.require(["popup", "overlay", "drop"], function() {
         tbtx.log("done");
     });
 
-    tbtx.require(["overlay", "popup"], function() {
+    tbtx.require(["overlay", "popup", "validator"], function() {
         tbtx.log("done");
     });
 </script>
