@@ -10,9 +10,9 @@
     var Loader = S.namespace("Loader"),
 
         // 缓存计算过的依赖
-        depsMap = Loader.depsMap = {},
+        _dependenciesMap = Loader.dependenciesMap = {},
 
-        _config = Loader._config = {
+        _data = Loader.data = {
             baseUrl: S.staticUrl + "/base/js/component/",
             urlArgs: "2013.12.19.0",
             paths: {
@@ -26,25 +26,40 @@
         };
 
     Loader.config = function(val) {
-        return $.extend(true, _config, val);
+        return $.extend(true, _data, val);
     };
 
-    S.define = function(name, dependencies, factory) {
-
-    };
-
-    S.require = function(name, callback) {
+    S.require = function(names, callback, baseUrl) {
+        baseUrl = baseUrl || _data.baseUrl;
         callback = callback || noop;
 
-        var deps = unique(getDeps(name));
-        deps.push(name);
+        if (!isArray(names)) {
+            names = [names];
+        }
+
+        // 获取各个的依赖，将依赖最多的排在前面来进行unique
+        var depsToOrder = [];
+        each(names, function(name) {
+            depsToOrder.push(getDeps(name));
+        });
+        depsToOrder.sort(function(v1, v2) {
+            return v1.length < v2.length;
+        });
+
+        // 加上自身，unique
+        var deps = [];
+        each(depsToOrder, function(item) {
+            deps = deps.concat(item);
+        });
+        deps = deps.concat(names);
+        deps = unique(deps);
 
         var scripts = S.map(deps, function(item) {
-            var ret = _config.paths[item] || _config.baseUrl + item;
+            var ret = _data.paths[item] || baseUrl + item;
             if (!S.endsWith(ret, ".js")) {
                 ret += ".js";
             }
-            ret += "?" + _config.urlArgs;
+            ret += "?" + _data.urlArgs;
             return ret;
         });
 
@@ -63,14 +78,14 @@
             i,
             j,
             // 依赖配置
-            depsConfig = _config.deps,
+            depsConfig = _data.deps,
             deps = depsConfig[name],
             anotherDeps,
             anotherDep,
             dep;
 
-        if (depsMap[name]) {
-            return depsMap[name];
+        if (_dependenciesMap[name]) {
+            return _dependenciesMap[name];
         }
 
         if (!deps) {
@@ -93,8 +108,13 @@
                 }
             }
         }
-        depsMap[name] = ret;
+        _dependenciesMap[name] = ret;
         return ret;
     }
 
+    function Module() {
+    }
+    Module.prototype = {
+
+    };
 })(tbtx);

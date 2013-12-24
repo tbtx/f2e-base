@@ -13,11 +13,16 @@
 
 
 <script>
-    tbtx.require("drop", function() {
+    tbtx.Loader.config({
+        deps: {
+            tooltip: ["popup", "drop"]
+        }
+    });
+    tbtx.require(["popup", "overlay", "drop"], function() {
         tbtx.log("done");
     });
 
-    tbtx.require("popup", function() {
+    tbtx.require(["overlay", "popup"], function() {
         tbtx.log("done");
     });
 </script>
