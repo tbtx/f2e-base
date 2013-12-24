@@ -40,14 +40,20 @@
 	cookie.js cookie操作
 	date 日期格式化
 	detector.js 嗅探
+	pin 定位
+	path.js 路径
 	dom.js dom操作
+	loader 组件加载
 	support.js 浏览器支持fix
 	msg.js 消息提醒
-	path.js 请求路径
 	miiee.js miiee相关
 
 ## components
 	overlay 覆盖层
+	draggable 拖动
+	sns 分享到社交网络
+	drop 鼠标移上/click 显示对应内容
+	pagination 分页
 	Popup 弹出
 	Slide 轮播
 	validator 表单校验
