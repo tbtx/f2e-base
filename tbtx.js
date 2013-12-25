@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-25 3:28:12
+ * 2013-12-25 5:27:36
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2990,7 +2990,6 @@
             // 如果使用deferred的resolve date来解决时，不能同时请求
             chain = request(url[0], noop, charset);
             S.reduce(url, function(prev, now, index, array) {
-                resolveDate[prev] = now;
                 chain = chain.then(function() {
                     return request(now, noop, charset);
                 });

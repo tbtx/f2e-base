@@ -79,6 +79,10 @@
             }
         },
 
+        init: function(config) {
+            config.isMask = false;
+            Drop.superclass.init.call(this, config);
+        },
         initProps: function() {
             this.set("className", "tbtx-drop");
         },
