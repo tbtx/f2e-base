@@ -6,7 +6,7 @@ module.exports = function(grunt) {
 
         // A list of files, which will be syntax-checked by JSHint
         jshint: {
-            files: ['tbtx/*.js'],
+            files: ['tbtx/*.js', 'component/overlay.js', 'component/popup.js', 'component/draggable.js'],
             options: {
                 ignores: ['tbtx/detector.js', 'tbtx/pin.js', 'tbtx/aspect.js', 'tbtx/events.js', 'tbtx/attrs.js', 'tbtx/widget.js'],
                 browser: true,

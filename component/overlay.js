@@ -73,7 +73,7 @@
                     },
                     className: "overlay"
                 };
-            };
+            }
             Overlay.superclass.init.call(this, $.extend({}, defaults, config));
         },
 

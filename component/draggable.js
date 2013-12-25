@@ -32,7 +32,7 @@
                 'position': 'absolute'
             });
             return false;
-        };
+        }
 
         $(document).mouseup(function() {
             $elements.unbind('mousemove');

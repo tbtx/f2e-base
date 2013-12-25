@@ -97,7 +97,7 @@
                 effect = undefined;
             }
 
-            this.overlay && this.overlay.show();
+            var dummy = this.overlay && this.overlay.show();
 
             if (effect && typeof effect == "string") {
                 this.element[effect]({
@@ -105,7 +105,7 @@
                 });
             } else {
                 this.element.show();
-                isFunction(callback) && callback();
+                dummy = isFunction(callback) && callback();
             }
 
 
@@ -124,7 +124,7 @@
                 effect = undefined;
             }
 
-            this.overlay && this.overlay.hide();
+            var dummy = this.overlay && this.overlay.hide();
 
             if (effect && typeof effect == "string") {
                 this.element[effect]({
@@ -132,7 +132,7 @@
                 });
             } else {
                 this.element.hide();
-                isFunction(callback) && callback();
+                dummy = isFunction(callback) && callback();
             }
 
             this.element.trigger('tbtx.popup.hide', {
@@ -166,7 +166,7 @@
         },
 
         destroy: function() {
-            this.overlay && this.overlay.destroy();
+            var dummy = this.overlay && this.overlay.destroy();
             return Popup.superclass.destroy.call(this);
         }
     });
