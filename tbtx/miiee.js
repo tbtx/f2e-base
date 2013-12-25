@@ -106,7 +106,8 @@
             var deferred = requestMap[url];
             // 正在处理中
             if (deferred && isPending(deferred)) {
-                return;
+                deferred.notify("requesting");
+                return deferred.promise();
             }
 
             deferred = requestMap[url] = $.Deferred();

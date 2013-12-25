@@ -32,7 +32,7 @@
 
             style: {
                 display: "none",
-                position: isIE6 ? "absolute" : "fixed",
+                position: isIE6 ? "absolute" : "fixed"
             },
 
             parentNode: DEFAULT_PARENT_NODE,

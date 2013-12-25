@@ -28,18 +28,22 @@
     var isOldWebKit = (navigator.userAgent.replace(/.*AppleWebKit\/(\d+)\..*/, "$1")) * 1 < 536;
 
     // 存储每个url的deferred对象
-    var deferredMap = {};
-    // 存储每个script的下一个脚本信息，也就是链式调用时then的request的参数
-    var resolveDate = {};
+    var deferredMap = {},
+        resolveDate = {};
 
     function request(url, callback, charset) {
+        // 去掉script的url参数
+        // if (url.indexOf("?") > -1) {
+        //     url = url.split("?")[0];
+        // }
         // 该url已经请求过，直接done
-        if (deferredMap[url]) {
-            deferredMap[url].done(callback);
-            return deferredMap[url].promise();
+        var deferred = deferredMap[url];
+        if (deferred) {
+            deferred.done(callback);
+            return deferred.promise();
         } else {    //
-            deferredMap[url] = $.Deferred();
-            deferredMap[url].done(callback);
+            deferred = deferredMap[url] = $.Deferred();
+            deferred.done(callback);
         }
 
         var isCSS = IS_CSS_RE.test(url);
@@ -106,17 +110,15 @@
                 // Dereference the node
                 node = null;
 
-                if (resolveDate[url]) {
-                    deferredMap[url].resolve(resolveDate[url], noop);
-                } else {
-                    deferredMap[url].resolve();
-                }
+
+                deferredMap[url].resolve();
+                // alert("resolve");
                 // callback();
             }
         };
     }
 
-    function pollCss(node, callback) {
+    function pollCss(node, callback, url) {
         var sheet = node.sheet;
         var isLoaded;
 
@@ -189,17 +191,17 @@
                 return normalizeUrl(item);
             });
 
-            each(url, function(u, index) {
-                if (index < length - 1) {
-                    resolveDate[u] = url[index + 1];
-                }
-                if (chain) {
-                    chain = chain.then(request);
-                } else {
-                    chain = request(u, noop, charset);
-                }
-            });
+            // 如果使用deferred的resolve date来解决时，不能同时请求
+            chain = request(url[0], noop, charset);
+            S.reduce(url, function(prev, now, index, array) {
+                resolveDate[prev] = now;
+                chain = chain.then(function() {
+                    return request(now, noop, charset);
+                });
 
+                // reduce的返回
+                return now;
+            });
             return chain.then(callback);
         }
         return request(normalizeUrl(url), callback, charset);

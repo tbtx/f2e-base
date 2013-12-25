@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-24 2:05:49
+ * 2013-12-25 3:05:08
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -864,6 +864,24 @@
         indexOf: indexOf,
         filter: filter,
         map: map,
+        reduce: function(array, callback, initialValue) {
+            var previous = initialValue,
+                k = 0,
+                length = array.length,
+                dummy;
+
+            if (typeof initialValue === "undefined") {
+                previous = array[0];
+                k = 1;
+            }
+
+            if (typeof callback === "function") {
+                for (k; k < length; k++) {
+                    dummy = array.hasOwnProperty(k) && (previous = callback(previous, array[k], k, array));
+                }
+            }
+            return previous;
+        },
 
         unique: function(arr) {
             var ret = [],
@@ -2807,18 +2825,22 @@
     var isOldWebKit = (navigator.userAgent.replace(/.*AppleWebKit\/(\d+)\..*/, "$1")) * 1 < 536;
 
     // 存储每个url的deferred对象
-    var deferredMap = {};
-    // 存储每个script的下一个脚本信息，也就是链式调用时then的request的参数
-    var resolveDate = {};
+    var deferredMap = {},
+        resolveDate = {};
 
     function request(url, callback, charset) {
+        // 去掉script的url参数
+        // if (url.indexOf("?") > -1) {
+        //     url = url.split("?")[0];
+        // }
         // 该url已经请求过，直接done
-        if (deferredMap[url]) {
-            deferredMap[url].done(callback);
-            return deferredMap[url].promise();
+        var deferred = deferredMap[url];
+        if (deferred) {
+            deferred.done(callback);
+            return deferred.promise();
         } else {    //
-            deferredMap[url] = $.Deferred();
-            deferredMap[url].done(callback);
+            deferred = deferredMap[url] = $.Deferred();
+            deferred.done(callback);
         }
 
         var isCSS = IS_CSS_RE.test(url);
@@ -2885,17 +2907,15 @@
                 // Dereference the node
                 node = null;
 
-                if (resolveDate[url]) {
-                    deferredMap[url].resolve(resolveDate[url], noop);
-                } else {
-                    deferredMap[url].resolve();
-                }
+
+                deferredMap[url].resolve();
+                // alert("resolve");
                 // callback();
             }
         };
     }
 
-    function pollCss(node, callback) {
+    function pollCss(node, callback, url) {
         var sheet = node.sheet;
         var isLoaded;
 
@@ -2968,17 +2988,17 @@
                 return normalizeUrl(item);
             });
 
-            each(url, function(u, index) {
-                if (index < length - 1) {
-                    resolveDate[u] = url[index + 1];
-                }
-                if (chain) {
-                    chain = chain.then(request);
-                } else {
-                    chain = request(u, noop, charset);
-                }
-            });
+            // 如果使用deferred的resolve date来解决时，不能同时请求
+            chain = request(url[0], noop, charset);
+            S.reduce(url, function(prev, now, index, array) {
+                resolveDate[prev] = now;
+                chain = chain.then(function() {
+                    return request(now, noop, charset);
+                });
 
+                // reduce的返回
+                return now;
+            });
             return chain.then(callback);
         }
         return request(normalizeUrl(url), callback, charset);
@@ -3282,18 +3302,14 @@
 
 ;(function(S) {
     // 简单模块定义和加载
-    var noop = S.noop,
-        isArray = S.isArray,
-        each = S.each,
-        unique = S.unique,
-        indexOf = S.indexOf;
-
     var Loader = S.namespace("Loader"),
 
         // 缓存计算过的依赖
-        _dependenciesMap = Loader.dependenciesMap = {},
+        dependenciesMap = Loader.dependenciesMap = {},
 
-        _data = Loader.data = {
+        modules = Loader.modules = {},
+
+        data = Loader.data = {
             baseUrl: S.staticUrl + "/base/js/component/",
             urlArgs: "2013.12.19.0",
             paths: {
@@ -3307,14 +3323,28 @@
         };
 
     Loader.config = function(val) {
-        return $.extend(true, _data, val);
+        return $.extend(true, data, val);
     };
 
-    S.require = function(names, callback, baseUrl) {
-        baseUrl = baseUrl || _data.baseUrl;
-        callback = callback || noop;
+    // id 和dependencies 都可选
+    // Module ids can be used to identify the module being defined, they are also used in the dependency array argument
+    // S.define = function(id, dependencies, factory) {
+    //     if (!modules[id]) {
+    //         var module = {
+    //             id: id,
+    //             dependencies: dependencies,
+    //             factory: factory
+    //         };
+    //         modules[id] = module;
+    //     }
+    //     return modules[id];
+    // };
 
-        if (!isArray(names)) {
+    S.require = function(names, callback, baseUrl) {
+        baseUrl = baseUrl || data.baseUrl;
+        callback = callback || S.noop;
+
+        if (!S.isArray(names)) {
             names = [names];
         }
 
@@ -3323,38 +3353,36 @@
 
         // 加上自身，unique
         deps = deps.concat(names);
-        deps = unique(deps);
+        deps = S.unique(deps);
 
         var scripts = getScripts(deps, baseUrl);
         return S.loadScript(scripts, callback);
     };
 
     function getScripts(deps, baseUrl) {
+        var paths = data.paths;
         return S.map(deps, function(item) {
-            var path = _data.paths[item] || item,
+            var path = paths[item] || item,
                 ret =  baseUrl + path;
             if (!S.endsWith(ret, ".js")) {
                 ret += ".js";
             }
-            ret += "?" + _data.urlArgs;
+            ret += "?" + data.urlArgs;
             return ret;
         });
     }
 
     function sortDeps(names) {
         var depsSorted = [];
-        each(names, function(name) {
+        S.each(names, function(name) {
             depsSorted.push(getDeps(name));
         });
         depsSorted.sort(function(v1, v2) {
             return v1.length < v2.length;
         });
-
-        var ret = [];
-        each(depsSorted, function(item) {
-            ret = ret.concat(item);
+        return S.reduce(depsSorted, function(prev, now) {
+            return prev.concat(now);
         });
-        return ret;
     }
     /*
      * 获取模块依赖
@@ -3364,41 +3392,44 @@
     function getDeps(name) {
         var ret = [],
             i,
-            j,
             // 依赖配置
-            depsConfig = _data.deps,
-            deps = depsConfig[name],
-            dep,
-            anotherDeps,
-            anotherDep;
+            depsConfig = data.deps,
+            deps = depsConfig[name];
 
-        if (_dependenciesMap[name]) {
-            return _dependenciesMap[name];
-        }
-
-        if (!deps) {
-            return ret;
-        }
-        // 保证deps为数组
-        if (!isArray(deps)) {
-            deps = [deps];
-        }
-
-        for (i = 0; i < deps.length; i++) {
-            dep = deps[i];
-            ret.unshift(dep);
-
-            anotherDeps = getDeps(dep);
-            for (j = 0; j < anotherDeps.length; j++) {
-                anotherDep = anotherDeps[j];
-                if (indexOf(anotherDep) === -1) {
-                    ret.unshift(anotherDep);
+        // 没有计算过依赖
+        if (!dependenciesMap[name]) {
+            // 有依赖
+            if (deps) {
+                // 保证deps为数组
+                if (!S.isArray(deps)) {
+                    deps = [deps];
                 }
+
+                S.each(deps, function(dep) {
+                    ret.unshift(dep);
+                    ret = getDeps(dep).concat(ret);
+                });
             }
+            dependenciesMap[name] = ret;
         }
-        _dependenciesMap[name] = ret;
-        return ret;
+        return dependenciesMap[name];
     }
+
+    // function Module(name) {
+    //     this.name = name;
+    //     this.deps = getDeps(name);
+    //     // 依赖该模块的模块数
+    //     this.depsCount = 0;
+
+    //     modules[name] = this;
+    // }
+    // Module.prototype = {
+
+    // };
+
+    // Module.find = function(name) {
+    //     return modules[name] || new Module(name);
+    // };
 })(tbtx);
 
 ;(function($, S) {
@@ -3684,7 +3715,8 @@
             var deferred = requestMap[url];
             // 正在处理中
             if (deferred && isPending(deferred)) {
-                return;
+                deferred.notify("requesting");
+                return deferred.promise();
             }
 
             deferred = requestMap[url] = $.Deferred();

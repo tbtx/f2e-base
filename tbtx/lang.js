@@ -779,6 +779,24 @@
         indexOf: indexOf,
         filter: filter,
         map: map,
+        reduce: function(array, callback, initialValue) {
+            var previous = initialValue,
+                k = 0,
+                length = array.length,
+                dummy;
+
+            if (typeof initialValue === "undefined") {
+                previous = array[0];
+                k = 1;
+            }
+
+            if (typeof callback === "function") {
+                for (k; k < length; k++) {
+                    dummy = array.hasOwnProperty(k) && (previous = callback(previous, array[k], k, array));
+                }
+            }
+            return previous;
+        },
 
         unique: function(arr) {
             var ret = [],

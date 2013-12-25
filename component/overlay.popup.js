@@ -1,6 +1,6 @@
 /*
  * overlay.popup
- * 2013-12-24 2:05:49
+ * 2013-12-25 3:05:08
  */
 (function($, global) {
     var S = global.tbtx,
@@ -273,7 +273,7 @@
 
             style: {
                 display: "none",
-                position: isIE6 ? "absolute" : "fixed",
+                position: isIE6 ? "absolute" : "fixed"
             },
 
             parentNode: DEFAULT_PARENT_NODE,

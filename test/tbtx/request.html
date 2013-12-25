@@ -18,9 +18,9 @@
 // });
 
 tbtx.loadScript(["miiee/js/m.js", "miiee/js/base.js"], function() {
-	 alert('script loaded');
+	 // alert('script loaded');
 }).done(function() {
-	alert(1213);
+	// alert(1213);
 });
 
 // setTimeout(function() {
@@ -35,6 +35,8 @@ var ret = tbtx.loadScript(["https://raw.github.com/seajs/seajs/master/dist/sea-d
 	// console.log(seajs);
 });
 
+ret = tbtx.Request("/activity/image.jsp");
+tbtx.log(ret);
 // ret.done(function() {
 // 	console.log('done');
 // });

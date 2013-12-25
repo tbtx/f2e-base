@@ -15,15 +15,29 @@
     tbtx.Loader.config({
         paths: {
             popup: "overlay.popup"
+        },
+        deps: {
+            tooltip: ["popup", "drop"]
         }
     });
     tbtx.require(["popup", "overlay", "drop"], function() {
-        tbtx.log("done");
+        // alert("done");
+        alert(tbtx.Popup);
+        tbtx.log(tbtx.Overlay);
+        tbtx.log(tbtx.Popup);
+        tbtx.log(tbtx.Drop);
+        // alert(document.scripts.length);
     });
 
     tbtx.require(["overlay", "popup", "validator"], function() {
-        tbtx.log("done");
+        alert(tbtx.Validator);
+        // tbtx.log(tbtx.Overlay);
+        // tbtx.log(tbtx.Popup);
+        // tbtx.log(tbtx.Drop);
+        // tbtx.log(tbtx.Validator);
+        // alert(document.scripts.length);
     });
+
 </script>
 
 </body>
