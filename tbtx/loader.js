@@ -9,9 +9,11 @@
     var Loader = S.namespace("Loader"),
 
         // 缓存计算过的依赖
-        _dependenciesMap = Loader.dependenciesMap = {},
+        dependenciesMap = Loader.dependenciesMap = {},
 
-        _data = Loader.data = {
+        modules = Loader.modules = {},
+
+        data = Loader.data = {
             baseUrl: S.staticUrl + "/base/js/component/",
             urlArgs: "2013.12.19.0",
             paths: {
@@ -25,11 +27,29 @@
         };
 
     Loader.config = function(val) {
-        return $.extend(true, _data, val);
+        return $.extend(true, data, val);
     };
 
+    // id 和dependencies 都可选
+    // Module ids can be used to identify the module being defined, they are also used in the dependency array argument
+    S.define = function(id, dependencies, factory) {
+        if (!modules[id]) {
+            var module = {
+                id: id,
+                dependencies: dependencies,
+                factory: factory
+            };
+            modules[id] = module;
+        }
+        return modules[id];
+    };
+
+    function error(val) {
+        var msg = typeof val !== 'object' ? 'Uncaught error while run ' + error.caller : 'Call ' + val.fn + '() error, ' + val.msg;
+    }
+
     S.require = function(names, callback, baseUrl) {
-        baseUrl = baseUrl || _data.baseUrl;
+        baseUrl = baseUrl || data.baseUrl;
         callback = callback || noop;
 
         if (!isArray(names)) {
@@ -49,12 +69,12 @@
 
     function getScripts(deps, baseUrl) {
         return S.map(deps, function(item) {
-            var path = _data.paths[item] || item,
+            var path = data.paths[item] || item,
                 ret =  baseUrl + path;
             if (!S.endsWith(ret, ".js")) {
                 ret += ".js";
             }
-            ret += "?" + _data.urlArgs;
+            ret += "?" + data.urlArgs;
             return ret;
         });
     }
@@ -84,14 +104,14 @@
             i,
             j,
             // 依赖配置
-            depsConfig = _data.deps,
+            depsConfig = data.deps,
             deps = depsConfig[name],
             dep,
             anotherDeps,
             anotherDep;
 
-        if (_dependenciesMap[name]) {
-            return _dependenciesMap[name];
+        if (dependenciesMap[name]) {
+            return dependenciesMap[name];
         }
 
         if (!deps) {
@@ -114,7 +134,16 @@
                 }
             }
         }
-        _dependenciesMap[name] = ret;
+        dependenciesMap[name] = ret;
         return ret;
     }
+
+    function Module() {
+        // body...
+        // 依赖该模块的模块数
+        this.depsCount = 0;
+    }
+    Module.prototype = {
+
+    };
 })(tbtx);
