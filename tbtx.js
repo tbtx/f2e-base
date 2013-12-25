@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-25 5:27:36
+ * 2013-12-25 6:00:57
  * 十一_tbtx
  * zenxds@gmail.com
  */
