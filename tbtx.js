@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-25 3:05:08
+ * 2013-12-25 3:09:54
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2825,8 +2825,7 @@
     var isOldWebKit = (navigator.userAgent.replace(/.*AppleWebKit\/(\d+)\..*/, "$1")) * 1 < 536;
 
     // 存储每个url的deferred对象
-    var deferredMap = {},
-        resolveDate = {};
+    var deferredMap = {};
 
     function request(url, callback, charset) {
         // 去掉script的url参数

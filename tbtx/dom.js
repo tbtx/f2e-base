@@ -28,8 +28,7 @@
     var isOldWebKit = (navigator.userAgent.replace(/.*AppleWebKit\/(\d+)\..*/, "$1")) * 1 < 536;
 
     // 存储每个url的deferred对象
-    var deferredMap = {},
-        resolveDate = {};
+    var deferredMap = {};
 
     function request(url, callback, charset) {
         // 去掉script的url参数
