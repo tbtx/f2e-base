@@ -46,6 +46,7 @@
 
     function error(val) {
         var msg = typeof val !== 'object' ? 'Uncaught error while run ' + error.caller : 'Call ' + val.fn + '() error, ' + val.msg;
+        throw new Error(msg);
     }
 
     S.require = function(names, callback, baseUrl) {
