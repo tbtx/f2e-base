@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-26 5:04:41
+ * 2013-12-26 6:17:02
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3297,7 +3297,8 @@
 
             deps: {
                 drop: "overlay",
-                popup: "overlay"
+                popup: "overlay",
+                tip: "drop"
             }
         };
 

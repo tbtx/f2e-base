@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tip</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    img {
+        border: none;
+    }
+    body {
+        padding-top: 20px;
+        position: relative;
+    }
+    #demo {
+        margin: 300px;
+        width: 300px;
+    }
+    </style>
+</head>
+<body>
+    <div id="demo">
+        demo
+    </div>
+
+    <script src="../../jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../tbtx.js"></script>
+    <script>
+    tbtx.require("tip", function() {
+        new tbtx.Tip({
+            trigger: "#demo",
+            content: '<div style="padding:10px">我是内容 我是内容</div>',
+            arrowPosition: 11,
+            theme: 'blue',
+            direction: "left",
+            // 提示框离目标距离(px)
+            distance: 50,
+            // 箭头偏移位置(px)，负数表示箭头位置从最右边或最下边开始算
+            arrowShift: 50
+        });
+    });
+    </script>
+</body>
+</html>

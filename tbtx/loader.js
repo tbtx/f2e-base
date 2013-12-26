@@ -14,7 +14,8 @@
 
             deps: {
                 drop: "overlay",
-                popup: "overlay"
+                popup: "overlay",
+                tip: "drop"
             }
         };
 
