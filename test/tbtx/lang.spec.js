@@ -24,7 +24,15 @@ describe('lang', function() {
 				return {};
 			});
 
+			var counter = 0;
+			var getNull = tbtx.singleton(function() {
+				counter += 1;
+				return null;
+			});
+			getNull();
+			getNull();
 			expect(getInstance()).toBe(getInstance());
+			expect(counter).toEqual(2);
 		});
 	});
 
@@ -48,6 +56,21 @@ describe('lang', function() {
 			};
 
 			var r = tbtx.later(f, 2000, false, window, ["alex"]);
+		});
+	});
+
+	describe("reduce", function() {
+		it("should implement ES'5 reduce", function() {
+			var prevs = [],
+				nows = [];
+			expect(tbtx.reduce([1, 2, 3, 4], function(prev, now) {
+				prevs.push(prev);
+				nows.push(now);
+				return prev + now;
+			})).toEqual(10);
+
+			expect(prevs).toEqual([1, 3, 6]);
+			expect(nows).toEqual([2, 3, 4]);
 		});
 	});
 

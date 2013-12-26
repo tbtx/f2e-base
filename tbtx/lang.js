@@ -4,7 +4,6 @@
     // 内部使用S，简化tbtx
 
     var AP = Array.prototype,
-        forEach = AP.forEach,
         OP = Object.prototype,
         toString = OP.toString,
         FALSE = false,
@@ -26,10 +25,6 @@
          */
         each = function(object, fn, context) {
             if (object) {
-                if (forEach && object.forEach === forEach) {
-                    object.forEach(fn, context);
-                    return;
-                }
                 var key,
                     val,
                     keysArray,
@@ -64,10 +59,6 @@
             return type(val) === 'string';
         },
 
-        isNotEmptyString = function(val) {
-            return isString(val) && val !== '';
-        },
-
         isArray = Array.isArray || function(val) {
             return type(val) === 'array';
         },
@@ -81,7 +72,7 @@
          */
         indexOf = AP.indexOf ?
             function(arr, item) {
-                    return arr.indexOf(item);
+                return arr.indexOf(item);
             } : function(arr, item) {
                 var i;
                 if (isString(arr)) {
@@ -679,7 +670,9 @@
     S.mix({
         mix: mix,
         classify: classify,
-        isNotEmptyString: isNotEmptyString,
+        isNotEmptyString: function(val) {
+            return isString(val) && val !== '';
+        },
 
         /**
          * 判断deferred对象是否正在处理中

@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-25 6:00:57
+ * 2013-12-26 3:05:20
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -89,7 +89,6 @@
     // 内部使用S，简化tbtx
 
     var AP = Array.prototype,
-        forEach = AP.forEach,
         OP = Object.prototype,
         toString = OP.toString,
         FALSE = false,
@@ -111,10 +110,6 @@
          */
         each = function(object, fn, context) {
             if (object) {
-                if (forEach && object.forEach === forEach) {
-                    object.forEach(fn, context);
-                    return;
-                }
                 var key,
                     val,
                     keysArray,
@@ -149,10 +144,6 @@
             return type(val) === 'string';
         },
 
-        isNotEmptyString = function(val) {
-            return isString(val) && val !== '';
-        },
-
         isArray = Array.isArray || function(val) {
             return type(val) === 'array';
         },
@@ -166,7 +157,7 @@
          */
         indexOf = AP.indexOf ?
             function(arr, item) {
-                    return arr.indexOf(item);
+                return arr.indexOf(item);
             } : function(arr, item) {
                 var i;
                 if (isString(arr)) {
@@ -764,7 +755,9 @@
     S.mix({
         mix: mix,
         classify: classify,
-        isNotEmptyString: isNotEmptyString,
+        isNotEmptyString: function(val) {
+            return isString(val) && val !== '';
+        },
 
         /**
          * 判断deferred对象是否正在处理中
@@ -2814,9 +2807,6 @@
     var IS_CSS_RE = /\.css(?:\?|$)/i;
     var READY_STATE_RE = /^(?:loaded|complete|undefined)$/;
 
-    // 当前正在加载的script
-    var currentlyAddingScript;
-
     // `onload` event is not supported in WebKit < 535.23 and Firefox < 9.0
     // ref:
     //  - https://bugs.webkit.org/show_activity.cgi?id=38995
@@ -2862,19 +2852,12 @@
             node.src = url;
         }
 
-        // For some cache cases in IE 6-8, the script executes IMMEDIATELY after
-        // the end of the insert execution, so use `currentlyAddingScript` to
-        // hold current node, for deriving url in `define` call
-        currentlyAddingScript = node;
-
         // ref: #185 & http://dev.jquery.com/ticket/2709
         if (baseElement) {
             head.insertBefore(node, baseElement);
         } else {
             head.appendChild(node);
         }
-
-        currentlyAddingScript = null;
 
         return deferredMap[url].promise();
     }
@@ -3305,8 +3288,6 @@
         // 缓存计算过的依赖
         dependenciesMap = Loader.dependenciesMap = {},
 
-        modules = Loader.modules = {},
-
         data = Loader.data = {
             baseUrl: S.staticUrl + "/base/js/component/",
             urlArgs: "2013.12.19.0",
@@ -3323,20 +3304,6 @@
     Loader.config = function(val) {
         return $.extend(true, data, val);
     };
-
-    // id 和dependencies 都可选
-    // Module ids can be used to identify the module being defined, they are also used in the dependency array argument
-    // S.define = function(id, dependencies, factory) {
-    //     if (!modules[id]) {
-    //         var module = {
-    //             id: id,
-    //             dependencies: dependencies,
-    //             factory: factory
-    //         };
-    //         modules[id] = module;
-    //     }
-    //     return modules[id];
-    // };
 
     S.require = function(names, callback, baseUrl) {
         baseUrl = baseUrl || data.baseUrl;
@@ -3412,22 +3379,6 @@
         }
         return dependenciesMap[name];
     }
-
-    // function Module(name) {
-    //     this.name = name;
-    //     this.deps = getDeps(name);
-    //     // 依赖该模块的模块数
-    //     this.depsCount = 0;
-
-    //     modules[name] = this;
-    // }
-    // Module.prototype = {
-
-    // };
-
-    // Module.find = function(name) {
-    //     return modules[name] || new Module(name);
-    // };
 })(tbtx);
 
 ;(function($, S) {

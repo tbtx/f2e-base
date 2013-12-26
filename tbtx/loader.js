@@ -5,8 +5,6 @@
         // 缓存计算过的依赖
         dependenciesMap = Loader.dependenciesMap = {},
 
-        modules = Loader.modules = {},
-
         data = Loader.data = {
             baseUrl: S.staticUrl + "/base/js/component/",
             urlArgs: "2013.12.19.0",
@@ -23,20 +21,6 @@
     Loader.config = function(val) {
         return $.extend(true, data, val);
     };
-
-    // id 和dependencies 都可选
-    // Module ids can be used to identify the module being defined, they are also used in the dependency array argument
-    // S.define = function(id, dependencies, factory) {
-    //     if (!modules[id]) {
-    //         var module = {
-    //             id: id,
-    //             dependencies: dependencies,
-    //             factory: factory
-    //         };
-    //         modules[id] = module;
-    //     }
-    //     return modules[id];
-    // };
 
     S.require = function(names, callback, baseUrl) {
         baseUrl = baseUrl || data.baseUrl;
@@ -112,20 +96,4 @@
         }
         return dependenciesMap[name];
     }
-
-    // function Module(name) {
-    //     this.name = name;
-    //     this.deps = getDeps(name);
-    //     // 依赖该模块的模块数
-    //     this.depsCount = 0;
-
-    //     modules[name] = this;
-    // }
-    // Module.prototype = {
-
-    // };
-
-    // Module.find = function(name) {
-    //     return modules[name] || new Module(name);
-    // };
 })(tbtx);

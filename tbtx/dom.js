@@ -17,9 +17,6 @@
     var IS_CSS_RE = /\.css(?:\?|$)/i;
     var READY_STATE_RE = /^(?:loaded|complete|undefined)$/;
 
-    // 当前正在加载的script
-    var currentlyAddingScript;
-
     // `onload` event is not supported in WebKit < 535.23 and Firefox < 9.0
     // ref:
     //  - https://bugs.webkit.org/show_activity.cgi?id=38995
@@ -65,19 +62,12 @@
             node.src = url;
         }
 
-        // For some cache cases in IE 6-8, the script executes IMMEDIATELY after
-        // the end of the insert execution, so use `currentlyAddingScript` to
-        // hold current node, for deriving url in `define` call
-        currentlyAddingScript = node;
-
         // ref: #185 & http://dev.jquery.com/ticket/2709
         if (baseElement) {
             head.insertBefore(node, baseElement);
         } else {
             head.appendChild(node);
         }
-
-        currentlyAddingScript = null;
 
         return deferredMap[url].promise();
     }
