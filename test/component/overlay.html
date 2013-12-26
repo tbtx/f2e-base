@@ -134,18 +134,20 @@
 	<script src="../../tbtx.js"></script>
 	<script src="../../component/overlay.js"></script>
 	<script>
-	var o = new tbtx.Overlay({
-		parentNode: "#demo"
+	var o = new tbtx.Mask({
+		parentNode: "#demo",
+		backgroundColor: "#090"
 	}).show();
 
 	var o2 = new tbtx.Overlay({
-		color: "red",
+		backgroundColor: "red",
 		hideOnClick: true
 	}).show();
 
-	var o3 = new tbtx.Overlay({
+	var o3 = new tbtx.Mask({
 		parentNode: "#demo-2",
-		color: "blue",
+		hideOnClick: true,
+		backgroundColor: "blue",
 		width: 200,
 		height: 200
 	}).show();

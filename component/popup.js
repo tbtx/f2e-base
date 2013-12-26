@@ -3,6 +3,7 @@
         Class = S.Class,
         Widget = S.Widget,
         Overlay = S.Overlay,
+        Mask = S.Mask,
         isInDocument = S.isInDocument,
         VIEWPORT = S.VIEWPORT,
         DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE;
@@ -18,29 +19,21 @@
     var isFunction = isType("Function"),
         isString = isType("String");
 
-    var Popup = new Class(Overlay);
+    var Popup = new Class(Mask);
 
     Popup.include({
         attrs: {
             withOverlay: true,
             overlayOption: {
-
+                opacity: 0.5,
+                backgroundColor: "#000"
             },
 
             // 擦，拼写错误
             destoryOnHide: false,
+            className: "tbtx-popup",
 
-            style: {
-                display: "none",
-                position: isIE6 ? "absolute" : "fixed"
-            },
-
-            parentNode: DEFAULT_PARENT_NODE,
-
-            // 不需要这几个属性
-            opacity: null,
-            color: null,
-            hideOnClick: null
+            parentNode: DEFAULT_PARENT_NODE
         },
 
         events: {
@@ -57,10 +50,6 @@
                 config.element = selector;
             }
 
-            if (config.align) {
-                config.align.baseElement = config.parentNode || VIEWPORT;
-            }
-
             Popup.superclass.init.call(this, config);
 
         },
@@ -73,11 +62,11 @@
                 config.relatedNode = this.element;
                 config.renderMethod = "insertBefore";
 
-                this.overlay = new Overlay(config);
+                this.overlay = parentNode == DEFAULT_PARENT_NODE ? new Overlay(config) : new Mask(config);
             }
+
             this.mask = '';     // 标示popup类型，在事件里作为数据传递，命名害死人
             this.$element = this.element;
-            this.set("className", "tbtx-popup");
         },
 
         setup: function() {
@@ -148,7 +137,6 @@
         },
 
         // 不使用父类的设置宽高函数
-        // attr中的width和height不生效
         _onRenderWidth: function(val) {
             // this.element.css("width", this.element.width());
         },

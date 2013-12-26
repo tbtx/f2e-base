@@ -1,7 +1,6 @@
 (function($, S) {
-    var Overlay = S.Overlay;
 
-    var Drop = new S.Class(Overlay, {
+    var Drop = new S.Class(S.Mask, {
         attrs: {
             // 触发元素
             trigger: {
@@ -56,10 +55,7 @@
             effect: "",
             // 动画的持续时间
             duration: 250,
-
-            opacity: null,
-            color: null,
-            hideOnClick: null
+            className: "tbtx-drop"
         },
         setup: function() {
             Drop.superclass.setup.call(this);
@@ -77,14 +73,6 @@
                     that._relativeElements.push(that.element);
                 });
             }
-        },
-
-        init: function(config) {
-            config.isMask = false;
-            Drop.superclass.init.call(this, config);
-        },
-        initProps: function() {
-            this.set("className", "tbtx-drop");
         },
 
         render: function() {

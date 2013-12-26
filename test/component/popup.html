@@ -53,19 +53,18 @@
 	<script src="../../component/overlay.popup.js"></script>
 	<script>
 	var p = $('#pop').Popup({
-		parentNode: "#demo"
+		parentNode: "#demo",
+		background: "#FFF"
 	});
+	p.show();
 	tbtx.log(p);
 
 	var p2 = new tbtx.Popup('<p><a href="javascript:;" class="J-popup-close">close</a></p>').show();
 
-	// p.before('hide', function() {
-	// 	console.log("hide");
-	// });
-	p.show();
 
 	var p3 = $('<div>123</div>').Popup({
-		parentNode: "#demo"
+		parentNode: "#demo",
+		backgroundColor: "#000"
 	}).show();
 
 	p.mask = "afa";

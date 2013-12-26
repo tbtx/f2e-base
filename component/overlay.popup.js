@@ -1,6 +1,6 @@
 /*
  * overlay.popup
- * 2013-12-26 6:17:02
+ * 2013-12-26 10:30:34
  */
 (function($, global) {
     var S = global.tbtx,
@@ -15,11 +15,15 @@
         isIE6 = ua.indexOf("msie 6") !== -1,
         doc = S.getDocument();
 
-    var Overlay = new Class(Widget);
+    // Mask为遮罩，Overlay是全屏遮罩
+    var Mask = new Class(Widget);
 
-    Overlay.include({
+    Mask.include({
 
         attrs: {
+            width: null,
+            height: null,
+            className: "tbtx-mask",
             // 基本属性
             visible: false,
             parentNode: DEFAULT_PARENT_NODE,
@@ -34,51 +38,22 @@
                 baseXY: [ 0, 0 ]
             },
 
-            opacity: 0.5,
-            color: "#000",
             hideOnClick: false
         },
 
         init: function(config) {
-            var parentNode = config.parentNode || DEFAULT_PARENT_NODE,
-                isMask;
-
-            // 没指定isMask 并且parentNode不是body
-            // 认定为普通遮罩而非全屏
-            if (typeof config.isMask === "undefined") {
-                isMask = parentNode === DEFAULT_PARENT_NODE ? true : false;
-            }
-
-            var defaults;
-
-            if (isMask) {
-                defaults = {
-                    style: {
-                        position: isIE6 ? "absolute" : "fixed",
-                        top: 0,
-                        left: 0
-                    },
-                    align: {
-                        // undefined 表示相对于当前可视范围定位
-                        baseElement: isIE6 ? 'body' : undefined
-                    },
-                    width: isIE6 ? doc.outerWidth(true) : "100%",
-                    height: isIE6 ? doc.outerHeight(true) : "100%",
-                    className: "tbtx-mask overlay"
-                };
-            } else {
-                var width = config.width,
-                    height = config.height;
-                defaults = {
-                    width: (parentNode !== DEFAULT_PARENT_NODE && !width) ? $(parentNode).innerWidth() : width,
-                    height: (parentNode !== DEFAULT_PARENT_NODE && !height) ? $(parentNode).innerHeight() : height,
-                    align: {
-                        baseElement: parentNode || VIEWPORT
-                    },
-                    className: "overlay"
+            var parentNode = config.parentNode,
+                defaults = {};
+            
+            if (parentNode && parentNode !== DEFAULT_PARENT_NODE) {
+                defaults.width = $(parentNode).innerWidth();
+                defaults.height = $(parentNode).innerHeight();
+                defaults.align = {
+                    baseElement: parentNode || VIEWPORT
                 };
             }
-            Overlay.superclass.init.call(this, $.extend({}, defaults, config));
+
+            Mask.superclass.init.call(this, $.extend(true, defaults, config));
         },
 
         setup: function() {
@@ -107,7 +82,7 @@
         },
 
         _setupResize: function() {
-            Overlay.allOverlays.push(this);
+            Mask.allMasks.push(this);
         },
 
         _setPosition: function() {
@@ -123,7 +98,7 @@
                     display: "block"
                 });
             }
-            this.adjust(align);
+            this.adjust();
             // 定位完成后，还原
             if (isHidden) {
                 this.element.css({
@@ -134,7 +109,9 @@
             return this;
         },
 
-        adjust: function(align) {
+        // 兼容之前的Popup
+        adjust: function() {
+            var align = this.get("align");
             S.pin({
                 element: this.element,
                 x: align.selfXY[0],
@@ -162,8 +139,9 @@
         },
 
         destroy: function() {
-            erase(this, Overlay.allOverlays);
-            return Overlay.superclass.destroy.call(this);
+            erase(this, Mask.allMasks);
+            erase(this, Mask.blurMasks);
+            return Mask.superclass.destroy.call(this);
         },
 
         _onRenderWidth: function(val) {
@@ -181,7 +159,7 @@
         _onRenderOpacity: function(val) {
             this.element.css("opacity", val);
         },
-        _onRenderColor: function(val) {
+        _onRenderBackgroundColor: function(val) {
             this.element.css("backgroundColor", val);
         },
         // 除了 element 和 relativeElements，点击 body 后都会隐藏 element
@@ -189,18 +167,18 @@
             arr = $.makeArray(arr);
             arr.push(this.element);
             this._relativeElements = arr;
-            Overlay.blurOverlays.push(this);
+            Mask.blurMasks.push(this);
         }
     });
 
-    Overlay.allOverlays = [];
-    Overlay.blurOverlays = [];
+    Mask.allMasks = [];
+    Mask.blurMasks = [];
     S.getDocument().on("click", function(e) {
-        hideBlurOverlays(e);
+        hideBlurMasks(e);
     });
     // resize overlay
     S.on("window.resize", function() {
-        each(Overlay.allOverlays, function(item) {
+        each(Mask.allMasks, function(item) {
             // 当实例为空或隐藏时，不处理
             if (!item || !item.get("visible")) {
                 return;
@@ -217,8 +195,8 @@
             }
         }
     }
-    function hideBlurOverlays(e) {
-        $(Overlay.blurOverlays).each(function(index, item) {
+    function hideBlurMasks(e) {
+        $(Mask.blurMasks).each(function(index, item) {
             // 当实例为空或隐藏时，不处理
             if (!item || !item.get("visible")) {
                 return;
@@ -235,6 +213,33 @@
         });
     }
 
+    S.Mask = Mask;
+
+    var Overlay = new Class(Mask, {
+        attrs: {
+            width: isIE6 ? doc.outerWidth(true) : "100%",
+            height: isIE6 ? doc.outerHeight(true) : "100%",
+            className: "overlay",
+            opacity: 0.5,
+            backgroundColor: "#000",
+            style: {
+                position: isIE6 ? "absolute" : "fixed",
+                top: 0,
+                left: 0
+            },
+            align: {
+                // undefined 表示相对于当前可视范围定位
+                baseElement: isIE6 ? DEFAULT_PARENT_NODE : undefined
+            }
+        },
+        show: function() {
+            if (isIE6) {
+                this.set("width", doc.outerWidth(true));
+                this.set("height", doc.outerHeight(true));
+            }
+            return Overlay.superclass.show.call(this);
+        }
+    });
     S.Overlay = Overlay;
 })(jQuery, this);
 
@@ -244,6 +249,7 @@
         Class = S.Class,
         Widget = S.Widget,
         Overlay = S.Overlay,
+        Mask = S.Mask,
         isInDocument = S.isInDocument,
         VIEWPORT = S.VIEWPORT,
         DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE;
@@ -259,29 +265,21 @@
     var isFunction = isType("Function"),
         isString = isType("String");
 
-    var Popup = new Class(Overlay);
+    var Popup = new Class(Mask);
 
     Popup.include({
         attrs: {
             withOverlay: true,
             overlayOption: {
-
+                opacity: 0.5,
+                backgroundColor: "#000"
             },
 
             // 擦，拼写错误
             destoryOnHide: false,
+            className: "tbtx-popup",
 
-            style: {
-                display: "none",
-                position: isIE6 ? "absolute" : "fixed"
-            },
-
-            parentNode: DEFAULT_PARENT_NODE,
-
-            // 不需要这几个属性
-            opacity: null,
-            color: null,
-            hideOnClick: null
+            parentNode: DEFAULT_PARENT_NODE
         },
 
         events: {
@@ -298,10 +296,6 @@
                 config.element = selector;
             }
 
-            if (config.align) {
-                config.align.baseElement = config.parentNode || VIEWPORT;
-            }
-
             Popup.superclass.init.call(this, config);
 
         },
@@ -314,11 +308,11 @@
                 config.relatedNode = this.element;
                 config.renderMethod = "insertBefore";
 
-                this.overlay = new Overlay(config);
+                this.overlay = parentNode == DEFAULT_PARENT_NODE ? new Overlay(config) : new Mask(config);
             }
+
             this.mask = '';     // 标示popup类型，在事件里作为数据传递，命名害死人
             this.$element = this.element;
-            this.set("className", "tbtx-popup");
         },
 
         setup: function() {
@@ -389,7 +383,6 @@
         },
 
         // 不使用父类的设置宽高函数
-        // attr中的width和height不生效
         _onRenderWidth: function(val) {
             // this.element.css("width", this.element.width());
         },
