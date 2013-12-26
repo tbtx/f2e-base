@@ -1,18 +1,16 @@
 /*
  * overlay.popup
- * 2013-12-26 10:30:34
+ * 2013-12-26 10:44:27
  */
 (function($, global) {
     var S = global.tbtx,
-        isInDocument = S.isInDocument,
         Class = S.Class,
         Widget = S.Widget,
         VIEWPORT = S.VIEWPORT,
         DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE,
-        each = S.each;
-
-    var ua = (window.navigator.userAgent || "").toLowerCase(), 
-        isIE6 = ua.indexOf("msie 6") !== -1,
+        each = S.each,
+        isInDocument = S.isInDocument,
+        isIE6 = S.isIE6,
         doc = S.getDocument();
 
     // Mask为遮罩，Overlay是全屏遮罩
@@ -250,26 +248,19 @@
         Widget = S.Widget,
         Overlay = S.Overlay,
         Mask = S.Mask,
-        isInDocument = S.isInDocument,
         VIEWPORT = S.VIEWPORT,
-        DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE;
-
-    var ua = (window.navigator.userAgent || "").toLowerCase(),
-        isIE6 = ua.indexOf("msie 6") !== -1;
-
-    function isType(type) {
-        return function(obj) {
-            return {}.toString.call(obj) == "[object " + type + "]";
-        };
-    }
-    var isFunction = isType("Function"),
-        isString = isType("String");
+        DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE,
+        isInDocument = S.isInDocument,
+        isIE6 = S.isIE6,
+        isFunction = S.isFunction,
+        isString = S.isString;
 
     var Popup = new Class(Mask);
 
     Popup.include({
         attrs: {
             withOverlay: true,
+            // 需要指定这两个参数，mask默认没有
             overlayOption: {
                 opacity: 0.5,
                 backgroundColor: "#000"
@@ -297,7 +288,6 @@
             }
 
             Popup.superclass.init.call(this, config);
-
         },
 
         initProps: function() {

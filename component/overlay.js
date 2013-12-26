@@ -1,14 +1,12 @@
 (function($, global) {
     var S = global.tbtx,
-        isInDocument = S.isInDocument,
         Class = S.Class,
         Widget = S.Widget,
         VIEWPORT = S.VIEWPORT,
         DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE,
-        each = S.each;
-
-    var ua = (window.navigator.userAgent || "").toLowerCase(), 
-        isIE6 = ua.indexOf("msie 6") !== -1,
+        each = S.each,
+        isInDocument = S.isInDocument,
+        isIE6 = S.isIE6,
         doc = S.getDocument();
 
     // Mask为遮罩，Overlay是全屏遮罩
