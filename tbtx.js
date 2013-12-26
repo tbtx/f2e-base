@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-26 3:05:20
+ * 2013-12-26 5:04:41
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -267,7 +267,7 @@
         },
 
         makeArray = function(o) {
-            if (o === null) {
+            if (o === null || !o) {
                 return [];
             }
             if (isArray(o)) {

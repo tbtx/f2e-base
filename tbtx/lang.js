@@ -182,7 +182,7 @@
         },
 
         makeArray = function(o) {
-            if (o === null) {
+            if (o === null || !o) {
                 return [];
             }
             if (isArray(o)) {
