@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2013-12-26 10:44:27
+ * 2013-12-26 10:48:20
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3651,6 +3651,7 @@
     };
 
     var requestFailCode = -1,
+        requestingCode = -2,
         requestMap = {},
         /**
          * 适用于用到jtoken的请求
@@ -3665,7 +3666,7 @@
             var deferred = requestMap[url];
             // 正在处理中
             if (deferred && isPending(deferred)) {
-                deferred.notify("requesting");
+                deferred.notify(requestingCode);
                 return deferred.promise();
             }
 
