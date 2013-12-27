@@ -38,7 +38,7 @@
         init: function(config) {
             var parentNode = config.parentNode,
                 defaults = {};
-            
+
             if (parentNode && parentNode !== DEFAULT_PARENT_NODE) {
                 defaults.width = $(parentNode).innerWidth();
                 defaults.height = $(parentNode).innerHeight();

@@ -18,6 +18,7 @@
     #demo {
         margin: 300px;
         width: 300px;
+        background: #000;
     }
     </style>
 </head>
@@ -33,13 +34,7 @@
         new tbtx.Tip({
             trigger: "#demo",
             content: '<div style="padding:10px">我是内容 我是内容</div>',
-            arrowPosition: 11,
-            theme: 'blue',
-            direction: "left",
-            // 提示框离目标距离(px)
-            distance: 50,
-            // 箭头偏移位置(px)，负数表示箭头位置从最右边或最下边开始算
-            arrowShift: 50
+            arrowPosition: 1
         });
     });
     </script>
