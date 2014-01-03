@@ -1,6 +1,6 @@
 /*
  * overlay.popup
- * 2013-12-26 10:48:20
+ * 2014-01-02 1:19:06
  */
 (function($, global) {
     var S = global.tbtx,
@@ -42,7 +42,7 @@
         init: function(config) {
             var parentNode = config.parentNode,
                 defaults = {};
-            
+
             if (parentNode && parentNode !== DEFAULT_PARENT_NODE) {
                 defaults.width = $(parentNode).innerWidth();
                 defaults.height = $(parentNode).innerHeight();
