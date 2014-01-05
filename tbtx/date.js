@@ -49,16 +49,14 @@
             I: date.getMinutes(),
             S: date.getSeconds()
         };
+
         var ret = {},
+            key, 
             i;
-        // for in o的时候如果再对o赋值，在IE7下有bug
+
         for(i in o) {
             ret[i] = o[i];
-        }
 
-        // 补0
-        var key;
-        for(i in o) {
             key = i.toLowerCase();
             if (key == 'y') {
                 ret[key] = o[i].toString().substring(2, 4);
@@ -70,40 +68,34 @@
         return ret;
     }
 
-    var SECONDS_OF_DAY = 24 * 60 * 60;
     function ago(v1, v2) {
         v1 = toDate(v1);
         v2 = toDate(v2);
 
-        var tmp;
-        // 保证v1 > v2
-        if (v1 < v2) {
-            tmp = v1;
-            v1 = v2;
-            v2 = tmp;
-        }
-
-        // diff 秒
-        var floor = Math.floor,
-            diff = (v1.getTime() - v2.getTime()) / 1000,
-            dayDiff = floor(diff / SECONDS_OF_DAY),
+        var SECONDS = 60,
+            SECONDS_OF_HOUR = SECONDS * 60,
+            SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
             // 月份跟年粗略计算
-            monthDiff = floor(dayDiff / 30),
-            yearDiff = floor(dayDiff / 365);
+            SECONDS_OF_MONTH = SECONDS_OF_DAY * 30,
+            SECONDS_OF_YEAR = SECONDS_OF_DAY * 365,
+            // diff seconds
+            diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
+            dayDiff;
 
-        if (yearDiff) {
-            return yearDiff + "年前";
+        if (diff >= SECONDS_OF_YEAR) {
+            return Math.floor(diff / SECONDS_OF_YEAR) + "年前";
         }
-        if (monthDiff) {
-            return monthDiff + "个月前";
+        if (diff >= SECONDS_OF_MONTH) {
+            return Math.floor(diff / SECONDS_OF_MONTH) + "个月前";
         }
-        if (dayDiff) {
-            return dayDiff == 1 ? "昨天": dayDiff + "天前";
+        if (diff >= SECONDS_OF_DAY) {
+            dayDiff = Math.floor(diff / SECONDS_OF_DAY);
+            return dayDiff == 1 ? "昨天" : dayDiff + "天前";
         }
 
-        return diff < 60 && "刚刚" ||
-            diff < 3600 && floor(diff / 60) + "分钟前" ||
-            diff < SECONDS_OF_DAY && floor(diff / 3600) + "小时前";
+        return diff < SECONDS && "刚刚" ||
+            diff < SECONDS_OF_HOUR && Math.floor(diff / SECONDS) + "分钟前" ||
+            diff < SECONDS_OF_DAY && Math.floor(diff / SECONDS_OF_HOUR) + "小时前";
     }
 
     // 字符串/数字 -> Date
@@ -111,12 +103,9 @@
         if (isDate(date)) {
             return date;
         }
+
         var type = typeof date;
-        if (type == 'number' || type == 'string') {
-            return new Date(date);
-        } else{
-            return new Date();
-        }
+        return type == 'number' || type == 'string' ? new Date(date) : new Date();
     }
 
     function mixTo(r, s) {

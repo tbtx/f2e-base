@@ -8,6 +8,9 @@ describe('date', function() {
     });
     describe("ago", function() {
         it("should get ago of the date", function() {
+            expect(Math.abs(-5)).toEqual(5);
+            expect(tbtx
+                .ago(1385617846000, 1385704246000)).toEqual("昨天");
             var date = new Date(1383272557027);
             expect(tbtx
                 .ago(date, 1385694640871)).toEqual("28天前");

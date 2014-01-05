@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-01-02 1:19:06
+ * 2014-01-05 4:01:14
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -894,58 +894,13 @@
         },
 
         /**
-         * http://www.alloyteam.com/2013/12/js-calculate-the-number-of-bytes-occupied-by-a-string/
-         * 计算字符串所占的内存字节数，默认使用UTF-8的编码方式计算，也可制定为UTF-16
-         * UTF-8 是一种可变长度的 Unicode 编码格式，使用一至四个字节为每个字符编码
-         *
-         * 000000 - 00007F(128个代码)      0zzzzzzz(00-7F)                             一个字节
-         * 000080 - 0007FF(1920个代码)     110yyyyy(C0-DF) 10zzzzzz(80-BF)             两个字节
-         * 000800 - 00D7FF
-           00E000 - 00FFFF(61440个代码)    1110xxxx(E0-EF) 10yyyyyy 10zzzzzz           三个字节
-         * 010000 - 10FFFF(1048576个代码)  11110www(F0-F7) 10xxxxxx 10yyyyyy 10zzzzzz  四个字节
-         *
-         * 注: Unicode在范围 D800-DFFF 中不存在任何字符
-         * {@link <a onclick="javascript:pageTracker._trackPageview('/outgoing/zh.wikipedia.org/wiki/UTF-8');" href="http://zh.wikipedia.org/wiki/UTF-8">http://zh.wikipedia.org/wiki/UTF-8</a>}
-         *
-         * UTF-16 大部分使用两个字节编码，编码超出 65535 的使用四个字节
-         * 000000 - 00FFFF  两个字节
-         * 010000 - 10FFFF  四个字节
-         *
-         * {@link <a onclick="javascript:pageTracker._trackPageview('/outgoing/zh.wikipedia.org/wiki/UTF-16');" href="http://zh.wikipedia.org/wiki/UTF-16">http://zh.wikipedia.org/wiki/UTF-16</a>}
-         * @param  {String} str
-         * @param  {String} charset utf-8, utf-16
-         * @return {Number}
+         * return sizeof a str
+         * 匹配双字节字符(包括汉字在内)
+         * @param  {String} str the input str
+         * @return {number}     the sizeof the str
          */
-        sizeof: function(str, charset) {
-            var total = 0,
-                charCode,
-                i,
-                len;
-            charset = charset ? charset.toLowerCase() : '';
-            if (charset === 'utf-16' || charset === 'utf16') {
-                for (i = 0, len = str.length; i < len; i++) {
-                    charCode = str.charCodeAt(i);
-                    if (charCode <= 0xffff) {
-                        total += 2;
-                    } else {
-                        total += 4;
-                    }
-                }
-            } else {
-                for (i = 0, len = str.length; i < len; i++) {
-                    charCode = str.charCodeAt(i);
-                    if (charCode <= 0x007f) {
-                        total += 1;
-                    } else if (charCode <= 0x07ff) {
-                        total += 2;
-                    } else if (charCode <= 0xffff) {
-                        total += 3;
-                    } else {
-                        total += 4;
-                    }
-                }
-            }
-            return total;
+        sizeof: function(str) {
+            return String(str).replace(/[^\x00-\xff]/g, "aa").length;
         },
 
         keys: keys,
@@ -2036,16 +1991,14 @@
             I: date.getMinutes(),
             S: date.getSeconds()
         };
+
         var ret = {},
+            key, 
             i;
-        // for in o的时候如果再对o赋值，在IE7下有bug
+
         for(i in o) {
             ret[i] = o[i];
-        }
 
-        // 补0
-        var key;
-        for(i in o) {
             key = i.toLowerCase();
             if (key == 'y') {
                 ret[key] = o[i].toString().substring(2, 4);
@@ -2057,40 +2010,34 @@
         return ret;
     }
 
-    var SECONDS_OF_DAY = 24 * 60 * 60;
     function ago(v1, v2) {
         v1 = toDate(v1);
         v2 = toDate(v2);
 
-        var tmp;
-        // 保证v1 > v2
-        if (v1 < v2) {
-            tmp = v1;
-            v1 = v2;
-            v2 = tmp;
-        }
-
-        // diff 秒
-        var floor = Math.floor,
-            diff = (v1.getTime() - v2.getTime()) / 1000,
-            dayDiff = floor(diff / SECONDS_OF_DAY),
+        var SECONDS = 60,
+            SECONDS_OF_HOUR = SECONDS * 60,
+            SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
             // 月份跟年粗略计算
-            monthDiff = floor(dayDiff / 30),
-            yearDiff = floor(dayDiff / 365);
+            SECONDS_OF_MONTH = SECONDS_OF_DAY * 30,
+            SECONDS_OF_YEAR = SECONDS_OF_DAY * 365,
+            // diff seconds
+            diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
+            dayDiff;
 
-        if (yearDiff) {
-            return yearDiff + "年前";
+        if (diff >= SECONDS_OF_YEAR) {
+            return Math.floor(diff / SECONDS_OF_YEAR) + "年前";
         }
-        if (monthDiff) {
-            return monthDiff + "个月前";
+        if (diff >= SECONDS_OF_MONTH) {
+            return Math.floor(diff / SECONDS_OF_MONTH) + "个月前";
         }
-        if (dayDiff) {
-            return dayDiff == 1 ? "昨天": dayDiff + "天前";
+        if (diff >= SECONDS_OF_DAY) {
+            dayDiff = Math.floor(diff / SECONDS_OF_DAY);
+            return dayDiff == 1 ? "昨天" : dayDiff + "天前";
         }
 
-        return diff < 60 && "刚刚" ||
-            diff < 3600 && floor(diff / 60) + "分钟前" ||
-            diff < SECONDS_OF_DAY && floor(diff / 3600) + "小时前";
+        return diff < SECONDS && "刚刚" ||
+            diff < SECONDS_OF_HOUR && Math.floor(diff / SECONDS) + "分钟前" ||
+            diff < SECONDS_OF_DAY && Math.floor(diff / SECONDS_OF_HOUR) + "小时前";
     }
 
     // 字符串/数字 -> Date
@@ -2098,12 +2045,9 @@
         if (isDate(date)) {
             return date;
         }
+
         var type = typeof date;
-        if (type == 'number' || type == 'string') {
-            return new Date(date);
-        } else{
-            return new Date();
-        }
+        return type == 'number' || type == 'string' ? new Date(date) : new Date();
     }
 
     function mixTo(r, s) {

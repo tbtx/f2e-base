@@ -377,4 +377,11 @@ describe('lang', function() {
 			expect(tbtx.unEscapeHtml("&lt;&gt;")).toEqual("<>");
 		});
 	});
+
+	describe('sizeof', function() {
+		it("should get the sizeof a str", function() {
+			expect(tbtx.sizeof("abc")).toEqual(3);
+			expect(tbtx.sizeof("a汉字c")).toEqual(6);
+		});
+	});
 });
