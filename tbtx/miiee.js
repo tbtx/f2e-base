@@ -92,6 +92,10 @@
     };
 
     var requestFailCode = -1,
+        requestFailResponse = {
+            code: requestFailCode,
+            msg: "请求失败！请检查网络连接！"
+        },
         requestingCode = -2,
         requestMap = {},
         /**
@@ -128,7 +132,7 @@
                 }
             })
             .fail(function() {
-                deferred.reject(requestFailCode);
+                deferred.reject(requestFailCode, requestFailResponse);
             });
 
             return deferred.promise();
@@ -137,6 +141,11 @@
     S.mix({
         miieeJSToken: miieeJSToken,
         userCheck: userCheck,
+
+        initMiiee: function() {
+            return S.loadScript(["miiee/js/m.js", "miiee/js/base.js"]);
+        },
+
         Request: Request,
 
         /**

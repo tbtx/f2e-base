@@ -383,4 +383,9 @@
 
     S.Base = Base;
     S.Widget = Widget;
+    // 简单工厂
+    S.createWidget = function(properties, parent) {
+        parent = parent || Widget;
+        return new Class(parent, properties);
+    };
 })(jQuery, tbtx);

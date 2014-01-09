@@ -346,7 +346,7 @@ describe('lang', function() {
 			expect(tbtx.getFragment("")).toEqual("");
 		});
 	});
-	describe('unparam, getQueryParam', function() {
+	describe('unparam, param', function() {
 		it("should get a object of the params", function() {
 			expect(tbtx.unparam("spm=a310i.2181409.5731777.1.eVI5Sh&name=1213")).toEqual({
 				spm: "a310i.2181409.5731777.1.eVI5Sh",
@@ -354,11 +354,21 @@ describe('lang', function() {
 			});
 		});
 
+		it("should param a object to params", function() {
+			expect(tbtx.param({
+				spm: "a310i.2181409.5731777.1.eVI5Sh",
+				name: "1213"
+			})).toEqual("spm=a310i.2181409.5731777.1.eVI5Sh&name=1213");
+		});
+	});
+
+	describe("get/add/remove/set, QueryParam", function() {
 		it("should get a object of the params with a url ", function() {
 			var url = "http://miiee.taobao.com/themes/theme_118.htm?spm=a310i.2181409.5731777.1.eVI5Sh&name=1213#page-5";
 			var target = {spm: "a310i.2181409.5731777.1.eVI5Sh", name: "1213"};
 
 			expect( tbtx.getQueryParam("", url) ).toEqual(target);
+			expect( tbtx.getQueryParam(url) ).toEqual(target);
 			expect( tbtx.getQueryParam("name", url) ).toEqual("1213");
 
 			// expect( tbtx.getQueryParam("") ).toEqual({});
@@ -366,6 +376,20 @@ describe('lang', function() {
 
 			expect( tbtx.getQueryParam("name", "abc") ).toEqual('');
 			expect( tbtx.getQueryParam("", "abc") ).toEqual({});
+		});
+
+		it("should add params with a url ", function() {
+			var url = "http://miiee.taobao.com/themes/theme_118.htm#page-5";
+			var params = {spm: "a310i.2181409.5731777.1.eVI5Sh", name: "1213"};
+			var target = "http://miiee.taobao.com/themes/theme_118.htm?spm=a310i.2181409.5731777.1.eVI5Sh&name=1213#page-5";
+			expect(tbtx.addQueryParam(params, url)).toEqual(target);
+		});
+
+		it("should remove params with a url ", function() {
+			var url = "http://miiee.taobao.com/themes/theme_118.htm#page-5";
+			var params = ["spm", "name"];
+			var target = "http://miiee.taobao.com/themes/theme_118.htm?spm=a310i.2181409.5731777.1.eVI5Sh&name=1213#page-5";
+			expect(tbtx.removeQueryParam(params, target)).toEqual(url);
 		});
 	});
 

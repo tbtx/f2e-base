@@ -399,7 +399,7 @@
          * based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
          */
         substitute = function(str, o, regexp) {
-            if (!isString(str)) {
+            if (!S.isNotEmptyString(str)) {
                 return str;
             }
             if ( !(isPlainObject(o) || isArray(o)) ) {
@@ -413,11 +413,50 @@
             });
         },
 
+        param = function (o, sep, eq, serializeArray) {
+            sep = sep || '&';
+            eq = eq || '=';
+            if (serializeArray === undefined) {
+                serializeArray = TRUE;
+            }
+            var buf = [], key, i, v, len, val,
+                encode = encodeURIComponent;
+            for (key in o) {
+                val = o[key];
+                key = encode(key);
+
+                // val is valid non-array value
+                if (isValidParamValue(val)) {
+                    buf.push(key);
+                    if (val !== undefined) {
+                        buf.push(eq, encode(val + EMPTY));
+                    }
+                    buf.push(sep);
+                } else if (S.isArray(val) && val.length) {
+                    // val is not empty array
+                    for (i = 0, len = val.length; i < len; ++i) {
+                        v = val[i];
+                        if (isValidParamValue(v)) {
+                            buf.push(key, (serializeArray ? encode('[]') : EMPTY));
+                            if (v !== undefined) {
+                                buf.push(eq, encode(v + EMPTY));
+                            }
+                            buf.push(sep);
+                        }
+                    }
+                }
+                // ignore other cases, including empty array, Function, RegExp, Date etc.
+
+            }
+
+            buf.pop();
+            return buf.join(EMPTY);
+        },
         /**
          * query字符串转为对象
          */
         unparam = function(str, sep, eq) {
-            if (!isString(str)) {
+            if (!S.isNotEmptyString(str)) {
                 return {};
             }
             sep = sep || '&';
@@ -474,13 +513,21 @@
          * @return {Object}         a object with url info
          */
         parseUrl = function(url) {
+            var ret = {},
+                match;
             url = url || location.href;
-            var ret = {};
-            if (!isString(url)) {
+
+            if (!S.isNotEmptyString(url)) {
                 return ret;
             }
-            var match = URI_RE.exec(url);
+            match = URI_RE.exec(url);
             if (match) {
+                // 统一undefined为string
+                each(match, function(item, index) {
+                    if (!item) {
+                        match[index] = "";
+                    }
+                });
                 return {
                     scheme: match[1],
                     credentials: match[2],
@@ -495,25 +542,73 @@
             return ret;
         },
         getFragment = function(url) {
-            url = url || location.href;
-            var match = URI_RE.exec(url);
-            return match[7] || "";
+            return parseUrl(url).fragment || "";
         },
         getQueryParam = function(name, url) {
             if (S.isUri(name)) {
                 url = name;
                 name = "";
             }
-            url = url || location.href;
 
-            var match = URI_RE.exec(url),
-                ret = unparam(match[6]);
+            var ret = unparam(parseUrl(url).query);
 
-            if (name) {
-                return ret[name] || '';
-            }
-            return ret;
+            return name ? ret[name] || "": ret;
         },
+        addQueryParam = function(name, value, url) {
+            var input = {};
+            if (isPlainObject(name)) {
+                url = value;
+                input = name;
+            } else {
+                input[name] = value;
+            }
+            var parseResult = parseUrl(url),
+                query = unparam(parseResult.query);
+
+            parseResult.query = mix(query, input);
+            return parseToUri(parseResult);
+        },
+        removeQueryParam = function(name, url) {
+            name = S.isArray(name) ? name: [name];
+            var parseResult = parseUrl(url),
+                query = unparam(parseResult.query);
+
+            each(name, function(item) {
+                if (query[item]) {
+                    delete query[item];
+                }
+            });
+            parseResult.query = query;
+            return parseToUri(parseResult);
+        },
+        // parseResult -> uri
+        parseToUri = function(parseResult) {
+            var ret = [parseResult.scheme, "://", parseResult.domain],
+                t;
+
+            t = parseResult.port;
+            if (t) {
+                ret.push(":" + t);
+            }
+
+            ret.push(parseResult.path);
+
+            t = parseResult.query;
+            if (typeof t == "object") {
+                t = param(t);
+            }
+            if (t) {
+                ret.push("?" + t);
+            }
+
+            t = parseResult.fragment;
+            if (t) {
+                ret.push("#" + t);
+            }
+
+            return ret.join("");
+        },
+
 
         htmlEntities = {
             '&amp;': '&',
@@ -638,6 +733,11 @@
         cls.Implements = Implements;
         return cls;
     }
+    function isValidParamValue(val) {
+        var t = typeof val;
+        // If the type of val is null, undefined, number, string, boolean, return TRUE.
+        return val === null || (t !== 'object' && t !== 'function');
+    }
 
     var mix = S.mix = function(des, source, blacklist, over) {
         var i;
@@ -674,6 +774,7 @@
             return isString(val) && val !== '';
         },
 
+        isPlainObject: isPlainObject,
         /**
          * 判断deferred对象是否正在处理中
          * @param  {deferred object}
@@ -692,7 +793,7 @@
 
         isUri: function(val) {
             var match;
-            if (isString(val)) {
+            if (S.isNotEmptyString(val)) {
                 match = URI_RE.exec(val);
                 if (match && match[1]) {
                     return TRUE;
@@ -832,9 +933,12 @@
         curry: curry,
         substitute: substitute,
         unparam: unparam,
+        param: param,
         parseUrl: parseUrl,
         getFragment: getFragment,
         getQueryParam: getQueryParam,
+        addQueryParam: addQueryParam,
+        removeQueryParam: removeQueryParam,
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });

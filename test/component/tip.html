@@ -31,11 +31,12 @@
     <script src="../../tbtx.js"></script>
     <script>
     tbtx.require("tip", function() {
-        new tbtx.Tip({
+        var a = new tbtx.Tip({
             trigger: "#demo",
             content: '<div style="padding:10px">我是内容 我是内容</div>',
             arrowPosition: 1
         });
+        tbtx.log(a);
     });
     </script>
 </body>

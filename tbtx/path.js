@@ -1,5 +1,5 @@
 (function(S) {
-    var parseResult = S.parseUrl(location.href);
+    var parseResult = S.parseUrl();
     parseResult.query = S.getQueryParam();
     S.data("urlInfo", parseResult);
 
@@ -18,7 +18,6 @@
         taobao_login_page : '/applogin.htm',
         login: '/applogin.htm?ref=' + encodeURIComponent(location.href)
     };
-
 
     S.mix({
         ROOT: ROOT,

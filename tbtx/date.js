@@ -51,7 +51,7 @@
         };
 
         var ret = {},
-            key, 
+            key,
             i;
 
         for(i in o) {
