@@ -507,6 +507,8 @@
             "$"
         ),
 
+        parseCache = new S.Cache("parseUrl"),
+
         /**
          * parse url
          * @param  {url}    url     the url to be parsed
@@ -516,6 +518,11 @@
             var ret = {},
                 match;
             url = url || location.href;
+
+            var cache = parseCache.get(url);
+            if (cache) {
+                return cache;
+            }
 
             if (!S.isNotEmptyString(url)) {
                 return ret;
@@ -528,7 +535,7 @@
                         match[index] = "";
                     }
                 });
-                return {
+                ret = {
                     scheme: match[1],
                     credentials: match[2],
                     domain: match[3],
@@ -537,6 +544,8 @@
                     query: match[6],
                     fragment: match[7]
                 };
+                parseCache.set(url, ret);
+                return ret;
             }
 
             return ret;

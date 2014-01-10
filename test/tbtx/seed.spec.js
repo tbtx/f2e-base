@@ -14,6 +14,26 @@ describe('seed', function() {
 		});
 	});
 
+	describe("Cache", function() {
+		it("should cache a value with a key", function(){
+			var v = "hello";
+			var Cache = new tbtx.Cache();
+			Cache.set('msg', v);
+			expect(Cache.get('msg')).toEqual(v);
+			Cache.remove('msg');
+			expect(Cache.get('msg')).toEqual(undefined);
+		});
+
+		it("should cache a value with a key", function(){
+			var v = "hello";
+			var Cache = new tbtx.Cache();
+			Cache.set('msg', v);
+			Cache.set('msg2', v);
+			Cache.clear();
+			expect(Cache.getAll()).toEqual({});
+		});
+	});
+
 	describe("data and removeData", function() {
 		it("should data a value with name", function(){
 			var v = "hello";

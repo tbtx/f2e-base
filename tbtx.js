@@ -1,14 +1,14 @@
 /*
  * tbtx-base-js
- * 2014-01-09 10:39:01
+ * 2014-01-10 10:22:59
  * 十一_tbtx
  * zenxds@gmail.com
  */
-(function(global, tbtx) {
+(function(global, S) {
 
     var cidCounter = 0;
 
-    global[tbtx] = {
+    S = global[S] = {
 
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
@@ -45,26 +45,7 @@
          */
         global: global,
 
-        _tbtx: global[tbtx],
-
-        /**
-         * 存放数据
-         * @type {jQuery Object}
-         */
-        _data: jQuery({}),
-
-        /**
-         * 存取数据
-         * @param  {string} key   键值
-         * @param  {any} value 存放值
-         */
-        data: function() {
-            return this._data.data.apply(this._data, arguments);
-        },
-
-        removeData: function() {
-            return this._data.removeData.apply(this._data, arguments);
-        },
+        _tbtx: global[S],
 
         /**
          * 空函数，在需要使用空函数作为参数时使用
@@ -77,7 +58,73 @@
          */
         uniqueCid: function() {
             return cidCounter++;
+        },
+
+        Cache: Cache
+
+    };
+
+    function Cache(namespace) {
+        this.namespace = namespace || "";
+        this.cache = {};
+    }
+
+    Cache.prototype = {
+
+        set: function(key, val) {
+            if (val === undefined) {
+                return this.get(key);
+            }
+
+            key = this.parseKey(key);
+            this.cache[key] = val;
+            return val;
+        },
+
+        get: function(key) {
+            key = this.parseKey(key);
+            return this.cache[key];
+        },
+
+        getAll: function() {
+            // return a copy
+            return S.deepCopy(this.cache);
+        },
+
+        remove: function(key) {
+            key = this.parseKey(key);
+            delete this.cache[key];
+            return this;
+        },
+
+        clear: function() {
+            delete this.cache;
+            this.cache = {};
+        },
+
+        parseKey: function(key) {
+            key = String(key);
+            if (this.namespace) {
+                key = this.namespace + ":" + key;
+            }
+            return key;
         }
+
+    };
+
+    var dataCache = new Cache("data");
+
+    /**
+     * 存取数据
+     * @param  {string} key   键值
+     * @param  {any} value 存放值
+     */
+    S.data = function(key, value) {
+        return dataCache.set(key, value);
+    };
+    S.removeData = function(key) {
+        dataCache.remove(key);
+        return this;
     };
 
 })(this, 'tbtx');
@@ -592,6 +639,8 @@
             "$"
         ),
 
+        parseCache = new S.Cache("parseUrl"),
+
         /**
          * parse url
          * @param  {url}    url     the url to be parsed
@@ -601,6 +650,11 @@
             var ret = {},
                 match;
             url = url || location.href;
+
+            var cache = parseCache.get(url);
+            if (cache) {
+                return cache;
+            }
 
             if (!S.isNotEmptyString(url)) {
                 return ret;
@@ -613,7 +667,7 @@
                         match[index] = "";
                     }
                 });
-                return {
+                ret = {
                     scheme: match[1],
                     credentials: match[2],
                     domain: match[3],
@@ -622,6 +676,8 @@
                     query: match[6],
                     fragment: match[7]
                 };
+                parseCache.set(url, ret);
+                return ret;
             }
 
             return ret;
