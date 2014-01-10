@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-01-10 10:22:59
+ * 2014-01-10 4:59:31
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -78,7 +78,6 @@
 
             key = this.parseKey(key);
             this.cache[key] = val;
-            return val;
         },
 
         get: function(key) {
@@ -94,7 +93,6 @@
         remove: function(key) {
             key = this.parseKey(key);
             delete this.cache[key];
-            return this;
         },
 
         clear: function() {

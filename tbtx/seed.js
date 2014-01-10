@@ -72,7 +72,6 @@
 
             key = this.parseKey(key);
             this.cache[key] = val;
-            return val;
         },
 
         get: function(key) {
@@ -88,7 +87,6 @@
         remove: function(key) {
             key = this.parseKey(key);
             delete this.cache[key];
-            return this;
         },
 
         clear: function() {
