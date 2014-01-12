@@ -3,7 +3,7 @@
     var Loader = S.namespace("Loader"),
 
         // 缓存计算过的依赖
-        dependenciesMap = Loader.dependenciesMap = {},
+        dependenciesCache = Loader.dependenciesCache = new S.Cache("Loader:dependencies"),
 
         data = Loader.data = {
             baseUrl: S.staticUrl + "/base/js/component/",
@@ -80,7 +80,7 @@
             deps = depsConfig[name];
 
         // 没有计算过依赖
-        if (!dependenciesMap[name]) {
+        if (!dependenciesCache.get(name)) {
             // 有依赖
             if (deps) {
                 // 保证deps为数组
@@ -93,8 +93,8 @@
                     ret = getDeps(dep).concat(ret);
                 });
             }
-            dependenciesMap[name] = ret;
+            dependenciesCache.set(name, ret);
         }
-        return dependenciesMap[name];
+        return dependenciesCache.get(name);
     }
 })(tbtx);

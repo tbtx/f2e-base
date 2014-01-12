@@ -255,7 +255,7 @@
         choice = function(m, n) {
             var array,
                 random,
-                tmp;
+                temp;
             if (isArray(m)) {
                 array = m;
                 m = 0;
@@ -263,9 +263,9 @@
             }
 
             if (m > n) {
-                tmp = m;
+                temp = m;
                 m = n;
-                n = tmp;
+                n = temp;
             }
 
             random = Math.floor(Math.random() * (n-m) + m);

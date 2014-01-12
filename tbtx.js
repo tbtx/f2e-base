@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-01-10 10:22:59
+ * 2014-01-12 7:21:26
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -58,32 +58,30 @@
          */
         uniqueCid: function() {
             return cidCounter++;
-        },
-
-        Cache: Cache
+        }
 
     };
 
-    function Cache(namespace) {
-        this.namespace = namespace || "";
+})(this, 'tbtx');
+
+
+;(function(S) {
+
+    function Cache(name) {
+        this.name = name || "";
+        this.cid = S.uniqueCid();
         this.cache = {};
     }
 
     Cache.prototype = {
 
         set: function(key, val) {
-            if (val === undefined) {
-                return this.get(key);
-            }
-
-            key = this.parseKey(key);
             this.cache[key] = val;
             return val;
         },
 
         get: function(key) {
-            key = this.parseKey(key);
-            return this.cache[key];
+            return key === undefined ? this.getAll() : this.cache[key];
         },
 
         getAll: function() {
@@ -92,7 +90,6 @@
         },
 
         remove: function(key) {
-            key = this.parseKey(key);
             delete this.cache[key];
             return this;
         },
@@ -100,14 +97,6 @@
         clear: function() {
             delete this.cache;
             this.cache = {};
-        },
-
-        parseKey: function(key) {
-            key = String(key);
-            if (this.namespace) {
-                key = this.namespace + ":" + key;
-            }
-            return key;
         }
 
     };
@@ -120,15 +109,15 @@
      * @param  {any} value 存放值
      */
     S.data = function(key, value) {
-        return dataCache.set(key, value);
+        return value === undefined ? dataCache.get(key) : dataCache.set(key, value);
     };
     S.removeData = function(key) {
         dataCache.remove(key);
         return this;
     };
 
-})(this, 'tbtx');
-
+    S.Cache = Cache;
+})(tbtx);
 
 ;(function(global, S, undefined) {
     // 语言扩展
@@ -387,7 +376,7 @@
         choice = function(m, n) {
             var array,
                 random,
-                tmp;
+                temp;
             if (isArray(m)) {
                 array = m;
                 m = 0;
@@ -395,9 +384,9 @@
             }
 
             if (m > n) {
-                tmp = m;
+                temp = m;
                 m = n;
-                n = tmp;
+                n = temp;
             }
 
             random = Math.floor(Math.random() * (n-m) + m);
@@ -3449,7 +3438,7 @@
     var Loader = S.namespace("Loader"),
 
         // 缓存计算过的依赖
-        dependenciesMap = Loader.dependenciesMap = {},
+        dependenciesCache = Loader.dependenciesCache = new S.Cache("Loader:dependencies"),
 
         data = Loader.data = {
             baseUrl: S.staticUrl + "/base/js/component/",
@@ -3526,7 +3515,7 @@
             deps = depsConfig[name];
 
         // 没有计算过依赖
-        if (!dependenciesMap[name]) {
+        if (!dependenciesCache.get(name)) {
             // 有依赖
             if (deps) {
                 // 保证deps为数组
@@ -3539,9 +3528,9 @@
                     ret = getDeps(dep).concat(ret);
                 });
             }
-            dependenciesMap[name] = ret;
+            dependenciesCache.set(name, ret);
         }
-        return dependenciesMap[name];
+        return dependenciesCache.get(name);
     }
 })(tbtx);
 
