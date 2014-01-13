@@ -376,6 +376,8 @@ describe('lang', function() {
 
 			expect( tbtx.getQueryParam("name", "abc") ).toEqual('');
 			expect( tbtx.getQueryParam("", "abc") ).toEqual({});
+
+			expect( tbtx.getQueryParam() ).toBe(tbtx.data("urlInfo").query);
 		});
 
 		it("should add params with a url ", function() {

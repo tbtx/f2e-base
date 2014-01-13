@@ -558,10 +558,13 @@
                 url = name;
                 name = "";
             }
+            var parseResult = parseUrl(url),
+                query = parseResult.query;
+            if (S.isString(parseResult.query)) {
+                query = unparam(query);
+            }
 
-            var ret = unparam(parseUrl(url).query);
-
-            return name ? ret[name] || "": ret;
+            return name ? query[name] || "": query;
         },
         addQueryParam = function(name, value, url) {
             var input = {};
@@ -572,7 +575,10 @@
                 input[name] = value;
             }
             var parseResult = parseUrl(url),
+                query = parseResult.query;
+            if (S.isString(query)) {
                 query = unparam(parseResult.query);
+            }
 
             parseResult.query = mix(query, input);
             return parseToUri(parseResult);
