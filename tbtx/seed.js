@@ -52,71 +52,8 @@
          */
         uniqueCid: function() {
             return cidCounter++;
-        },
-
-        Cache: Cache
-
-    };
-
-    function Cache(namespace) {
-        this.namespace = namespace || "";
-        this.cache = {};
-    }
-
-    Cache.prototype = {
-
-        set: function(key, val) {
-            if (val === undefined) {
-                return this.get(key);
-            }
-
-            key = this.parseKey(key);
-            this.cache[key] = val;
-        },
-
-        get: function(key) {
-            key = this.parseKey(key);
-            return this.cache[key];
-        },
-
-        getAll: function() {
-            // return a copy
-            return S.deepCopy(this.cache);
-        },
-
-        remove: function(key) {
-            key = this.parseKey(key);
-            delete this.cache[key];
-        },
-
-        clear: function() {
-            delete this.cache;
-            this.cache = {};
-        },
-
-        parseKey: function(key) {
-            key = String(key);
-            if (this.namespace) {
-                key = this.namespace + ":" + key;
-            }
-            return key;
         }
 
-    };
-
-    var dataCache = new Cache("data");
-
-    /**
-     * 存取数据
-     * @param  {string} key   键值
-     * @param  {any} value 存放值
-     */
-    S.data = function(key, value) {
-        return dataCache.set(key, value);
-    };
-    S.removeData = function(key) {
-        dataCache.remove(key);
-        return this;
     };
 
 })(this, 'tbtx');
