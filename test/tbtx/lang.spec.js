@@ -15,6 +15,8 @@ describe('lang', function() {
 		it("should adjust if a deferred is pending", function() {
 			var deferred = $.Deferred();
 			expect(tbtx.isPending(deferred)).toBeTruthy();
+
+			expect(tbtx.isPending({})).toBeFalsy();
 		});
 	});
 
@@ -47,6 +49,15 @@ describe('lang', function() {
 		});
 	});
 
+	describe("isUri", function() {
+		it("should test a str is a uri", function() {
+			expect(tbtx.isUri("http://www.taobao.com")).toBeTruthy();
+			expect(tbtx.isUri("file:///E:/tbcdn/base/js/test/index.html")).toBeTruthy();
+			expect(tbtx.isUri("www.miiee.com")).toBeFalsy();
+			expect(tbtx.isUri("http://miiee.taobao.com/orders/confirm.htm?oid=165021")).toBeTruthy();
+		});
+	});
+
 	describe("later", function() {
 		it("should get execute a fn after some mils", function() {
 			var globalName;
@@ -54,8 +65,8 @@ describe('lang', function() {
 				globalName = name;
 				expect(globalName).toEqual(name);
 			};
-
 			var r = tbtx.later(f, 2000, false, window, ["alex"]);
+			expect(globalName).toBeUndefined();
 		});
 	});
 
@@ -71,6 +82,12 @@ describe('lang', function() {
 
 			expect(prevs).toEqual([1, 3, 6]);
 			expect(nows).toEqual([2, 3, 4]);
+		});
+	});
+
+	describe("unique", function() {
+		it("should unique an array", function() {
+			expect(tbtx.unique(["a", "b", "a", "b", "c", "c"])).toEqual(["a", "b", "c"]);
 		});
 	});
 
@@ -207,6 +224,14 @@ describe('lang', function() {
 			expect("on" in o).toBeTruthy();
 			expect("off" in o).toBeTruthy();
 			expect("trigger" in o).toBeTruthy();
+
+			var F = function() {};
+			tbtx.classify(F);
+			F.Implements(tbtx.Events);
+			o = new F();
+			expect("on" in o).toBeTruthy();
+			expect("off" in o).toBeTruthy();
+			expect("trigger" in o).toBeTruthy();
 		});
 	});
 
@@ -216,6 +241,25 @@ describe('lang', function() {
 			expect(tbtx.isNotEmptyString('')).toBeFalsy();
 
 			expect(tbtx.isNotEmptyString({})).toBeFalsy();
+		});
+	});
+
+	describe('isPlainObject', function() {
+		it("should test if a object is a plain object", function() {
+			expect(tbtx.isPlainObject(tbtx.global)).toBeFalsy();
+			expect(tbtx.isPlainObject({})).toBeTruthy();
+
+			var f = function(){};
+			var a = new f();
+			expect(tbtx.isPlainObject(a)).toBeFalsy();
+
+			var head = document.head || document.getElementsByTagName('head')[0];
+			expect(tbtx.isPlainObject(head)).toBeFalsy();
+
+			var o = new tbtx.Base();
+			expect(tbtx.isPlainObject(o)).toBeFalsy();
+
+			expect(tbtx.isPlainObject("")).toBeFalsy();
 		});
 	});
 
