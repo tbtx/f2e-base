@@ -39,7 +39,7 @@
             disable: 'disable'
         },
         isTarget: false,
-        pattern: '<a href="{{ href }}" class="{{ className }}" target="{{ target }}">{{ content }}</a>'
+        pattern: '<a href="{{ href }}" data-page="{{ page }}" class="{{ className }}" target="{{ target }}">{{ content }}</a>'
     };
 
     Pagination.include({
@@ -75,12 +75,12 @@
             // 要显示的页
             var left = number.index - Math.floor(number.display / 2);
             var right = number.index + Math.floor(number.display / 2);
-            
+
             // 判断越界
             if (left < 1) {
                 left = 1;
                 right = number.display < number.pages ? number.display : number.pages;
-            } 
+            }
             if (right > number.pages) {
                 right = number.pages;
                 left =  number.display < number.pages ? (number.pages - number.display + 1) : 1;
@@ -94,7 +94,7 @@
 
         render: function() {
             this.calc();
-            
+
             var pattern = this.options.pattern;
             var ret = [];
 
@@ -110,7 +110,8 @@
                 }),
                 className: [className.first, className.item].join(' '),
                 target: target,
-                content: template.first
+                content: template.first,
+                page: number.first
             }));
 
             // prev
@@ -120,7 +121,8 @@
                 }) : 'javascript:;',
                 className: number.prev ? [className.prev, className.item].join(' ') : [className.prev, className.disable, className.item].join(' '),
                 target: target,
-                content: template.prev
+                content: template.prev,
+                page: number.prev
             }));
 
             for (var i = 0; i < this.display.length; i++) {
@@ -134,7 +136,8 @@
                     target: target,
                     content: substitute(template.item, {
                         page: page
-                    })
+                    }),
+                    page: page
                 }));
             };
 
@@ -145,7 +148,8 @@
                 }) : 'javascript:;',
                 className: number.next ? [className.next, className.item].join(' ') : [className.next, className.item, className.disable].join(' '),
                 target: target,
-                content: template.next
+                content: template.next,
+                page: number.next
             }));
 
             // last
@@ -155,7 +159,8 @@
                 }),
                 className: [className.last, className.item].join(' '),
                 target: target,
-                content: template.last
+                content: template.last,
+                page: number.last
             }));
 
             this.container.html(ret.join(''));

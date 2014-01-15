@@ -325,20 +325,20 @@
         isInView = function(selector, top) {
             top = top || 0;
 
-            var $element = $(selector),
-                viewportHeight = S.viewportHeight(),
-                scrollY = S.scrollY();
-
+            var element = $(selector),
+                elemHeight = element.innerHeight(),
+                win = getWindow(),
+                winHeight = win.height();
             if (top == "center" || typeof top !== "number") {
-                top = (viewportHeight - $element.innerHeight())/2;
+                top = (winHeight- elemHeight)/2;
             }
 
-            // 视口上下位置
-            var topLine = scrollY,
-                bottomLine = topLine + viewportHeight,
-                baseline = $element.offset().top + top;
-
-            return baseline > topLine && baseline < bottomLine;
+            var scrollTop = win.scrollTop();
+            var scrollBottom = scrollTop + winHeight;
+            var elementTop = element.offset().top + top;
+            var elementBottom = elementTop + elemHeight;
+            // 只判断垂直位置是否在可视区域，不判断水平。只有要部分区域在可视区域，就返回 true
+            return elementTop < scrollBottom && elementBottom > scrollTop;
         },
 
         scrollTo = function(selector) {

@@ -46,7 +46,7 @@
         var paths = data.paths;
         return S.map(deps, function(item) {
             var path = paths[item] || item,
-                ret =  baseUrl + path;
+                ret =  S.isUri(path) ? path : baseUrl + path;
             if (!S.endsWith(ret, ".js")) {
                 ret += ".js";
             }

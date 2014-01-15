@@ -29,7 +29,7 @@
 
     #demo-2 {
         position: absolute;
-        bottom: 1000px;
+        bottom: 2000px;
         left: 50%;
         background: #000;
     }
@@ -61,7 +61,7 @@
         //     { element: tbtx.VIEWPORT, x: 'center', y: 'center' }
         // );
         tbtx.on("window.scroll", function() {
-            tbtx.log(tbtx.isInView("#demo-2", "center"));
+            tbtx.log(tbtx.isInView("#demo-2", 100));
         });
     </script>
 </body>
