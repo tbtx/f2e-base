@@ -104,7 +104,7 @@
         Request = function(url, data, successCode) {
             successCode = successCode || Request.successCode || [100];
             data = data || {};
-            if (!data.jtoken) {
+            if (typeof data === "object" && !data.jtoken) {
                 data.jtoken = miieeJSToken();
             }
 

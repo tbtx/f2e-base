@@ -26,7 +26,8 @@
     function getMethod(host, methodName) {
         var method = host[methodName];
         if (!method) {
-            throw new Error("Invalid method name: " + methodName);
+            // throw new Error("Invalid method name: " + methodName);
+            S.error("Invalid method name: " + methodName);
         }
         return method;
     }

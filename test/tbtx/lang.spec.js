@@ -300,6 +300,20 @@ describe('lang', function() {
 			expect(tbtx.map(a, function(v) {return v*2})).toEqual([2, 4, 6]);
 		});
 	});
+	describe("some", function() {
+		it("should Implements es5 some", function() {
+			var a = [1, 2, 3];
+			expect(tbtx.some(a, function(v) {return v>2})).toBeTruthy();
+			expect(tbtx.some(a, function(v) {return v>4})).toBeFalsy();
+		});
+	});
+	describe("every", function() {
+		it("should Implements es5 every", function() {
+			var a = [1, 2, 3];
+			expect(tbtx.every(a, function(v) {return v>0})).toBeTruthy();
+			expect(tbtx.every(a, function(v) {return v<0})).toBeFalsy();
+		});
+	});
 
 	describe('keys', function() {
 		it("should get the keys of the object", function() {
@@ -318,6 +332,17 @@ describe('lang', function() {
 			}
 			expect(f(1, 2, 3)).toEqual([1, 2, 3]);
 			expect(tbtx.makeArray(null)).toEqual([]);
+		});
+	});
+
+	describe('curry', function() {
+		it("should curry the arguments", function() {
+			var add = function(a, b) {
+				return a + b;
+			};
+
+			var curriedAdd = tbtx.curry(add, 5);
+			expect(curriedAdd(4)).toEqual(9);
 		});
 	});
 

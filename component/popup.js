@@ -91,7 +91,7 @@
 
 
             this.element.trigger('tbtx.popup.show', {
-                mask: self.mask
+                mask: this.mask
             });
 
             this.set("visible", true);
@@ -117,7 +117,7 @@
             }
 
             this.element.trigger('tbtx.popup.hide', {
-                mask: self.mask
+                mask: this.mask
             });
 
             this.set("visible", false);

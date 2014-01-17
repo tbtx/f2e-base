@@ -1,6 +1,6 @@
 /*
  * overlay.popup
- * 2014-01-15 5:49:44
+ * 2014-01-17 12:13:37
  */
 (function($, global) {
     var S = global.tbtx,
@@ -335,7 +335,7 @@
 
 
             this.element.trigger('tbtx.popup.show', {
-                mask: self.mask
+                mask: this.mask
             });
 
             this.set("visible", true);
@@ -361,7 +361,7 @@
             }
 
             this.element.trigger('tbtx.popup.hide', {
-                mask: self.mask
+                mask: this.mask
             });
 
             this.set("visible", false);

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>autocomplete</title>
+    <link rel="stylesheet" href="http://a.tbcdn.cn/apps/tbtx/base/css/reset.css">
+    <style>
+    body {
+        padding: 50px;
+    }
+    .ui-autocomplete {
+        border:1px solid #ccc;
+        background-color: #FFFFFF;
+        box-shadow: 2px 2px 3px #EEEEEE;
+    }
+    .ui-autocomplete-ctn{
+        margin:0;
+        padding:0;
+    }
+    .ui-autocomplete-item {
+        width: 180px;
+        overflow:hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        line-height: 30px;
+        padding:0 10px 0 10px;
+        cursor: default;
+    }
+    .ui-autocomplete-item-hover {
+        background:#f2f2f2;
+    }
+    .ui-autocomplete-item-hl {
+        background:#F6FF94;
+    }
+    </style>
+</head>
+<body>
+    <input id="test" type="text" value="">
+    <script src="../../jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../tbtx.js"></script>
+    <script>
+    tbtx.require("autocomplete", function() {
+        ac = new tbtx.AutoComplete({
+            trigger: '#test',
+            // dataSource: ["abc", "abcd", "aaa"],
+            dataSource: function(value) {
+                 return [
+                    value + '@gmail.com',
+                    value + '@qq.com',
+                    value + '@163.com'
+                ];
+            },
+            inputFilter: function(v){
+                return v.replace(/^(.*)@.*$/,'$1');
+            }
+        }).render();
+        tbtx.log(ac);
+    });
+    </script>
+</body>
+</html>

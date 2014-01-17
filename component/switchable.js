@@ -2,7 +2,6 @@
     var S = global.tbtx;
 
     S.loadScript("base/js/plugin/jquery.easing.1.3.js");
-
     var Effects = (function() {
         var SCROLLX = "scrollx";
         var SCROLLY = "scrolly";

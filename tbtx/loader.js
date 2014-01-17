@@ -9,13 +9,16 @@
             baseUrl: S.staticUrl + "/base/js/component/",
             urlArgs: "2013.12.19.0",
             paths: {
-
+                "handlebars": S.staticUrl + "/miiee/js/handlebars.js"
             },
 
             deps: {
-                drop: "overlay",
-                popup: "overlay",
-                tip: "drop"
+                // 修正页面JS已引入的状态
+                drop: S.Overlay ? "" : "overlay",
+                popup: S.Overlay ? "" : "overlay",
+                tip: S.Drop ? "" : "drop",
+                templatable: S.global.Handlebars ? "" : "handlebars",
+                autocomplete: [S.Overlay ? "" : "overlay", S.Templatable ? "" : "templatable"]
             }
         };
 

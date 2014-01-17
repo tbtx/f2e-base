@@ -10,7 +10,6 @@
 
         set: function(key, val) {
             this.cache[key] = val;
-            return val;
         },
 
         get: function(key) {
@@ -24,7 +23,6 @@
 
         remove: function(key) {
             delete this.cache[key];
-            return this;
         },
 
         clear: function() {

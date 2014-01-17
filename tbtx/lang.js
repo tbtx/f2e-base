@@ -544,14 +544,12 @@
                     query: match[6],
                     fragment: match[7]
                 };
-                parseCache.set(url, ret);
-                return ret;
             }
-
+            parseCache.set(url, ret);
             return ret;
         },
         getFragment = function(url) {
-            return parseUrl(url).fragment || "";
+            return parseUrl(url).fragment;
         },
         getQueryParam = function(name, url) {
             if (S.isUri(name)) {
@@ -888,6 +886,44 @@
         indexOf: indexOf,
         filter: filter,
         map: map,
+
+        every: AP.every ?
+            function (arr, fn, context) {
+                return AP.every.call(arr, fn, context || this);
+            } :
+            function (arr, fn, context) {
+                var len = arr && arr.length || 0;
+                for (var i = 0; i < len; i++) {
+                    if (i in arr && !fn.call(context, arr[i], i, arr)) {
+                        return FALSE;
+                    }
+                }
+                return TRUE;
+            },
+
+        /**
+         * Tests whether some element in the array passes the test implemented by the provided function.
+         * @method
+         * @param arr {Array} the array to iterate
+         * @param callback {Function} the function to execute on each item
+         * @param [context] {Object} optional context object
+         * @member KISSY
+         * @return {Boolean} whether some element in the array passes the test implemented by the provided function.
+         */
+        some: AP.some ?
+            function (arr, fn, context) {
+                return AP.some.call(arr, fn, context || this);
+            } :
+            function (arr, fn, context) {
+                var len = arr && arr.length || 0;
+                for (var i = 0; i < len; i++) {
+                    if (i in arr && fn.call(context, arr[i], i, arr)) {
+                        return TRUE;
+                    }
+                }
+                return FALSE;
+            },
+
         reduce: function(array, callback, initialValue) {
             var previous = initialValue,
                 k = 0,
