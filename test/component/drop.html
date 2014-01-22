@@ -19,24 +19,47 @@
     .tbtx-drop {
         background: #FFF;
     }
+
+    #demo {
+        display: none;
+    }
+
+    #trigger {
+        margin: 40px auto;
+        width: 500px;
+    }
     </style>
 </head>
 <body>
-    <div id="demo">
+    <div id="trigger">
         demo
+        <div id="demo">
+            <select name="" id="">
+                <option value="">1</option>
+                <option value="">2</option>
+                <option value="">1</option>
+                <option value="">2</option>
+                <option value="">1</option>
+                <option value="">2</option>
+                <option value="">1</option>
+                <option value="">2</option>
+                <option value="">1</option>
+                <option value="">2</option>
+            </select>
+        </div>
     </div>
 
     <script src="../../jquery/jquery-1.8.3.min.js"></script>
     <script src="../../tbtx.js"></script>
-    <script src="../../component/overlay.js"></script>
-    <script src="../../component/drop.js"></script>
     <script>
-    new tbtx.Drop({
-        trigger: "#demo",
-        template: "<div>hello</div>",
-        width: 500,
-        height: 500,
-        effect: "slide"
+    tbtx.require("drop").done(function() {
+        new tbtx.Drop({
+            trigger: "#trigger",
+            element: "#demo",
+            width: 500,
+            height: 100,
+            effect: "slide"
+        });
     });
     </script>
 </body>

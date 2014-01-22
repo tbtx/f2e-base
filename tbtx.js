@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-01-17 12:13:37
+ * 2014-01-22 4:17:29
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3275,7 +3275,7 @@
                 var $element = $(element);
                 $element.css("background-color", flashColor).fadeOut("fast", function() {
                     $element.fadeIn("fast", function() {
-                        $element.css("background-color", bgColor);
+                        $element.css("background-color", bgColor).focus().select();
                     });
                 });
             });
@@ -3397,12 +3397,14 @@
 
             deps: {
                 // 修正页面JS已引入的状态
-                drop: S.Overlay ? "" : "overlay",
-                popup: S.Overlay ? "" : "overlay",
-                tip: S.Drop ? "" : "drop",
-                templatable: S.global.Handlebars ? "" : "handlebars",
-                autocomplete: [S.Overlay ? "" : "overlay", S.Templatable ? "" : "templatable"]
-            }
+                drop: "overlay",
+                popup: "overlay",
+                tip: "drop",
+                templatable: "handlebars",
+                autocomplete: ["overlay", "templatable"]
+            },
+
+            exports: {}
         };
 
     Loader.config = function(val) {
@@ -3455,14 +3457,15 @@
     }
     /*
      * 获取模块依赖
-     * 暂时只处理组件之间的依赖
-     * 外部的依赖请自行处理
      */
     function getDeps(name) {
         var ret = [],
             i,
             // 依赖配置
             depsConfig = data.deps,
+            pathsConfig = data.paths,
+            context,
+            exp,    // export
             deps = depsConfig[name];
 
         // 没有计算过依赖
@@ -3475,8 +3478,19 @@
                 }
 
                 S.each(deps, function(dep) {
-                    ret.unshift(dep);
-                    ret = getDeps(dep).concat(ret);
+                    // 比如请求overlay，先判断是否有S.Overlay，也就是页面已经引入了JS的情况
+                    // handlebars之类的使用global.Hanlebars
+                    if (S.isUri(pathsConfig[dep])) {
+                        context = S.global;
+                    } else {
+                        context = S;
+                    }
+                    // 是否已经载入过
+                    exp = context[S.ucfirst(dep)];
+                    if (!exp) {
+                        ret.unshift(dep);
+                        ret = getDeps(dep).concat(ret);
+                    }
                 });
             }
             dependenciesCache.set(name, ret);

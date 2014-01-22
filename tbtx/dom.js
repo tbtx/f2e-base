@@ -385,7 +385,7 @@
                 var $element = $(element);
                 $element.css("background-color", flashColor).fadeOut("fast", function() {
                     $element.fadeIn("fast", function() {
-                        $element.css("background-color", bgColor);
+                        $element.css("background-color", bgColor).focus().select();
                     });
                 });
             });
