@@ -1,4 +1,5 @@
 describe('date', function() {
+
     describe("formatDate", function() {
         it("should format the date", function() {
             var date = new Date(1383272557027);

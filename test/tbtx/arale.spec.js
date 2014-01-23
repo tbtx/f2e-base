@@ -33,7 +33,7 @@ describe('Base and Widget', function() {
     });
 
     describe("Widget", function() {
-        it("should render to body", function() {
+        xit("should render to body", function() {
             Widget.extend({
                 outerBoxClass: "outer"
             });

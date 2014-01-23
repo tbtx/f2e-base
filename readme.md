@@ -55,10 +55,13 @@
 	drop 鼠标移上/click 显示对应内容
 	pagination 分页
 	Popup 弹出
+	Drop arale popup
 	Slide 轮播
 	validator 表单校验
 	scrollspy 滚动侦测
 	soltMachine 老虎机
+	switchable 各种切换
+	autocomplete 自动完成
 
 ## gallery
 	json2.js
@@ -66,10 +69,13 @@
 	store.min.js 客户端存储
 
 ## arale调整
-	Widget移除自动render, parseElementFromTemplate增加id, 增加renderMethod和relatedNode来扩展插入方式
+	Widget移除自动render跟data-api, parseElementFromTemplate增加id, 增加renderMethod和relatedNode来扩展插入方式
 	detector 增加mobile判断
 
 
-## 测试框架jasmine
+## 测试框架
+
+* jasmine
+* karma
 
 
