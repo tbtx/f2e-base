@@ -217,9 +217,9 @@
                 return;
             }
 
-            if (mod.status == STATUS.LOADED) {
-                return;
-            }
+            // if (mod.status == STATUS.LOADED) {
+            //     return;
+            // }
 
             // S.log("mod " + this.uri + " onload");
             mod.status = STATUS.LOADED;

@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-02-03 8:32:43
+ * 2014-02-03 10:41:26
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3398,6 +3398,7 @@
 
 ;(function(S) {
     // 简单模块定义和加载
+    // 按seajs风格写
     var Loader = S.namespace("Loader"),
 
         global = S.global,
@@ -3614,9 +3615,9 @@
                 return;
             }
 
-            if (mod.status == STATUS.LOADED) {
-                return;
-            }
+            // if (mod.status == STATUS.LOADED) {
+            //     return;
+            // }
 
             // S.log("mod " + this.uri + " onload");
             mod.status = STATUS.LOADED;
