@@ -11,7 +11,8 @@ module.exports = function(grunt) {
                 ignores: ['tbtx/detector.js', 'tbtx/pin.js', 'tbtx/aspect.js', 'tbtx/events.js', 'tbtx/attrs.js', 'tbtx/widget.js'],
                 browser: true,
                 sub: true,
-                proto: true
+                proto: true,
+                debug: true
             }
         },
 

@@ -31,7 +31,7 @@
          * 会在后面根据实际的地址重写，这里作为备用
          * @type {String}
          */
-        staticUrl: "http://static.tianxia.taobao.com/tbtx",
+        staticUrl: "http://static.tianxia.taobao.com/tbtx/",
 
         /**
          * global对象，在浏览器环境中为window

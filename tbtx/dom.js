@@ -160,7 +160,7 @@
      */
     function normalizeUrl(url) {
         if (!SCHEME_RE.test(url)) {
-            url = S.staticUrl + "/" + url;
+            url = S.staticUrl + url;
         }
         return url;
     }
@@ -211,15 +211,29 @@
         return null;
     }
 
+    var DOT_RE = /\/\.\//g;
+    var DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//;
+
+    // Canonicalize a path
+    // realpath("http://test.com/a//./b/../c") ==> "http://test.com/a/c"
+    function realpath(path) {
+        // /a/b/./c/./d ==> /a/b/c/d
+        path = path.replace(DOT_RE, "/");
+
+        // a/b/c/../../d  ==>  a/b/../d  ==>  a/d
+        while (path.match(DOUBLE_DOT_RE)) {
+            path = path.replace(DOUBLE_DOT_RE, "/");
+        }
+
+        return path;
+    }
     // file:///E:/tbcdn or cdn(如a.tbcdn.cn/apps/tbtx)
     // 使用tbtx所在script获取到staticUrl
     // 除非脚本名不是tbtx.js or tbtx.min.js，使用默认的staticUrl
     var loaderSrc = getLoaderSrc();
     if (loaderSrc) {
-        var pathArray = loaderSrc.split('/'),
-            deep = 3;
-        pathArray.splice(pathArray.length - deep, deep);  // delete base js tbtx.js
-        S.staticUrl = pathArray.join("/");
+        // delete base js tbtx.js
+        S.staticUrl = realpath(loaderSrc + "/../../../");
     }
     // end request
 
@@ -463,6 +477,7 @@
 
     S.mix({
         // load
+        realpath: realpath,
         loadCss: loadCss,
         loadScript: loadScript,
         // page & viewport
