@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-02-03 10:41:26
+ * 2014-02-06 10:17:50
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3647,7 +3647,7 @@
         },
 
 
-        fetch: function(requestCache) {
+        fetch: function() {
             // S.log("mod " + this.uri + " fetch");
             var mod = this;
             var uri = mod.uri;

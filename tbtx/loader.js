@@ -249,7 +249,7 @@
         },
 
 
-        fetch: function(requestCache) {
+        fetch: function() {
             // S.log("mod " + this.uri + " fetch");
             var mod = this;
             var uri = mod.uri;
