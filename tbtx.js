@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-02-06 10:17:50
+ * 2014-02-07 1:26:09
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3412,7 +3412,8 @@
             // urlArgs: "2013.12.19.0",
 
             alias: {
-                "handlebars": "miiee/handlebars.js"
+                "handlebars": "miiee/handlebars.js",
+                "easing": "plugin/jquery.easing.1.3.js"
             },
 
             paths: {
@@ -3426,7 +3427,8 @@
                 popup: "overlay",
                 tip: "drop",
                 templatable: "handlebars",
-                autocomplete: ["overlay", "templatable"]
+                autocomplete: ["overlay", "templatable"],
+                switchable: "easing"
             },
 
             exports: {
@@ -3719,6 +3721,9 @@
     Module.require = function(ids, callback, uri) {
 
         var mod = Module.get(uri, S.makeArray(ids));
+
+        var deferred = jQuery.Deferred();
+
         // 注册模块完成时的callback
         // 获取依赖模块的export并且执行callback
         mod.callback = function() {
@@ -3732,10 +3737,13 @@
                 callback.apply(global, exports);
             }
 
+            deferred.resolve();
             delete mod.callback;
         };
 
         mod.load();
+
+        return deferred.promise();
     };
 
     var cidCounter = 0;
@@ -3745,8 +3753,7 @@
 
     var requirePrefix = "require_";
     S.require = function(ids, callback) {
-        Module.require(ids, callback,  requirePrefix + cid());
-        return S;
+        return Module.require(ids, callback,  requirePrefix + cid());
     };
 })(tbtx);
 
