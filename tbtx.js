@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-02-10 3:55:23
+ * 2014-02-10 4:29:57
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2663,7 +2663,10 @@
 })(tbtx);
 
 
-;(function($, exports) {
+;(function(S) {
+    var $ = S.$,
+        exports = S;
+
     // Position
     // --------
     // 定位工具组件，将一个 DOM 节点相对对另一个 DOM 节点进行定位操作。
@@ -2861,7 +2864,7 @@
             top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || document.body.clientTop || 0)
         };
     }
-})(jQuery, tbtx);
+})(tbtx);
 
 ;(function(S) {
     var parseResult = S.parseUrl();
