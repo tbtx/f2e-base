@@ -1,5 +1,6 @@
-(function($, S) {
-    var Class = S.Class,
+(function(S) {
+    var $ = S.$,
+        Class = S.Class,
         Events = S.Events,
         Aspect = S.Aspect,
         Attrs = S.Attrs;
@@ -388,4 +389,4 @@
         parent = parent || Widget;
         return new Class(parent, properties);
     };
-})(jQuery, tbtx);
+})(tbtx);

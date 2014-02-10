@@ -52,7 +52,9 @@
          */
         uniqueCid: function() {
             return cidCounter++;
-        }
+        },
+
+        $: global.jQuery || global.Zepto
 
     };
 

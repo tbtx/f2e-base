@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-02-07 1:26:09
+ * 2014-02-10 3:55:23
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -58,7 +58,9 @@
          */
         uniqueCid: function() {
             return cidCounter++;
-        }
+        },
+
+        $: global.jQuery || global.Zepto
 
     };
 
@@ -1664,8 +1666,9 @@
     }
 })(tbtx);
 
-;(function($, S) {
-    var Class = S.Class,
+;(function(S) {
+    var $ = S.$,
+        Class = S.Class,
         Events = S.Events,
         Aspect = S.Aspect,
         Attrs = S.Attrs;
@@ -2054,7 +2057,7 @@
         parent = parent || Widget;
         return new Class(parent, properties);
     };
-})(jQuery, tbtx);
+})(tbtx);
 
 ;(function(exports) {
     var toString = Object.prototype.toString,
@@ -2888,8 +2891,10 @@
 })(tbtx);
 
 
-;(function(global, $, S) {
-    var noop = S.noop,
+;(function(S) {
+    var global = S.global,
+        $ = S.$,
+        noop = S.noop,
         each = S.each,
         map = S.map,
         ucfirst = S.ucfirst,
@@ -3393,7 +3398,7 @@
         flash: flash,
         flyToTop: flyToTop
     });
-})(this, jQuery, tbtx);
+})(tbtx);
 
 
 ;(function(S) {
@@ -3722,7 +3727,7 @@
 
         var mod = Module.get(uri, S.makeArray(ids));
 
-        var deferred = jQuery.Deferred();
+        var deferred = S.$.Deferred();
 
         // 注册模块完成时的callback
         // 获取依赖模块的export并且执行callback
@@ -3758,7 +3763,8 @@
 })(tbtx);
 
 
-;(function($, S) {
+;(function(S) {
+    var $ = S.$;
     var doc = document;
     var support = S.namespace("support");
 
@@ -3798,11 +3804,12 @@
             });
         }
     });
-})(jQuery, tbtx);
+})(tbtx);
 
 
-;(function($, S) {
-    var Class = S.Class,
+;(function(S) {
+    var $ = S.$,
+        Class = S.Class,
         Widget = S.Widget,
         singleton = S.singleton;
 
@@ -3931,10 +3938,11 @@
             getWidget().add(msg, type);
         };
     });
-})(jQuery, tbtx);
+})(tbtx);
 
-;(function($, S) {
-    var isPending = S.isPending,
+;(function(S) {
+    var $ = S.$,
+        isPending = S.isPending,
         PATH = S.path,
         TIMEOUT = 10000;
 
@@ -4136,4 +4144,4 @@
             }
         }
     });
-})(jQuery, tbtx);
+})(tbtx);

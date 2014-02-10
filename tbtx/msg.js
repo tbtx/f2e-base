@@ -1,5 +1,6 @@
-(function($, S) {
-    var Class = S.Class,
+(function(S) {
+    var $ = S.$,
+        Class = S.Class,
         Widget = S.Widget,
         singleton = S.singleton;
 
@@ -128,4 +129,4 @@
             getWidget().add(msg, type);
         };
     });
-})(jQuery, tbtx);
+})(tbtx);

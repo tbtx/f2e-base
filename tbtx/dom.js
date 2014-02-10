@@ -1,5 +1,7 @@
-(function(global, $, S) {
-    var noop = S.noop,
+(function(S) {
+    var global = S.global,
+        $ = S.$,
+        noop = S.noop,
         each = S.each,
         map = S.map,
         ucfirst = S.ucfirst,
@@ -503,4 +505,4 @@
         flash: flash,
         flyToTop: flyToTop
     });
-})(this, jQuery, tbtx);
+})(tbtx);

@@ -324,7 +324,7 @@
 
         var mod = Module.get(uri, S.makeArray(ids));
 
-        var deferred = jQuery.Deferred();
+        var deferred = S.$.Deferred();
 
         // 注册模块完成时的callback
         // 获取依赖模块的export并且执行callback

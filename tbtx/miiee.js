@@ -1,5 +1,6 @@
-(function($, S) {
-    var isPending = S.isPending,
+(function(S) {
+    var $ = S.$,
+        isPending = S.isPending,
         PATH = S.path,
         TIMEOUT = 10000;
 
@@ -201,4 +202,4 @@
             }
         }
     });
-})(jQuery, tbtx);
+})(tbtx);

@@ -1,4 +1,5 @@
-(function($, S) {
+(function(S) {
+    var $ = S.$;
     var doc = document;
     var support = S.namespace("support");
 
@@ -38,4 +39,4 @@
             });
         }
     });
-})(jQuery, tbtx);
+})(tbtx);
