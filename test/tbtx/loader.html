@@ -38,6 +38,22 @@
     tbtx.require("autocomplete");
 
     tbtx.log(tbtx.Loader);
+
+    tbtx.require("templatable", function(Templatable) {
+        var Widget = tbtx.createWidget();
+        Widget.Implements(Templatable);
+
+        var myWidget = new Widget({
+            template: '<div><h3>{{title}}</h3><ol>{{#each list}}<li>{{item}}</li>{{/each}}</div>',
+            model: {
+                'title': '标题',
+                'list': [
+                    { 'item': '文章一' },
+                    { 'item': '文章二' }
+                ]
+            }
+        }).render();
+    });
 </script>
 
 </body>
