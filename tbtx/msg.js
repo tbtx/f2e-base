@@ -129,4 +129,31 @@
             getWidget().add(msg, type);
         };
     });
+
+    var initBroadcast = singleton(function() {
+        S.loadCss("base/css/msg.css");
+        return $(S.substitute('<div class="tbtx-broadcast">{{ msg }}</div>')).appendTo('body');
+    });
+
+    // direction - top/bottom
+    S.broadcast = function(msg, direction) {
+        direction = direction || "bottom";
+
+        var broadcast = initBroadcast().html(msg);
+        S.pin({
+            element: broadcast,
+            x: "50%",
+            y: direction == "top" ? -60 : "100%+60"
+        }, {
+            element: S.VIEWPORT,
+            x: "50%",
+            y: direction == "top" ? 0 : "100%"
+        });
+
+        broadcast.fadeIn();
+
+        S.later(function() {
+            broadcast.fadeOut();
+        }, 4000, false);
+    };
 })(tbtx);

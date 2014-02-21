@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-02-10 4:29:57
+ * 2014-02-21 5:05:53
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3435,8 +3435,9 @@
                 popup: "overlay",
                 tip: "drop",
                 templatable: "handlebars",
-                autocomplete: ["overlay", "templatable"],
-                switchable: "easing"
+                autocomplete: ["overlay", "templatable"]
+                // switchable 如果想要easing效果需要自己require
+                // switchable: "easing"
             },
 
             exports: {
@@ -3941,6 +3942,33 @@
             getWidget().add(msg, type);
         };
     });
+
+    var initBroadcast = singleton(function() {
+        S.loadCss("base/css/msg.css");
+        return $(S.substitute('<div class="tbtx-broadcast">{{ msg }}</div>')).appendTo('body');
+    });
+
+    // direction - top/bottom
+    S.broadcast = function(msg, direction) {
+        direction = direction || "bottom";
+
+        var broadcast = initBroadcast().html(msg);
+        S.pin({
+            element: broadcast,
+            x: "50%",
+            y: direction == "top" ? -60 : "100%+60"
+        }, {
+            element: S.VIEWPORT,
+            x: "50%",
+            y: direction == "top" ? 0 : "100%"
+        });
+
+        broadcast.fadeIn();
+
+        S.later(function() {
+            broadcast.fadeOut();
+        }, 4000, false);
+    };
 })(tbtx);
 
 ;(function(S) {

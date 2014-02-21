@@ -29,8 +29,9 @@
                 popup: "overlay",
                 tip: "drop",
                 templatable: "handlebars",
-                autocomplete: ["overlay", "templatable"],
-                switchable: "easing"
+                autocomplete: ["overlay", "templatable"]
+                // switchable 如果想要easing效果需要自己require
+                // switchable: "easing"
             },
 
             exports: {
