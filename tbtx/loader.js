@@ -154,7 +154,13 @@
         // 从tbtx.Popup之类解析出exports
         parseExports: function() {
             var mod = this;
-            var id = uriToId[mod.uri];
+            var uri = mod.uri;
+            var id = uriToId[uri];
+
+            // 只解析component或者配置过export的模块
+            if (uri.indexOf("base/js/component") === -1 || !data.exports[id]) {
+                return;
+            }
 
             // 默认exports 为tbtx.xxx, xxx首字母大写
             var target = data.exports[id] || "tbtx." + S.ucfirst(id);
