@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-02-23 8:19:58
+ * 2014-02-24 9:51:20
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3441,7 +3441,7 @@
             },
 
             exports: {
-                handlebars: "Handlebars"
+                // handlebars: "Handlebars"
             }
         };
 
@@ -3558,26 +3558,26 @@
         },
 
         // 从tbtx.Popup之类解析出exports
-        parseExports: function() {
-            var mod = this;
-            var uri = mod.uri;
-            var id = uriToId[uri];
+        // parseExports: function() {
+        //     var mod = this;
+        //     var uri = mod.uri;
+        //     var id = uriToId[uri];
 
-            // 只解析component或者配置过export的模块
-            if (uri.indexOf("base/js/component") === -1 || !data.exports[id]) {
-                return;
-            }
+        //     // 只解析component或者配置过export的模块
+        //     if (uri.indexOf("base/js/component") === -1 || !data.exports[id]) {
+        //         return;
+        //     }
 
-            // 默认exports 为tbtx.xxx, xxx首字母大写
-            var target = data.exports[id] || "tbtx." + S.ucfirst(id);
-            target = target.split(".");
+        //     // 默认exports 为tbtx.xxx, xxx首字母大写
+        //     var target = data.exports[id] || "tbtx." + S.ucfirst(id);
+        //     target = target.split(".");
 
-            var ret = global;
-            while(target.length) {
-                ret = ret[target.shift()];
-            }
-            mod.exports = ret || null;
-        },
+        //     var ret = global;
+        //     while(target.length) {
+        //         ret = ret[target.shift()];
+        //     }
+        //     mod.exports = ret || null;
+        // },
 
         // Load module.dependencies and fire onload when all done
         load: function() {
@@ -3693,7 +3693,7 @@
                 delete fetchingList[requestUri];
                 fetchedList[requestUri] = true;
 
-                mod.parseExports();
+                // mod.parseExports();
                 mod.onload();
 
                 // Call callbacks
@@ -3742,14 +3742,14 @@
         // 注册模块完成时的callback
         // 获取依赖模块的export并且执行callback
         mod.callback = function() {
-            // S.log(mod);
-            var uris = mod.resolve();
-            var exports = S.map(uris, function(uri) {
-                return cachedMods[uri].exports;
-            });
+
+            // var uris = mod.resolve();
+            // var exports = S.map(uris, function(uri) {
+            //     return cachedMods[uri].exports;
+            // });
 
             if (callback) {
-                callback.apply(global, exports);
+                callback.apply(global);
             }
 
             deferred.resolve();
@@ -3959,15 +3959,20 @@
         direction = direction || "bottom";
 
         var broadcast = initBroadcast().html(msg);
-        S.pin({
-            element: broadcast,
-            x: "50%",
-            y: direction == "top" ? -60 : "100%+60"
-        }, {
-            element: S.VIEWPORT,
-            x: "50%",
-            y: direction == "top" ? 0 : "100%"
-        });
+
+        if (direction == "center") {
+            S.center(broadcast);
+        } else {
+            S.pin({
+                element: broadcast,
+                x: "50%",
+                y: direction == "top" ? -60 : "100%+60"
+            }, {
+                element: S.VIEWPORT,
+                x: "50%",
+                y: direction == "top" ? 0 : "100%"
+            });
+        }
 
         broadcast.fadeIn();
 

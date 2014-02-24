@@ -140,15 +140,20 @@
         direction = direction || "bottom";
 
         var broadcast = initBroadcast().html(msg);
-        S.pin({
-            element: broadcast,
-            x: "50%",
-            y: direction == "top" ? -60 : "100%+60"
-        }, {
-            element: S.VIEWPORT,
-            x: "50%",
-            y: direction == "top" ? 0 : "100%"
-        });
+
+        if (direction == "center") {
+            S.center(broadcast);
+        } else {
+            S.pin({
+                element: broadcast,
+                x: "50%",
+                y: direction == "top" ? -60 : "100%+60"
+            }, {
+                element: S.VIEWPORT,
+                x: "50%",
+                y: direction == "top" ? 0 : "100%"
+            });
+        }
 
         broadcast.fadeIn();
 
