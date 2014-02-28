@@ -135,10 +135,17 @@
         return $(S.substitute('<div class="tbtx-broadcast">{{ msg }}</div>')).appendTo('body');
     });
 
+    var timer;
     // direction - top/bottom
-    S.broadcast = function(msg, direction) {
-        direction = direction || "bottom";
+    S.broadcast = function(msg, duration, direction) {
+        direction = direction || "center";
+        duration = duration || 4000;
+        var dummy = timer && timer.cancel();
 
+        if (!msg) {
+             $(".tbtx-broadcast").hide();
+             return;
+        }
         var broadcast = initBroadcast().html(msg);
 
         if (direction == "center") {
@@ -157,8 +164,10 @@
 
         broadcast.fadeIn();
 
-        S.later(function() {
-            broadcast.fadeOut();
-        }, 4000, false);
+        if (duration > 0) {
+            timer = S.later(function() {
+                broadcast.fadeOut();
+            }, duration, false);
+        }
     };
 })(tbtx);
