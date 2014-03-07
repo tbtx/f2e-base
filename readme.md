@@ -76,6 +76,6 @@
 ## 测试框架
 
 * jasmine
-* karma
+* totoro
 
 

@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-02-26 10:29:37
+ * 2014-03-03 4:18:52
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3399,7 +3399,37 @@
         limitLength: limitLength,
         initWangWang: initWangWang,
         flash: flash,
-        flyToTop: flyToTop
+        flyToTop: flyToTop,
+
+        /**
+         * http://www.taobao.com/go/act/video/open_dev_play.php
+         * @param  {[type]} config [description]
+         * @return {[type]}        [description]
+         */
+        embedPlayer: function(allConfig) {
+            allConfig = allConfig || {};
+            S.loadScript("http://api.video.taobao.com/video/getPlayerJS").done(function() {
+                // 自动生成id
+                $(allConfig.div).each(function(index, el) {
+                    var element = $(el);
+                    var config = $.extend({}, allConfig, element.data());
+
+                    element = $("<div></div>").appendTo(element);
+                    var id = "tbtx-player-" + S.uniqueCid();
+                    element.attr("id", id);
+
+                    config.div = id;
+
+                    // vid uid div自己传
+                    var must = {
+                        "width": "100%",
+                        "height": "100%"
+                    };
+                    tb_player_object.embedPlayer(S.mix(must, config), config, config);
+                });
+
+            });
+        }
     });
 })(tbtx);
 
