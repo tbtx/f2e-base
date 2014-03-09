@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-09 1:39:21
+ * 2014-03-09 1:42:53
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -865,7 +865,7 @@ requireModule('promise/polyfill').polyfill();
   //   return this._state;
   // };
 
-})(Promiss.prototype);
+})(Promise.prototype);
 
 ;(function(S) {
 

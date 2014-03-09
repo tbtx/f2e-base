@@ -796,4 +796,4 @@ requireModule('promise/polyfill').polyfill();
   //   return this._state;
   // };
 
-})(Promiss.prototype);
+})(Promise.prototype);
