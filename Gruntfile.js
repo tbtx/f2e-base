@@ -8,7 +8,7 @@ module.exports = function(grunt) {
         jshint: {
             files: ['tbtx/*.js', 'component/overlay.js', 'component/popup.js', 'component/draggable.js'],
             options: {
-                ignores: ['tbtx/detector.js', 'tbtx/pin.js', 'tbtx/aspect.js', 'tbtx/events.js', 'tbtx/attrs.js', 'tbtx/widget.js'],
+                ignores: ['tbtx/detector.js', 'tbtx/promise.js', 'tbtx/pin.js', 'tbtx/aspect.js', 'tbtx/events.js', 'tbtx/attrs.js', 'tbtx/widget.js'],
                 browser: true,
                 sub: true,
                 proto: true,
@@ -23,7 +23,7 @@ module.exports = function(grunt) {
                 banner: '/*\n * <%= pkg.name %>\n * <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
             },
             common: {
-                src: ['tbtx/seed.js', 'tbtx/cache.js', 'tbtx/lang.js', 'tbtx/events.js', 'tbtx/aspect.js', 'tbtx/attrs.js', 'tbtx/widget.js', 'tbtx/cookie.js', 'tbtx/date.js', 'tbtx/detector.js', 'tbtx/pin.js', 'tbtx/path.js', 'tbtx/dom.js', 'tbtx/loader.js', 'tbtx/support.js', 'tbtx/msg.js', 'tbtx/miiee.js'],
+                src: ['tbtx/seed.js', 'tbtx/promise.js', 'tbtx/cache.js', 'tbtx/lang.js', 'tbtx/loader.js', 'tbtx/preload.js', 'tbtx/events.js', 'tbtx/aspect.js', 'tbtx/attrs.js', 'tbtx/widget.js', 'tbtx/cookie.js', 'tbtx/date.js', 'tbtx/detector.js', 'tbtx/pin.js', 'tbtx/path.js', 'tbtx/dom.js', 'tbtx/support.js', 'tbtx/msg.js', 'tbtx/miiee.js'],
                 dest: 'tbtx.js' // 合并成依赖文件
             },
             popup: {

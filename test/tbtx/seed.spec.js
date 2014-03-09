@@ -8,6 +8,12 @@ describe('seed', function() {
 		});
 	});
 
+	describe("Promise", function() {
+		it("should get the Promise object", function(){
+			expect(window.Promise).not.toBeNull();
+		});
+	});
+
 	describe("global", function() {
 		it("should equal to the window in the browser", function(){
 			expect(tbtx.global).toBe(window);

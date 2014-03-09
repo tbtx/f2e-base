@@ -91,36 +91,6 @@
                 return -1;
         },
 
-        filter = AP.filter ?
-            function(arr, fn, context) {
-                return AP.filter.call(arr, fn, context);
-            } : function(arr, fn, context) {
-                var ret = [];
-                each(arr, function(item, i) {
-                    if (fn.call(context || this, item, i, arr)) {
-                        ret.push(item);
-                    }
-                });
-                return ret;
-            },
-
-        map = AP.map ?
-            function (arr, fn, context) {
-                return AP.map.call(arr, fn, context || this);
-            } : function (arr, fn, context) {
-                var len = arr.length,
-                    ret = new Array(len);
-                for (var i = 0; i < len; i++) {
-                    var el = typeof arr === 'string' ? arr.charAt(i) : arr[i];
-                    if (el ||
-                        //ie<9 in invalid when typeof arr == string
-                        i in arr) {
-                        ret[i] = fn.call(context || this, el, i, arr);
-                    }
-                }
-                return ret;
-            },
-
         hasEnumBug = !({
             toString: 1
         }['propertyIsEnumerable']('toString')),
@@ -222,29 +192,6 @@
                 }
             }
             return o;
-        },
-
-        namespace = function () {
-            var args = makeArray(arguments),
-                l = args.length,
-                o = this, i, j, p;
-
-            for (i = 0; i < l; i++) {
-                p = (EMPTY + args[i]).split('.');
-                for (j = (global[p[0]] === o) ? 1 : 0; j < p.length; ++j) {
-                    o = o[p[j]] = o[p[j]] || {};
-                }
-            }
-            return o;
-        },
-
-        startsWith = function(str, prefix) {
-            return str.lastIndexOf(prefix, 0) === 0;
-        },
-
-        endsWith = function(str, suffix) {
-            var index = str.length - suffix.length;
-            return index >= 0 && str.indexOf(suffix, index) == index;
         },
 
          /*
@@ -789,7 +736,7 @@
 
         isPlainObject: isPlainObject,
         /**
-         * 判断deferred对象是否正在处理中
+         * 判断jQuery deferred对象是否正在处理中
          * @param  {deferred object}
          * @return {Boolean}
          */
@@ -884,8 +831,36 @@
         type: type,
         each: each,
         indexOf: indexOf,
-        filter: filter,
-        map: map,
+
+        filter: AP.filter ?
+            function(arr, fn, context) {
+                return AP.filter.call(arr, fn, context);
+            } : function(arr, fn, context) {
+                var ret = [];
+                each(arr, function(item, i) {
+                    if (fn.call(context || this, item, i, arr)) {
+                        ret.push(item);
+                    }
+                });
+                return ret;
+            },
+
+        map: AP.map ?
+            function (arr, fn, context) {
+                return AP.map.call(arr, fn, context || this);
+            } : function (arr, fn, context) {
+                var len = arr.length,
+                    ret = new Array(len);
+                for (var i = 0; i < len; i++) {
+                    var el = typeof arr === 'string' ? arr.charAt(i) : arr[i];
+                    if (el ||
+                        //ie<9 in invalid when typeof arr == string
+                        i in arr) {
+                        ret[i] = fn.call(context || this, el, i, arr);
+                    }
+                }
+                return ret;
+            },
 
         every: AP.every ?
             function (arr, fn, context) {
@@ -973,9 +948,31 @@
         keys: keys,
         makeArray: makeArray,
         deepCopy: deepCopy,
-        namespace: namespace,
-        startsWith: startsWith,
-        endsWith: endsWith,
+
+        namespace: function () {
+            var args = makeArray(arguments),
+                l = args.length,
+                o = this, i, j, p;
+
+            for (i = 0; i < l; i++) {
+                p = (EMPTY + args[i]).split('.');
+                for (j = (global[p[0]] === o) ? 1 : 0; j < p.length; ++j) {
+                    o = o[p[j]] = o[p[j]] || {};
+                }
+            }
+            return o;
+        },
+
+        startsWith: function(str, prefix) {
+            return str.lastIndexOf(prefix, 0) === 0;
+        },
+
+
+        endsWith: function(str, suffix) {
+            var index = str.length - suffix.length;
+            return index >= 0 && str.indexOf(suffix, index) == index;
+        },
+
         choice: choice,
         shuffle: shuffle,
         Class: Class,

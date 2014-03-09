@@ -1,5 +1,6 @@
-(function(S) {
-    var $ = S.$,
+(function() {
+    var S = tbtx,
+        $ = S.$,
         Class = S.Class,
         Events = S.Events,
         Aspect = S.Aspect,
@@ -314,13 +315,10 @@
         return "widget-" + cidCounter++;
     }
 
-    var toString = Object.prototype.toString;
-    function isString(val) {
-        return toString.call(val) === "[object String]";
-    }
-    function isFunction(val) {
-        return toString.call(val) === "[object Function]";
-    }
+    var isString = S.isString,
+        isFunction = S.isFunction,
+        ucfirst = S.ucfirst;
+
      // Zepto 上没有 contains 方法
     var contains = $.contains || function(a, b) {
         //noinspection JSBitwiseOperatorUsage
@@ -328,9 +326,6 @@
     };
     function isInDocument(element) {
         return contains(document.documentElement, element);
-    }
-    function ucfirst(str) {
-        return str.charAt(0).toUpperCase() + str.substring(1);
     }
 
     function getEvents(widget) {
@@ -389,4 +384,5 @@
         parent = parent || Widget;
         return new Class(parent, properties);
     };
+
 })(tbtx);
