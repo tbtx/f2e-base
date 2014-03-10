@@ -1,6 +1,5 @@
-(function() {
-    var S = tbtx,
-        $ = S.$,
+(function(S) {
+    var $ = S.$,
         Class = S.Class,
         Events = S.Events,
         Aspect = S.Aspect,
@@ -296,10 +295,13 @@
     });
 
     // For memory leak
-    $(window).unload(function() {
-        for (var cid in cachedInstances) {
-            cachedInstances[cid].destroy();
-        }
+    S.ready(function(S) {
+        $ = S.$;
+        $(window).unload(function() {
+            for (var cid in cachedInstances) {
+                cachedInstances[cid].destroy();
+            }
+        });
     });
 
     // 查询与 selector 匹配的第一个 DOM 节点，得到与该 DOM 节点相关联的 Widget 实例
@@ -317,16 +319,8 @@
 
     var isString = S.isString,
         isFunction = S.isFunction,
-        ucfirst = S.ucfirst;
-
-     // Zepto 上没有 contains 方法
-    var contains = $.contains || function(a, b) {
-        //noinspection JSBitwiseOperatorUsage
-        return !!(a.compareDocumentPosition(b) & 16);
-    };
-    function isInDocument(element) {
-        return contains(document.documentElement, element);
-    }
+        ucfirst = S.ucfirst,
+        isInDocument = S.isInDocument;
 
     function getEvents(widget) {
         if (isFunction(widget.events)) {

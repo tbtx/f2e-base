@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Document</title>
-    <script src="../../jquery/jquery-1.8.3.min.js"></script>
+    <!-- // <script src="../../jquery/jquery-1.8.3.min.js"></script> -->
     <script src="../../tbtx.js"></script>
     <!-- <link rel="stylesheet" href="http://static.tianxia.taobao.com/tbtx/base/css/msg.css"> -->
     <style>
@@ -18,11 +18,17 @@
         <p class="tbtx-msg-item tbtx-msg-error">hello error</p>
     </div> -->
     <script>
-    tbtx.MSG.error("error");
-    tbtx.MSG.warning("warning");
-    tbtx.MSG.info("warning");
-    tbtx.MSG.debug("warning");
-    tbtx.MSG.success("warning");
+    tbtx.ready(function(S) {
+        tbtx.require("switchable");
+    });
+    tbtx.ready(function(S) {
+        S.MSG.error("error");
+        S.MSG.warning("warning");
+        S.MSG.info("warning");
+        S.MSG.debug("warning");
+        S.MSG.success("warning");
+    });
+
     </script>
 </body>
 </html>

@@ -1,6 +1,9 @@
 (function(S) {
     var $ = S.$,
         exports = S;
+    S.ready(function(S) {
+        $ = S.$;
+    });
 
     // Position
     // --------

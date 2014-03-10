@@ -4,6 +4,10 @@
         Widget = S.Widget,
         singleton = S.singleton;
 
+    S.ready(function(S) {
+        $ = S.$;
+    });
+
     var ua = (window.navigator.userAgent || "").toLowerCase(),
         isIE6 = ua.indexOf("msie 6") !== -1;
 

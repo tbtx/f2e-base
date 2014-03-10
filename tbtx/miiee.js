@@ -4,6 +4,10 @@
         PATH = S.path,
         TIMEOUT = 10000;
 
+    S.ready(function(S) {
+        $ = S.$;
+    });
+
     // cookie写入JSToken，服务器端处理后清掉，如果url的token跟cookie的不对应则
     // 参数非法，防止重复提交
     var miieeJSToken = function() {

@@ -8,6 +8,10 @@
         singleton = S.singleton,
         throttle = S.throttle;
 
+    S.ready(function(S) {
+        $ = S.$;
+    });
+
     var doc = document,
         de = doc.documentElement,
         head = doc.head || doc.getElementsByTagName("head")[0] || de;
@@ -32,34 +36,31 @@
         S["get" + ucfirst(instance[0])] = singleton(instance[1]);
     });
 
-    var getDocument = S.getDocument,
-        getWindow = S.getWindow,
-
-        pageHeight = function() {
-            return getDocument().height();
+    var pageHeight = function() {
+            return S.getDocument().height();
             // return doc.body.scrollHeight;
         },
         pageWidth = function() {
-            return getDocument().width();
+            return S.getDocument().width();
             // return doc.body.scrollWidth;
         },
 
         scrollX = function() {
-            return getWindow().scrollLeft();
+            return S.getWindow().scrollLeft();
             // return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
         },
         scrollY = function() {
-            return getWindow().scrollTop();
+            return S.getWindow().scrollTop();
             // return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
         },
 
         viewportHeight = function() {
-            return getWindow().height();
+            return S.getWindow().height();
             // var de = document.documentElement;      //IE67的严格模式
             // return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
         },
         viewportWidth = function() {
-            return getWindow().width();
+            return S.getWindow().width();
             // return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
         },
 
@@ -101,7 +102,7 @@
             return this;
         },
 
-        contains = $.contains || function(a, b) {
+        contains = function(a, b) {
             //noinspection JSBitwiseOperatorUsage
             return !!(a.compareDocumentPosition(b) & 16);
         },
@@ -220,8 +221,8 @@
             return this;
         };
 
-    setTimeout(function() {
-        var $window = getWindow();
+    S.ready(function(S) {
+        var $window = S.getWindow();
         var winWidth = $window.width();
         var winHeight = $window.height();
         var scrollTop = $window.scrollTop();
@@ -249,7 +250,7 @@
 
             scrollTop = scrollNewTop;
         }, 80));
-    }, 0);
+    });
 
     S.mix({
         // page & viewport
@@ -267,6 +268,7 @@
 
         contains: contains,
         isInDocument: isInDocument,
+
         // support fn
         isInView: isInView,
         scrollTo: scrollTo,

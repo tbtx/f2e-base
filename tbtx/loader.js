@@ -44,7 +44,6 @@
             addOnload(node, resolve, isCSS);
         });
         promise.then(callback);
-        
 
         if (isCSS) {
             node.rel = "stylesheet";
@@ -591,11 +590,12 @@
 
         });
 
-        
         mod.load();
 
         return promise;
     };
+
+
 
     var cidCounter = 0;
     function cid() {

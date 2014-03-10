@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-09 1:42:53
+ * 2014-03-10 2:36:29
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -926,6 +926,7 @@ requireModule('promise/polyfill').polyfill();
 
     var AP = Array.prototype,
         OP = Object.prototype,
+        SP = String.prototype,
         toString = OP.toString,
         FALSE = false,
         TRUE = true,
@@ -1620,7 +1621,30 @@ requireModule('promise/polyfill').polyfill();
         return val === null || (t !== 'object' && t !== 'function');
     }
 
-    var mix = S.mix = function(des, source, blacklist, over) {
+
+    // ES5 15.5.4.20
+    // whitespace from: http://es5.github.io/#x15.5.4.20
+    var ws = "\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003" +
+        "\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028" +
+        "\u2029\uFEFF";
+    if (!String.prototype.trim || ws.trim()) {
+        // http://blog.stevenlevithan.com/archives/faster-trim-javascript
+        // http://perfectionkills.com/whitespace-deviations/
+        ws = "[" + ws + "]";
+        var trimBeginRegexp = new RegExp("^" + ws + ws + "*"),
+            trimEndRegexp = new RegExp(ws + ws + "*$");
+        SP.trim = function () {
+            if (this === void 0 || this === null) {
+                throw new TypeError("can't convert "+this+" to object");
+            }
+            return String(this)
+                .replace(trimBeginRegexp, "")
+                .replace(trimEndRegexp, "");
+        };
+    }
+
+
+    var mix = S.mix = function(des, source, blacklist, over, deep) {
         var i;
         if (!des || des === source) {
             return des;
@@ -1641,7 +1665,7 @@ requireModule('promise/polyfill').polyfill();
                 continue;
             }
             if (over || !(i in des)) {
-                des[i] = source[i];
+                des[i] = deep ? deepCopy(source[i]) : source[i];
             }
         }
         return des;
@@ -1653,6 +1677,10 @@ requireModule('promise/polyfill').polyfill();
         classify: classify,
         isNotEmptyString: function(val) {
             return isString(val) && val !== '';
+        },
+
+        trim: function(str) {
+            return str.trim();
         },
 
         isPlainObject: isPlainObject,
@@ -1960,7 +1988,6 @@ requireModule('promise/polyfill').polyfill();
             addOnload(node, resolve, isCSS);
         });
         promise.then(callback);
-        
 
         if (isCSS) {
             node.rel = "stylesheet";
@@ -2507,11 +2534,12 @@ requireModule('promise/polyfill').polyfill();
 
         });
 
-        
         mod.load();
 
         return promise;
     };
+
+
 
     var cidCounter = 0;
     function cid() {
@@ -2527,20 +2555,1153 @@ requireModule('promise/polyfill').polyfill();
 
 ;(function(S) {
 
-    // S.preload = S.singleton(function() {
-    //     return new Promise(function(resolve, reject) {
-    //         if (!S.$) {
-    //             S.require("jquery").then(function() {
-    //                 S.$ = jQuery;
-    //                 resolve(S);
-    //             });
-    //         } else {
-    //             resolve(S);
-    //         }
-    //     });
-    // });
+    var promise = new Promise(function(resolve, reject) {
+        if (!S.$) {
+            S.require("jquery").then(function() {
+                S.$ = jQuery;
+                resolve(S);
+            });
+        } else {
+            resolve(S);
+        }
+    });
+
+    S.ready = function(callback) {
+        return promise.then(callback);
+    };
 
 })(tbtx);
+
+;(function(exports) {
+    var toString = Object.prototype.toString,
+
+        isString = function(val) {
+            return toString.call(val) === '[object String]';
+        },
+
+        isNotEmptyString = function(val) {
+            return isString(val) && val !== '';
+        };
+
+    // kissy start
+    var doc = document,
+        MILLISECONDS_OF_DAY = 24 * 60 * 60 * 1000,
+        encode = encodeURIComponent,
+        decode = decodeURIComponent;
+
+    var cookie = {
+        /**
+         * 获取 cookie 值
+         * @return {string} 如果 name 不存在，返回 undefined
+         */
+        get: function(name) {
+            var ret, m;
+
+            if (isNotEmptyString(name)) {
+                if ((m = String(doc.cookie).match(
+                    new RegExp('(?:^| )' + name + '(?:(?:=([^;]*))|;|$)')))) {
+                    ret = m[1] ? decode(m[1]) : '';
+                }
+            }
+            return ret;
+        },
+
+        set: function(name, val, domain, expires, path, secure) {
+            var text = String(encode(val)),
+                date = expires;
+
+            // 从当前时间开始，多少天后过期
+            if (typeof date === 'number') {
+                date = new Date();
+                date.setTime(date.getTime() + expires * MILLISECONDS_OF_DAY);
+            }
+
+            // expiration date
+            if (date instanceof Date) {
+                text += '; expires=' + date.toUTCString();
+            }
+
+            // domain
+            if (isNotEmptyString(domain)) {
+                text += '; domain=' + domain;
+            }
+
+            // path
+            if (isNotEmptyString(path)) {
+                text += '; path=' + path;
+            }
+
+            // secure
+            if (secure) {
+                text += '; secure';
+            }
+
+            doc.cookie = name + '=' + text;
+            return this;
+        },
+
+        remove: function(name, domain, path, secure) {
+            // 置空，并立刻过期
+            this.set(name, '', domain, -1, path, secure);
+            return this;
+        }
+    };
+
+    exports.cookie = cookie;
+})(tbtx);
+
+
+;(function(S) {
+    var doc = document;
+    var support = S.namespace("support");
+
+    S.mix(support, {
+        placeholder: 'placeholder' in doc.createElement('input')
+    }, [], false, true);
+
+    // fix placeholder
+    // $(function() {
+    //     if (!support.placeholder && $("input[placeholder], textarea[placeholder]").length) {
+
+    //             input, textarea { color: #000; }
+    //             .placeholder { color: #aaa; }
+
+    //         S.require("plugin/jquery.placeholder.js", function() {
+    //             $('input, textarea').placeholder();
+    //         });
+    //     }
+    // });
+})(tbtx);
+
+
+;(function(S) {
+
+    var isDate = S.isDate;
+
+    /*
+     * 将日期格式化成字符串
+     *  Y - 4位年
+     *  y - 2位年
+     *  M - 不补0的月,
+     *  m - 补0的月
+     *  D - 不补0的日期
+     *  d - 补0的日期
+     *  H - 不补0的小时
+     *  h - 补0的小时
+     *  I - 不补0的分
+     *  i - 补0的分
+     *  S - 不补0的秒
+     *  s - 补0的秒
+     *  毫秒暂不支持
+     *  @return：指定格式的字符串
+     */
+    function formatDate(format, date) {
+        format = format || "Y-m-d h:i:s";
+
+        var o = normalizeDate(date),
+            i;
+
+        var ret = format;
+        for (i in o) {
+            ret = ret.replace(i, o[i]);
+        }
+        return ret;
+    }
+
+    // date转对象
+    function normalizeDate(date) {
+        date = toDate(date);
+
+        var o = {
+            Y: date.getFullYear(),
+            M: date.getMonth() + 1,
+            D: date.getDate(),
+            H: date.getHours(),
+            I: date.getMinutes(),
+            S: date.getSeconds()
+        };
+
+        var ret = {},
+            key,
+            i;
+
+        for(i in o) {
+            ret[i] = o[i];
+
+            key = i.toLowerCase();
+            if (key == 'y') {
+                ret[key] = o[i].toString().substring(2, 4);
+            } else {
+                ret[key] = o[i] < 10 ? ("0" + o[i]) : o[i];
+            }
+        }
+
+        return ret;
+    }
+
+    function ago(v1, v2) {
+        v1 = toDate(v1);
+        v2 = toDate(v2);
+
+        var SECONDS = 60,
+            SECONDS_OF_HOUR = SECONDS * 60,
+            SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
+            // 月份跟年粗略计算
+            SECONDS_OF_MONTH = SECONDS_OF_DAY * 30,
+            SECONDS_OF_YEAR = SECONDS_OF_DAY * 365,
+            // diff seconds
+            diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
+            dayDiff;
+
+        if (diff >= SECONDS_OF_YEAR) {
+            return Math.floor(diff / SECONDS_OF_YEAR) + "年前";
+        }
+        if (diff >= SECONDS_OF_MONTH) {
+            return Math.floor(diff / SECONDS_OF_MONTH) + "个月前";
+        }
+        if (diff >= SECONDS_OF_DAY) {
+            dayDiff = Math.floor(diff / SECONDS_OF_DAY);
+            return dayDiff == 1 ? "昨天" : dayDiff + "天前";
+        }
+
+        return diff < SECONDS && "刚刚" ||
+            diff < SECONDS_OF_HOUR && Math.floor(diff / SECONDS) + "分钟前" ||
+            diff < SECONDS_OF_DAY && Math.floor(diff / SECONDS_OF_HOUR) + "小时前";
+    }
+
+    // 字符串/数字 -> Date
+    function toDate(date) {
+        if (isDate(date)) {
+            return date;
+        }
+
+        var type = typeof date;
+        return (type == 'number' || type == 'string') ? new Date(date) : new Date();
+    }
+
+    S.mix({
+        normalizeDate: normalizeDate,
+        ago: ago,
+        formatDate: formatDate
+    });
+})(tbtx);
+
+
+;(function(exports) {
+    /*
+     * aralejs detector
+     * detector.browser.name
+     * !!detector.browser.ie
+     * detector.browser.ie && detector.browser.version < 8
+     */
+
+    var detector = {};
+    var NA_VERSION = "-1";
+    var userAgent = navigator.userAgent || "";
+    //var platform = navigator.platform || "";
+    var appVersion = navigator.appVersion || "";
+    var vendor = navigator.vendor || "";
+    var external = window.external;
+    var re_msie = /\b(?:msie |ie |trident\/[0-9].*rv[ :])([0-9.]+)/;
+    function toString(object) {
+        return Object.prototype.toString.call(object);
+    }
+    function isObject(object) {
+        return toString(object) === "[object Object]";
+    }
+    function isFunction(object) {
+        return toString(object) === "[object Function]";
+    }
+    function each(object, factory, argument) {
+        for (var i = 0, b, l = object.length; i < l; i++) {
+            if (factory.call(object, object[i], i) === false) {
+                break;
+            }
+        }
+    }
+    // 硬件设备信息识别表达式。
+    // 使用数组可以按优先级排序。
+    var DEVICES = [ [ "nokia", function(ua) {
+        // 不能将两个表达式合并，因为可能出现 "nokia; nokia 960"
+        // 这种情况下会优先识别出 nokia/-1
+        if (ua.indexOf("nokia ") !== -1) {
+            return /\bnokia ([0-9]+)?/;
+        } else if (ua.indexOf("noain") !== -1) {
+            return /\bnoain ([a-z0-9]+)/;
+        } else {
+            return /\bnokia([a-z0-9]+)?/;
+        }
+    } ], // 三星有 Android 和 WP 设备。
+    [ "samsung", function(ua) {
+        if (ua.indexOf("samsung") !== -1) {
+            return /\bsamsung(?:\-gt)?[ \-]([a-z0-9\-]+)/;
+        } else {
+            return /\b(?:gt|sch)[ \-]([a-z0-9\-]+)/;
+        }
+    } ], [ "wp", function(ua) {
+        return ua.indexOf("windows phone ") !== -1 || ua.indexOf("xblwp") !== -1 || ua.indexOf("zunewp") !== -1 || ua.indexOf("windows ce") !== -1;
+    } ], [ "pc", "windows" ], [ "ipad", "ipad" ], // ipod 规则应置于 iphone 之前。
+    [ "ipod", "ipod" ], [ "iphone", /\biphone\b|\biph(\d)/ ], [ "mac", "macintosh" ], [ "mi", /\bmi[ \-]?([a-z0-9 ]+(?= build))/ ], [ "aliyun", /\baliyunos\b(?:[\-](\d+))?/ ], [ "meizu", /\b(?:meizu\/|m)([0-9]+)\b/ ], [ "nexus", /\bnexus ([0-9s.]+)/ ], [ "huawei", function(ua) {
+        if (ua.indexOf("huawei-huawei") !== -1) {
+            return /\bhuawei\-huawei\-([a-z0-9\-]+)/;
+        } else {
+            return /\bhuawei[ _\-]?([a-z0-9]+)/;
+        }
+    } ], [ "lenovo", function(ua) {
+        if (ua.indexOf("lenovo-lenovo") !== -1) {
+            return /\blenovo\-lenovo[ \-]([a-z0-9]+)/;
+        } else {
+            return /\blenovo[ \-]?([a-z0-9]+)/;
+        }
+    } ], // 中兴
+    [ "zte", function(ua) {
+        if (/\bzte\-[tu]/.test(ua)) {
+            return /\bzte-[tu][ _\-]?([a-su-z0-9\+]+)/;
+        } else {
+            return /\bzte[ _\-]?([a-su-z0-9\+]+)/;
+        }
+    } ], // 步步高
+    [ "vivo", /\bvivo ([a-z0-9]+)/ ], [ "htc", function(ua) {
+        if (/\bhtc[a-z0-9 _\-]+(?= build\b)/.test(ua)) {
+            return /\bhtc[ _\-]?([a-z0-9 ]+(?= build))/;
+        } else {
+            return /\bhtc[ _\-]?([a-z0-9 ]+)/;
+        }
+    } ], [ "oppo", /\boppo[_]([a-z0-9]+)/ ], [ "konka", /\bkonka[_\-]([a-z0-9]+)/ ], [ "sonyericsson", /\bmt([a-z0-9]+)/ ], [ "coolpad", /\bcoolpad[_ ]?([a-z0-9]+)/ ], [ "lg", /\blg[\-]([a-z0-9]+)/ ], [ "android", "android" ], [ "blackberry", "blackberry" ] ];
+    // 操作系统信息识别表达式
+    var OS = [ [ "wp", function(ua) {
+        if (ua.indexOf("windows phone ") !== -1) {
+            return /\bwindows phone (?:os )?([0-9.]+)/;
+        } else if (ua.indexOf("xblwp") !== -1) {
+            return /\bxblwp([0-9.]+)/;
+        } else if (ua.indexOf("zunewp") !== -1) {
+            return /\bzunewp([0-9.]+)/;
+        }
+        return "windows phone";
+    } ], [ "windows", /\bwindows nt ([0-9.]+)/ ], [ "macosx", /\bmac os x ([0-9._]+)/ ], [ "ios", function(ua) {
+        if (/\bcpu(?: iphone)? os /.test(ua)) {
+            return /\bcpu(?: iphone)? os ([0-9._]+)/;
+        } else if (ua.indexOf("iph os ") !== -1) {
+            return /\biph os ([0-9_]+)/;
+        } else {
+            return /\bios\b/;
+        }
+    } ], [ "yunos", /\baliyunos ([0-9.]+)/ ], [ "android", /\bandroid[\/\- ]?([0-9.x]+)?/ ], [ "chromeos", /\bcros i686 ([0-9.]+)/ ], [ "linux", "linux" ], [ "windowsce", /\bwindows ce(?: ([0-9.]+))?/ ], [ "symbian", /\bsymbian(?:os)?\/([0-9.]+)/ ], [ "meego", /\bmeego\b/ ], [ "blackberry", "blackberry" ] ];
+    /*
+   * 解析使用 Trident 内核的浏览器的 `浏览器模式` 和 `文档模式` 信息。
+   * @param {String} ua, userAgent string.
+   * @return {Object}
+   */
+    function IEMode(ua) {
+        if (!re_msie.test(ua)) {
+            return null;
+        }
+        var m, engineMode, engineVersion, browserMode, browserVersion, compatible = false;
+        // IE8 及其以上提供有 Trident 信息，
+        // 默认的兼容模式，UA 中 Trident 版本不发生变化。
+        if (ua.indexOf("trident/") !== -1) {
+            m = /\btrident\/([0-9.]+)/.exec(ua);
+            if (m && m.length >= 2) {
+                // 真实引擎版本。
+                engineVersion = m[1];
+                var v_version = m[1].split(".");
+                v_version[0] = parseInt(v_version[0], 10) + 4;
+                browserVersion = v_version.join(".");
+            }
+        }
+        m = re_msie.exec(ua);
+        browserMode = m[1];
+        var v_mode = m[1].split(".");
+        if ("undefined" === typeof browserVersion) {
+            browserVersion = browserMode;
+        }
+        v_mode[0] = parseInt(v_mode[0], 10) - 4;
+        engineMode = v_mode.join(".");
+        if ("undefined" === typeof engineVersion) {
+            engineVersion = engineMode;
+        }
+        return {
+            browserVersion: browserVersion,
+            browserMode: browserMode,
+            engineVersion: engineVersion,
+            engineMode: engineMode,
+            compatible: engineVersion !== engineMode
+        };
+    }
+    /**
+   * 针对同源的 TheWorld 和 360 的 external 对象进行检测。
+   * @param {String} key, 关键字，用于检测浏览器的安装路径中出现的关键字。
+   * @return {Undefined,Boolean,Object} 返回 undefined 或 false 表示检测未命中。
+   */
+    function checkTW360External(key) {
+        if (!external) {
+            return;
+        }
+        // return undefined.
+        try {
+            //        360安装路径：
+            //        C:%5CPROGRA~1%5C360%5C360se3%5C360SE.exe
+            var runpath = external.twGetRunPath.toLowerCase();
+            // 360SE 3.x ~ 5.x support.
+            // 暴露的 external.twGetVersion 和 external.twGetSecurityID 均为 undefined。
+            // 因此只能用 try/catch 而无法使用特性判断。
+            var security = external.twGetSecurityID(window);
+            var version = external.twGetVersion(security);
+            if (runpath && runpath.indexOf(key) === -1) {
+                return false;
+            }
+            if (version) {
+                return {
+                    version: version
+                };
+            }
+        } catch (ex) {}
+    }
+    var ENGINE = [ [ "trident", re_msie ], //["blink", /blink\/([0-9.+]+)/],
+    [ "webkit", /\bapplewebkit[\/]?([0-9.+]+)/ ], [ "gecko", /\bgecko\/(\d+)/ ], [ "presto", /\bpresto\/([0-9.]+)/ ], [ "androidwebkit", /\bandroidwebkit\/([0-9.]+)/ ], [ "coolpadwebkit", /\bcoolpadwebkit\/([0-9.]+)/ ] ];
+    var BROWSER = [ // Sogou.
+    [ "sg", / se ([0-9.x]+)/ ], // TheWorld (世界之窗)
+    // 由于裙带关系，TW API 与 360 高度重合。
+    // 只能通过 UA 和程序安装路径中的应用程序名来区分。
+    // TheWorld 的 UA 比 360 更靠谱，所有将 TheWorld 的规则放置到 360 之前。
+    [ "tw", function(ua) {
+        var x = checkTW360External("theworld");
+        if (typeof x !== "undefined") {
+            return x;
+        }
+        return "theworld";
+    } ], // 360SE, 360EE.
+    [ "360", function(ua) {
+        var x = checkTW360External("360se");
+        if (typeof x !== "undefined") {
+            return x;
+        }
+        if (ua.indexOf("360 aphone browser") !== -1) {
+            return /\b360 aphone browser \(([^\)]+)\)/;
+        }
+        return /\b360(?:se|ee|chrome|browser)\b/;
+    } ], // Maxthon
+    [ "mx", function(ua) {
+        try {
+            if (external && (external.mxVersion || external.max_version)) {
+                return {
+                    version: external.mxVersion || external.max_version
+                };
+            }
+        } catch (ex) {}
+        return /\bmaxthon(?:[ \/]([0-9.]+))?/;
+    } ], [ "qq", /\bm?qqbrowser\/([0-9.]+)/ ], [ "green", "greenbrowser" ], [ "tt", /\btencenttraveler ([0-9.]+)/ ], [ "lb", function(ua) {
+        if (ua.indexOf("lbbrowser") === -1) {
+            return false;
+        }
+        var version;
+        try {
+            if (external && external.LiebaoGetVersion) {
+                version = external.LiebaoGetVersion();
+            }
+        } catch (ex) {}
+        return {
+            version: version || NA_VERSION
+        };
+    } ], [ "tao", /\btaobrowser\/([0-9.]+)/ ], [ "fs", /\bcoolnovo\/([0-9.]+)/ ], [ "sy", "saayaa" ], // 有基于 Chromniun 的急速模式和基于 IE 的兼容模式。必须在 IE 的规则之前。
+    [ "baidu", /\bbidubrowser[ \/]([0-9.x]+)/ ], // 后面会做修复版本号，这里只要能识别是 IE 即可。
+    [ "ie", re_msie ], [ "mi", /\bmiuibrowser\/([0-9.]+)/ ], // Opera 15 之后开始使用 Chromniun 内核，需要放在 Chrome 的规则之前。
+    [ "opera", function(ua) {
+        var re_opera_old = /\bopera.+version\/([0-9.ab]+)/;
+        var re_opera_new = /\bopr\/([0-9.]+)/;
+        return re_opera_old.test(ua) ? re_opera_old : re_opera_new;
+    } ], [ "chrome", / (?:chrome|crios|crmo)\/([0-9.]+)/ ], // UC 浏览器，可能会被识别为 Android 浏览器，规则需要前置。
+    [ "uc", function(ua) {
+        if (ua.indexOf("ucbrowser/") >= 0) {
+            return /\bucbrowser\/([0-9.]+)/;
+        } else if (/\buc\/[0-9]/.test(ua)) {
+            return /\buc\/([0-9.]+)/;
+        } else if (ua.indexOf("ucweb") >= 0) {
+            return /\bucweb[\/]?([0-9.]+)?/;
+        } else {
+            return /\b(?:ucbrowser|uc)\b/;
+        }
+    } ], // Android 默认浏览器。该规则需要在 safari 之前。
+    [ "android", function(ua) {
+        if (ua.indexOf("android") === -1) {
+            return;
+        }
+        return /\bversion\/([0-9.]+(?: beta)?)/;
+    } ], [ "safari", /\bversion\/([0-9.]+(?: beta)?)(?: mobile(?:\/[a-z0-9]+)?)? safari\// ], // 如果不能被识别为 Safari，则猜测是 WebView。
+    [ "webview", /\bcpu(?: iphone)? os (?:[0-9._]+).+\bapplewebkit\b/ ], [ "firefox", /\bfirefox\/([0-9.ab]+)/ ], [ "nokia", /\bnokiabrowser\/([0-9.]+)/ ] ];
+    /**
+   * UserAgent Detector.
+   * @param {String} ua, userAgent.
+   * @param {Object} expression
+   * @return {Object}
+   *    返回 null 表示当前表达式未匹配成功。
+   */
+    function detect(name, expression, ua) {
+        var expr = isFunction(expression) ? expression.call(null, ua) : expression;
+        if (!expr) {
+            return null;
+        }
+        var info = {
+            name: name,
+            version: NA_VERSION,
+            codename: ""
+        };
+        var t = toString(expr);
+        if (expr === true) {
+            return info;
+        } else if (t === "[object String]") {
+            if (ua.indexOf(expr) !== -1) {
+                return info;
+            }
+        } else if (isObject(expr)) {
+            // Object
+            if (expr.hasOwnProperty("version")) {
+                info.version = expr.version;
+            }
+            return info;
+        } else if (expr.exec) {
+            // RegExp
+            var m = expr.exec(ua);
+            if (m) {
+                if (m.length >= 2 && m[1]) {
+                    info.version = m[1].replace(/_/g, ".");
+                } else {
+                    info.version = NA_VERSION;
+                }
+                return info;
+            }
+        }
+    }
+    var na = {
+        name: "na",
+        version: NA_VERSION
+    };
+    // 初始化识别。
+    function init(ua, patterns, factory, detector) {
+        var detected = na;
+        each(patterns, function(pattern) {
+            var d = detect(pattern[0], pattern[1], ua);
+            if (d) {
+                detected = d;
+                return false;
+            }
+        });
+        factory.call(detector, detected.name, detected.version);
+    }
+    /**
+   * 解析 UserAgent 字符串
+   * @param {String} ua, userAgent string.
+   * @return {Object}
+   */
+    var parse = function(ua) {
+        ua = (ua || "").toLowerCase();
+        var d = {};
+        init(ua, DEVICES, function(name, version) {
+            var v = parseFloat(version);
+            d.device = {
+                name: name,
+                version: v,
+                fullVersion: version
+            };
+            d.device[name] = v;
+        }, d);
+        init(ua, OS, function(name, version) {
+            var v = parseFloat(version);
+            d.os = {
+                name: name,
+                version: v,
+                fullVersion: version
+            };
+            d.os[name] = v;
+        }, d);
+        var ieCore = IEMode(ua);
+        init(ua, ENGINE, function(name, version) {
+            var mode = version;
+            // IE 内核的浏览器，修复版本号及兼容模式。
+            if (ieCore) {
+                version = ieCore.engineVersion || ieCore.engineMode;
+                mode = ieCore.engineMode;
+            }
+            var v = parseFloat(version);
+            d.engine = {
+                name: name,
+                version: v,
+                fullVersion: version,
+                mode: parseFloat(mode),
+                fullMode: mode,
+                compatible: ieCore ? ieCore.compatible : false
+            };
+            d.engine[name] = v;
+        }, d);
+        init(ua, BROWSER, function(name, version) {
+            var mode = version;
+            // IE 内核的浏览器，修复浏览器版本及兼容模式。
+            if (ieCore) {
+                // 仅修改 IE 浏览器的版本，其他 IE 内核的版本不修改。
+                if (name === "ie") {
+                    version = ieCore.browserVersion;
+                }
+                mode = ieCore.browserMode;
+            }
+            var v = parseFloat(version);
+            d.browser = {
+                name: name,
+                version: v,
+                fullVersion: version,
+                mode: parseFloat(mode),
+                fullMode: mode,
+                compatible: ieCore ? ieCore.compatible : false
+            };
+            d.browser[name] = v;
+        }, d);
+        return d;
+    };
+    detector = parse(userAgent + " " + appVersion + " " + vendor);
+    detector.parse = parse;
+
+    // exports add
+    function mixTo(r, s) {
+        var p;
+        for (p in s) {
+            if (s.hasOwnProperty(p)) {
+                r[p] = s[p];
+            }
+        }
+    }
+    var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/gi;
+    var decideMobile = function(ua) {
+        var match = mobilePattern.exec(ua);
+        return match ? match[1]: '';
+    };
+
+    detector.mobile = decideMobile(userAgent);
+
+    mixTo(exports, {
+        detector: detector,
+        decideMobile: decideMobile,
+        isIE6: detector.browser.ie && detector.browser.version == 6,
+        isMobile: !!detector.mobile
+    });
+})(tbtx);
+
+
+;(function(S) {
+    var $ = S.$,
+        exports = S;
+    S.ready(function(S) {
+        $ = S.$;
+    });
+
+    // Position
+    // --------
+    // 定位工具组件，将一个 DOM 节点相对对另一个 DOM 节点进行定位操作。
+    // 代码易改，人生难得
+    var Position = exports, VIEWPORT = {
+        _id: "VIEWPORT",
+        nodeType: 1
+    }, isPinFixed = false, ua = (window.navigator.userAgent || "").toLowerCase(), isIE6 = ua.indexOf("msie 6") !== -1;
+    // 将目标元素相对于基准元素进行定位
+    // 这是 Position 的基础方法，接收两个参数，分别描述了目标元素和基准元素的定位点
+    Position.pin = function(pinObject, baseObject) {
+        // 将两个参数转换成标准定位对象 { element: a, x: 0, y: 0 }
+        pinObject = normalize(pinObject);
+        baseObject = normalize(baseObject);
+        // 设定目标元素的 position 为绝对定位
+        // 若元素的初始 position 不为 absolute，会影响元素的 display、宽高等属性
+        var pinElement = $(pinObject.element);
+        if (pinElement.css("position") !== "fixed" || isIE6) {
+            pinElement.css("position", "absolute");
+            isPinFixed = false;
+        } else {
+            // 定位 fixed 元素的标志位，下面有特殊处理
+            isPinFixed = true;
+        }
+        // 将位置属性归一化为数值
+        // 注：必须放在上面这句 `css('position', 'absolute')` 之后，
+        //    否则获取的宽高有可能不对
+        posConverter(pinObject);
+        posConverter(baseObject);
+        var parentOffset = getParentOffset(pinElement);
+        var baseOffset = baseObject.offset();
+        // 计算目标元素的位置
+        var top = baseOffset.top + baseObject.y - pinObject.y - parentOffset.top;
+        var left = baseOffset.left + baseObject.x - pinObject.x - parentOffset.left;
+        // 定位目标元素
+        pinElement.css({
+            left: left,
+            top: top
+        });
+    };
+    // 将目标元素相对于基准元素进行居中定位
+    // 接受两个参数，分别为目标元素和定位的基准元素，都是 DOM 节点类型
+    Position.center = function(pinElement, baseElement) {
+        Position.pin({
+            element: pinElement,
+            x: "50%",
+            y: "50%"
+        }, {
+            element: baseElement,
+            x: "50%",
+            y: "50%"
+        });
+    };
+    // 这是当前可视区域的伪 DOM 节点
+    // 需要相对于当前可视区域定位时，可传入此对象作为 element 参数
+    Position.VIEWPORT = VIEWPORT;
+    // Helpers
+    // -------
+    // 将参数包装成标准的定位对象，形似 { element: a, x: 0, y: 0 }
+    function normalize(posObject) {
+        posObject = toElement(posObject) || {};
+        if (posObject.nodeType) {
+            posObject = {
+                element: posObject
+            };
+        }
+        var element = toElement(posObject.element) || VIEWPORT;
+        if (element.nodeType !== 1) {
+            throw new Error("posObject.element is invalid.");
+        }
+        var result = {
+            element: element,
+            x: posObject.x || 0,
+            y: posObject.y || 0
+        };
+        // config 的深度克隆会替换掉 Position.VIEWPORT, 导致直接比较为 false
+        var isVIEWPORT = element === VIEWPORT || element._id === "VIEWPORT";
+        // 归一化 offset
+        result.offset = function() {
+            // 若定位 fixed 元素，则父元素的 offset 没有意义
+            if (isPinFixed) {
+                return {
+                    left: 0,
+                    top: 0
+                };
+            } else if (isVIEWPORT) {
+                return {
+                    left: $(document).scrollLeft(),
+                    top: $(document).scrollTop()
+                };
+            } else {
+                return getOffset($(element)[0]);
+            }
+        };
+        // 归一化 size, 含 padding 和 border
+        result.size = function() {
+            var el = isVIEWPORT ? $(window) : $(element);
+            return {
+                width: el.outerWidth(),
+                height: el.outerHeight()
+            };
+        };
+        return result;
+    }
+    // 对 x, y 两个参数为 left|center|right|%|px 时的处理，全部处理为纯数字
+    function posConverter(pinObject) {
+        pinObject.x = xyConverter(pinObject.x, pinObject, "width");
+        pinObject.y = xyConverter(pinObject.y, pinObject, "height");
+    }
+    // 处理 x, y 值，都转化为数字
+    function xyConverter(x, pinObject, type) {
+        // 先转成字符串再说！好处理
+        x = x + "";
+        // 处理 px
+        x = x.replace(/px/gi, "");
+        // 处理 alias
+        if (/\D/.test(x)) {
+            x = x.replace(/(?:top|left)/gi, "0%").replace(/center/gi, "50%").replace(/(?:bottom|right)/gi, "100%");
+        }
+        // 将百分比转为像素值
+        if (x.indexOf("%") !== -1) {
+            //支持小数
+            x = x.replace(/(\d+(?:\.\d+)?)%/gi, function(m, d) {
+                return pinObject.size()[type] * (d / 100);
+            });
+        }
+        // 处理类似 100%+20px 的情况
+        if (/[+\-*\/]/.test(x)) {
+            try {
+                // eval 会影响压缩
+                // new Function 方法效率高于 for 循环拆字符串的方法
+                // 参照：http://jsperf.com/eval-newfunction-for
+                x = new Function("return " + x)();
+            } catch (e) {
+                throw new Error("Invalid position value: " + x);
+            }
+        }
+        // 转回为数字
+        return numberize(x);
+    }
+    // 获取 offsetParent 的位置
+    function getParentOffset(element) {
+        var parent = element.offsetParent();
+        // IE7 下，body 子节点的 offsetParent 为 html 元素，其 offset 为
+        // { top: 2, left: 2 }，会导致定位差 2 像素，所以这里将 parent
+        // 转为 document.body
+        if (parent[0] === document.documentElement) {
+            parent = $(document.body);
+        }
+        // 修正 ie6 下 absolute 定位不准的 bug
+        if (isIE6) {
+            parent.css("zoom", 1);
+        }
+        // 获取 offsetParent 的 offset
+        var offset;
+        // 当 offsetParent 为 body，
+        // 而且 body 的 position 是 static 时
+        // 元素并不按照 body 来定位，而是按 document 定位
+        // http://jsfiddle.net/afc163/hN9Tc/2/
+        // 因此这里的偏移值直接设为 0 0
+        if (parent[0] === document.body && parent.css("position") === "static") {
+            offset = {
+                top: 0,
+                left: 0
+            };
+        } else {
+            offset = getOffset(parent[0]);
+        }
+        // 根据基准元素 offsetParent 的 border 宽度，来修正 offsetParent 的基准位置
+        offset.top += numberize(parent.css("border-top-width"));
+        offset.left += numberize(parent.css("border-left-width"));
+        return offset;
+    }
+    function numberize(s) {
+        return parseFloat(s, 10) || 0;
+    }
+    function toElement(element) {
+        return $(element)[0];
+    }
+    // fix jQuery 1.7.2 offset
+    // document.body 的 position 是 absolute 或 relative 时
+    // jQuery.offset 方法无法正确获取 body 的偏移值
+    //   -> http://jsfiddle.net/afc163/gMAcp/
+    // jQuery 1.9.1 已经修正了这个问题
+    //   -> http://jsfiddle.net/afc163/gMAcp/1/
+    // 这里先实现一份
+    // 参照 kissy 和 jquery 1.9.1
+    //   -> https://github.com/kissyteam/kissy/blob/master/src/dom/sub-modules/base/src/base/offset.js#L366 
+    //   -> https://github.com/jquery/jquery/blob/1.9.1/src/offset.js#L28
+    function getOffset(element) {
+        var box = element.getBoundingClientRect(), docElem = document.documentElement;
+        // < ie8 不支持 win.pageXOffset, 则使用 docElem.scrollLeft
+        return {
+            left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || document.body.clientLeft || 0),
+            top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || document.body.clientTop || 0)
+        };
+    }
+})(tbtx);
+
+;// 依赖jQuery的代码
+(function(S) {
+    var global = S.global,
+        $ = S.$,
+        noop = S.noop,
+        each = S.each,
+        ucfirst = S.ucfirst,
+        singleton = S.singleton,
+        throttle = S.throttle;
+
+    S.ready(function(S) {
+        $ = S.$;
+    });
+
+    var doc = document,
+        de = doc.documentElement,
+        head = doc.head || doc.getElementsByTagName("head")[0] || de;
+
+
+    // jQuery singleton instances
+    var $instances = [
+        ["window", function() {
+            return $(window);
+        }],
+        ["document", function() {
+            return $(doc);
+        }],
+        ["head", function() {
+            return $(head);
+        }],
+        ["body", function() {
+            return $('body');
+        }]
+    ];
+    each($instances, function(instance) {
+        S["get" + ucfirst(instance[0])] = singleton(instance[1]);
+    });
+
+    var pageHeight = function() {
+            return S.getDocument().height();
+            // return doc.body.scrollHeight;
+        },
+        pageWidth = function() {
+            return S.getDocument().width();
+            // return doc.body.scrollWidth;
+        },
+
+        scrollX = function() {
+            return S.getWindow().scrollLeft();
+            // return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
+        },
+        scrollY = function() {
+            return S.getWindow().scrollTop();
+            // return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
+        },
+
+        viewportHeight = function() {
+            return S.getWindow().height();
+            // var de = document.documentElement;      //IE67的严格模式
+            // return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
+        },
+        viewportWidth = function() {
+            return S.getWindow().width();
+            // return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
+        },
+
+        fullViewport = function(selector) {
+            return $(selector).css({
+                width: viewportWidth(),
+                height: viewportHeight()
+            });
+        },
+
+        fullPage = function(selector) {
+            return $(selector).css({
+                width: pageWidth(),
+                height: pageHeight()
+            });
+        },
+
+        getScroller = singleton(function() {
+            var scroller = doc.body;
+            if (/msie [67]/.test(navigator.userAgent.toLowerCase())) {
+                scroller = doc.documentElement;
+            }
+            return $(scroller);
+        }),
+        /**
+         * 停止body的滚动条
+         * @return {[type]} [description]
+         */
+        stopBodyScroll = function() {
+            getScroller().css("overflow", "hidden");
+            return this;
+        },
+        /**
+         * 恢复body的滚动条
+         * @return {[type]} [description]
+         */
+        resetBodyScroll = function() {
+            getScroller().css("overflow", "auto");
+            return this;
+        },
+
+        contains = function(a, b) {
+            //noinspection JSBitwiseOperatorUsage
+            return !!(a.compareDocumentPosition(b) & 16);
+        },
+        isInDocument = function(element) {
+            return contains(de, element);
+        },
+
+        // 距离topline多少px才算inView
+        // 元素是否出现在视口内
+        // 超出也不在view
+        isInView = function(selector, top) {
+            top = top || 0;
+
+            var element = $(selector),
+                elemHeight = element.innerHeight(),
+                win = getWindow(),
+                winHeight = win.height();
+            if (top == "center" || typeof top !== "number") {
+                top = (winHeight- elemHeight)/2;
+            }
+
+            var scrollTop = win.scrollTop();
+            var scrollBottom = scrollTop + winHeight;
+            var elementTop = element.offset().top + top;
+            var elementBottom = elementTop + elemHeight;
+            // 只判断垂直位置是否在可视区域，不判断水平。只有要部分区域在可视区域，就返回 true
+            return elementTop < scrollBottom && elementBottom > scrollTop;
+        },
+
+        scrollTo = function(selector) {
+            var top;
+            if (typeof selector == "number") {
+                top = selector;
+            } else {
+                var $target = $(selector),
+                    offsetTop = $target.offset().top;
+
+                top = offsetTop - (viewportHeight() - $target.innerHeight())/2;
+            }
+
+            $('body,html').animate({
+                scrollTop: top
+            }, 800);
+            return this;
+        },
+
+        limitLength = function(selector, attr, suffix) {
+            var $elements = $(selector);
+            suffix = suffix || '...';
+            attr = attr || 'data-max';
+
+            $elements.each(function() {
+                var $element = $(this);
+                var max = parseInt($element.attr(attr), 10);
+                var conent = $.trim($element.text());
+                if (conent.length <= max) {
+                    return;
+                }
+
+                conent = conent.slice(0, max - suffix.length) + suffix;
+                $element.text(conent);
+            });
+            return this;
+        },
+
+        flash = function(selector, flashColor, bgColor) {
+            var $elements = $(selector);
+            bgColor = bgColor || "#FFF";
+            flashColor = flashColor || "#FF9";
+            $elements.each(function(index, element) {
+                var $element = $(element);
+                $element.css("background-color", flashColor).fadeOut("fast", function() {
+                    $element.fadeIn("fast", function() {
+                        $element.css("background-color", bgColor).focus().select();
+                    });
+                });
+            });
+            return this;
+        },
+        // 返回顶部
+        flyToTop = function(selector) {
+            var $container = $(selector);
+
+            // 大于offset消失
+            var offset = $container.data("offset");
+            if (offset) {
+                // fade in #back-top
+                S.on("window.scroll", function(top) {
+                    if (top > offset) {
+                        $container.fadeIn();
+                    } else {
+                        $container.fadeOut();
+                    }
+                });
+            }
+
+            // 默认监听J-fly-to-top, 没找到则监听自身
+            var $flyer = $container.find(".J-fly-to-top"),
+                $listener = $flyer.length ? $flyer : $container;
+
+            $listener.on('click', function(){
+                scrollTo(0);
+                return false;
+            });
+            return this;
+        },
+
+        initWangWang = function(callback) {
+            callback = callback || noop;
+            var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
+            if (global.KISSY) {
+                S.loadScript(webww, callback);
+            } else {
+                S.loadScript(["http://a.tbcdn.cn/s/kissy/1.2.0/kissy-min.js", webww], callback);
+            }
+            return this;
+        };
+
+    S.ready(function(S) {
+        var $window = S.getWindow();
+        var winWidth = $window.width();
+        var winHeight = $window.height();
+        var scrollTop = $window.scrollTop();
+        $window.on("resize", throttle(function() {
+            // 干掉JSHint的检测
+            var winNewWidth = $window.width();
+            var winNewHeight = $window.height();
+            // IE678 莫名其妙触发 resize
+            // http://stackoverflow.com/questions/1852751/window-resize-event-firing-in-internet-explorer
+            if (winWidth !== winNewWidth || winHeight !== winNewHeight) {
+                S.trigger("window.resize", winNewWidth, winNewHeight);
+            }
+            winWidth = winNewWidth;
+            winHeight = winNewHeight;
+        }, 80)).on("scroll", throttle(function() {
+            var scrollNewTop = $window.scrollTop();
+            if (scrollTop !== scrollNewTop) {
+                S.trigger("window.scroll", scrollNewTop, scrollTop);
+                // if (scrollTop > scrollNewTop) {
+                //     S.trigger("window.scroll.up", scrollNewTop, scrollTop);
+                // } else {
+                //     S.trigger("window.scroll.down", scrollNewTop, scrollTop);
+                // }
+            }
+
+            scrollTop = scrollNewTop;
+        }, 80));
+    });
+
+    S.mix({
+        // page & viewport
+        pageWidth: pageWidth,
+        pageHeight: pageHeight,
+        scrollY: scrollY,
+        scrollX: scrollX,
+        viewportHeight: viewportHeight,
+        viewportWidth: viewportWidth,
+        fullViewport: fullViewport,
+        fullPage: fullPage,
+
+        stopBodyScroll: stopBodyScroll,
+        resetBodyScroll: resetBodyScroll,
+
+        contains: contains,
+        isInDocument: isInDocument,
+
+        // support fn
+        isInView: isInView,
+        scrollTo: scrollTo,
+        limitLength: limitLength,
+        initWangWang: initWangWang,
+        flash: flash,
+        flyToTop: flyToTop,
+
+        /**
+         * http://www.taobao.com/go/act/video/open_dev_play.php
+         * @param  {[type]} config [description]
+         * @return {[type]}        [description]
+         */
+        embedPlayer: function(allConfig) {
+            allConfig = allConfig || {};
+            S.loadScript("http://api.video.taobao.com/video/getPlayerJS").done(function() {
+                // 自动生成id
+                $(allConfig.div).each(function(index, el) {
+                    var element = $(el);
+                    var config = $.extend({}, allConfig, element.data());
+
+                    element = $("<div></div>").appendTo(element);
+                    var id = "tbtx-player-" + S.uniqueCid();
+                    element.attr("id", id);
+
+                    config.div = id;
+
+                    // vid uid div自己传
+                    var must = {
+                        "width": "100%",
+                        "height": "100%"
+                    };
+                    tb_player_object.embedPlayer(S.mix(must, config), config, config);
+                });
+
+            });
+        }
+    });
+})(tbtx);
+
 
 ;(function(exports) {
     // Events
@@ -3091,9 +4252,8 @@ requireModule('promise/polyfill').polyfill();
     }
 })(tbtx);
 
-;(function() {
-    var S = tbtx,
-        $ = S.$,
+;(function(S) {
+    var $ = S.$,
         Class = S.Class,
         Events = S.Events,
         Aspect = S.Aspect,
@@ -3389,10 +4549,13 @@ requireModule('promise/polyfill').polyfill();
     });
 
     // For memory leak
-    $(window).unload(function() {
-        for (var cid in cachedInstances) {
-            cachedInstances[cid].destroy();
-        }
+    S.ready(function(S) {
+        $ = S.$;
+        $(window).unload(function() {
+            for (var cid in cachedInstances) {
+                cachedInstances[cid].destroy();
+            }
+        });
     });
 
     // 查询与 selector 匹配的第一个 DOM 节点，得到与该 DOM 节点相关联的 Widget 实例
@@ -3410,16 +4573,8 @@ requireModule('promise/polyfill').polyfill();
 
     var isString = S.isString,
         isFunction = S.isFunction,
-        ucfirst = S.ucfirst;
-
-     // Zepto 上没有 contains 方法
-    var contains = $.contains || function(a, b) {
-        //noinspection JSBitwiseOperatorUsage
-        return !!(a.compareDocumentPosition(b) & 16);
-    };
-    function isInDocument(element) {
-        return contains(document.documentElement, element);
-    }
+        ucfirst = S.ucfirst,
+        isInDocument = S.isInDocument;
 
     function getEvents(widget) {
         if (isFunction(widget.events)) {
@@ -3480,1200 +4635,15 @@ requireModule('promise/polyfill').polyfill();
 
 })(tbtx);
 
-;(function(exports) {
-    var toString = Object.prototype.toString,
-
-        isString = function(val) {
-            return toString.call(val) === '[object String]';
-        },
-
-        isNotEmptyString = function(val) {
-            return isString(val) && val !== '';
-        };
-
-    // kissy start
-    var doc = document,
-        MILLISECONDS_OF_DAY = 24 * 60 * 60 * 1000,
-        encode = encodeURIComponent,
-        decode = decodeURIComponent;
-
-    var cookie = {
-        /**
-         * 获取 cookie 值
-         * @return {string} 如果 name 不存在，返回 undefined
-         */
-        get: function(name) {
-            var ret, m;
-
-            if (isNotEmptyString(name)) {
-                if ((m = String(doc.cookie).match(
-                    new RegExp('(?:^| )' + name + '(?:(?:=([^;]*))|;|$)')))) {
-                    ret = m[1] ? decode(m[1]) : '';
-                }
-            }
-            return ret;
-        },
-
-        set: function(name, val, domain, expires, path, secure) {
-            var text = String(encode(val)),
-                date = expires;
-
-            // 从当前时间开始，多少天后过期
-            if (typeof date === 'number') {
-                date = new Date();
-                date.setTime(date.getTime() + expires * MILLISECONDS_OF_DAY);
-            }
-
-            // expiration date
-            if (date instanceof Date) {
-                text += '; expires=' + date.toUTCString();
-            }
-
-            // domain
-            if (isNotEmptyString(domain)) {
-                text += '; domain=' + domain;
-            }
-
-            // path
-            if (isNotEmptyString(path)) {
-                text += '; path=' + path;
-            }
-
-            // secure
-            if (secure) {
-                text += '; secure';
-            }
-
-            doc.cookie = name + '=' + text;
-            return this;
-        },
-
-        remove: function(name, domain, path, secure) {
-            // 置空，并立刻过期
-            this.set(name, '', domain, -1, path, secure);
-            return this;
-        }
-    };
-
-    exports.cookie = cookie;
-})(tbtx);
-
-
-;(function(exports) {
-
-    function isType(type) {
-        return function(obj) {
-            return {}.toString.call(obj) == "[object " + type + "]";
-        };
-    }
-    var isDate = isType("Date");
-
-    /*
-     * 将日期格式化成字符串
-     *  Y - 4位年
-     *  y - 2位年
-     *  M - 不补0的月,
-     *  m - 补0的月
-     *  D - 不补0的日期
-     *  d - 补0的日期
-     *  H - 不补0的小时
-     *  h - 补0的小时
-     *  I - 不补0的分
-     *  i - 补0的分
-     *  S - 不补0的秒
-     *  s - 补0的秒
-     *  毫秒暂不支持
-     *  @return：指定格式的字符串
-     */
-    function formatDate(format, date) {
-        format = format || "Y-m-d h:i:s";
-
-        var o = normalizeDate(date),
-            i;
-
-        var ret = format;
-        for (i in o) {
-            ret = ret.replace(i, o[i]);
-        }
-        return ret;
-    }
-
-    // date转对象
-    function normalizeDate(date) {
-        date = toDate(date);
-
-        var o = {
-            Y: date.getFullYear(),
-            M: date.getMonth() + 1,
-            D: date.getDate(),
-            H: date.getHours(),
-            I: date.getMinutes(),
-            S: date.getSeconds()
-        };
-
-        var ret = {},
-            key,
-            i;
-
-        for(i in o) {
-            ret[i] = o[i];
-
-            key = i.toLowerCase();
-            if (key == 'y') {
-                ret[key] = o[i].toString().substring(2, 4);
-            } else {
-                ret[key] = o[i] < 10 ? ("0" + o[i]) : o[i];
-            }
-        }
-
-        return ret;
-    }
-
-    function ago(v1, v2) {
-        v1 = toDate(v1);
-        v2 = toDate(v2);
-
-        var SECONDS = 60,
-            SECONDS_OF_HOUR = SECONDS * 60,
-            SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
-            // 月份跟年粗略计算
-            SECONDS_OF_MONTH = SECONDS_OF_DAY * 30,
-            SECONDS_OF_YEAR = SECONDS_OF_DAY * 365,
-            // diff seconds
-            diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
-            dayDiff;
-
-        if (diff >= SECONDS_OF_YEAR) {
-            return Math.floor(diff / SECONDS_OF_YEAR) + "年前";
-        }
-        if (diff >= SECONDS_OF_MONTH) {
-            return Math.floor(diff / SECONDS_OF_MONTH) + "个月前";
-        }
-        if (diff >= SECONDS_OF_DAY) {
-            dayDiff = Math.floor(diff / SECONDS_OF_DAY);
-            return dayDiff == 1 ? "昨天" : dayDiff + "天前";
-        }
-
-        return diff < SECONDS && "刚刚" ||
-            diff < SECONDS_OF_HOUR && Math.floor(diff / SECONDS) + "分钟前" ||
-            diff < SECONDS_OF_DAY && Math.floor(diff / SECONDS_OF_HOUR) + "小时前";
-    }
-
-    // 字符串/数字 -> Date
-    function toDate(date) {
-        if (isDate(date)) {
-            return date;
-        }
-
-        var type = typeof date;
-        return type == 'number' || type == 'string' ? new Date(date) : new Date();
-    }
-
-    function mixTo(r, s) {
-        var p;
-        for (p in s) {
-            if (s.hasOwnProperty(p)) {
-                r[p] = s[p];
-            }
-        }
-    }
-
-    mixTo(exports, {
-        normalizeDate: normalizeDate,
-        ago: ago,
-        formatDate: formatDate
-    });
-})(tbtx);
-
-
-;(function(exports) {
-    /*
-     * aralejs detector
-     * detector.browser.name
-     * !!detector.browser.ie
-     * detector.browser.ie && detector.browser.version < 8
-     */
-
-    var detector = {};
-    var NA_VERSION = "-1";
-    var userAgent = navigator.userAgent || "";
-    //var platform = navigator.platform || "";
-    var appVersion = navigator.appVersion || "";
-    var vendor = navigator.vendor || "";
-    var external = window.external;
-    var re_msie = /\b(?:msie |ie |trident\/[0-9].*rv[ :])([0-9.]+)/;
-    function toString(object) {
-        return Object.prototype.toString.call(object);
-    }
-    function isObject(object) {
-        return toString(object) === "[object Object]";
-    }
-    function isFunction(object) {
-        return toString(object) === "[object Function]";
-    }
-    function each(object, factory, argument) {
-        for (var i = 0, b, l = object.length; i < l; i++) {
-            if (factory.call(object, object[i], i) === false) {
-                break;
-            }
-        }
-    }
-    // 硬件设备信息识别表达式。
-    // 使用数组可以按优先级排序。
-    var DEVICES = [ [ "nokia", function(ua) {
-        // 不能将两个表达式合并，因为可能出现 "nokia; nokia 960"
-        // 这种情况下会优先识别出 nokia/-1
-        if (ua.indexOf("nokia ") !== -1) {
-            return /\bnokia ([0-9]+)?/;
-        } else if (ua.indexOf("noain") !== -1) {
-            return /\bnoain ([a-z0-9]+)/;
-        } else {
-            return /\bnokia([a-z0-9]+)?/;
-        }
-    } ], // 三星有 Android 和 WP 设备。
-    [ "samsung", function(ua) {
-        if (ua.indexOf("samsung") !== -1) {
-            return /\bsamsung(?:\-gt)?[ \-]([a-z0-9\-]+)/;
-        } else {
-            return /\b(?:gt|sch)[ \-]([a-z0-9\-]+)/;
-        }
-    } ], [ "wp", function(ua) {
-        return ua.indexOf("windows phone ") !== -1 || ua.indexOf("xblwp") !== -1 || ua.indexOf("zunewp") !== -1 || ua.indexOf("windows ce") !== -1;
-    } ], [ "pc", "windows" ], [ "ipad", "ipad" ], // ipod 规则应置于 iphone 之前。
-    [ "ipod", "ipod" ], [ "iphone", /\biphone\b|\biph(\d)/ ], [ "mac", "macintosh" ], [ "mi", /\bmi[ \-]?([a-z0-9 ]+(?= build))/ ], [ "aliyun", /\baliyunos\b(?:[\-](\d+))?/ ], [ "meizu", /\b(?:meizu\/|m)([0-9]+)\b/ ], [ "nexus", /\bnexus ([0-9s.]+)/ ], [ "huawei", function(ua) {
-        if (ua.indexOf("huawei-huawei") !== -1) {
-            return /\bhuawei\-huawei\-([a-z0-9\-]+)/;
-        } else {
-            return /\bhuawei[ _\-]?([a-z0-9]+)/;
-        }
-    } ], [ "lenovo", function(ua) {
-        if (ua.indexOf("lenovo-lenovo") !== -1) {
-            return /\blenovo\-lenovo[ \-]([a-z0-9]+)/;
-        } else {
-            return /\blenovo[ \-]?([a-z0-9]+)/;
-        }
-    } ], // 中兴
-    [ "zte", function(ua) {
-        if (/\bzte\-[tu]/.test(ua)) {
-            return /\bzte-[tu][ _\-]?([a-su-z0-9\+]+)/;
-        } else {
-            return /\bzte[ _\-]?([a-su-z0-9\+]+)/;
-        }
-    } ], // 步步高
-    [ "vivo", /\bvivo ([a-z0-9]+)/ ], [ "htc", function(ua) {
-        if (/\bhtc[a-z0-9 _\-]+(?= build\b)/.test(ua)) {
-            return /\bhtc[ _\-]?([a-z0-9 ]+(?= build))/;
-        } else {
-            return /\bhtc[ _\-]?([a-z0-9 ]+)/;
-        }
-    } ], [ "oppo", /\boppo[_]([a-z0-9]+)/ ], [ "konka", /\bkonka[_\-]([a-z0-9]+)/ ], [ "sonyericsson", /\bmt([a-z0-9]+)/ ], [ "coolpad", /\bcoolpad[_ ]?([a-z0-9]+)/ ], [ "lg", /\blg[\-]([a-z0-9]+)/ ], [ "android", "android" ], [ "blackberry", "blackberry" ] ];
-    // 操作系统信息识别表达式
-    var OS = [ [ "wp", function(ua) {
-        if (ua.indexOf("windows phone ") !== -1) {
-            return /\bwindows phone (?:os )?([0-9.]+)/;
-        } else if (ua.indexOf("xblwp") !== -1) {
-            return /\bxblwp([0-9.]+)/;
-        } else if (ua.indexOf("zunewp") !== -1) {
-            return /\bzunewp([0-9.]+)/;
-        }
-        return "windows phone";
-    } ], [ "windows", /\bwindows nt ([0-9.]+)/ ], [ "macosx", /\bmac os x ([0-9._]+)/ ], [ "ios", function(ua) {
-        if (/\bcpu(?: iphone)? os /.test(ua)) {
-            return /\bcpu(?: iphone)? os ([0-9._]+)/;
-        } else if (ua.indexOf("iph os ") !== -1) {
-            return /\biph os ([0-9_]+)/;
-        } else {
-            return /\bios\b/;
-        }
-    } ], [ "yunos", /\baliyunos ([0-9.]+)/ ], [ "android", /\bandroid[\/\- ]?([0-9.x]+)?/ ], [ "chromeos", /\bcros i686 ([0-9.]+)/ ], [ "linux", "linux" ], [ "windowsce", /\bwindows ce(?: ([0-9.]+))?/ ], [ "symbian", /\bsymbian(?:os)?\/([0-9.]+)/ ], [ "meego", /\bmeego\b/ ], [ "blackberry", "blackberry" ] ];
-    /*
-   * 解析使用 Trident 内核的浏览器的 `浏览器模式` 和 `文档模式` 信息。
-   * @param {String} ua, userAgent string.
-   * @return {Object}
-   */
-    function IEMode(ua) {
-        if (!re_msie.test(ua)) {
-            return null;
-        }
-        var m, engineMode, engineVersion, browserMode, browserVersion, compatible = false;
-        // IE8 及其以上提供有 Trident 信息，
-        // 默认的兼容模式，UA 中 Trident 版本不发生变化。
-        if (ua.indexOf("trident/") !== -1) {
-            m = /\btrident\/([0-9.]+)/.exec(ua);
-            if (m && m.length >= 2) {
-                // 真实引擎版本。
-                engineVersion = m[1];
-                var v_version = m[1].split(".");
-                v_version[0] = parseInt(v_version[0], 10) + 4;
-                browserVersion = v_version.join(".");
-            }
-        }
-        m = re_msie.exec(ua);
-        browserMode = m[1];
-        var v_mode = m[1].split(".");
-        if ("undefined" === typeof browserVersion) {
-            browserVersion = browserMode;
-        }
-        v_mode[0] = parseInt(v_mode[0], 10) - 4;
-        engineMode = v_mode.join(".");
-        if ("undefined" === typeof engineVersion) {
-            engineVersion = engineMode;
-        }
-        return {
-            browserVersion: browserVersion,
-            browserMode: browserMode,
-            engineVersion: engineVersion,
-            engineMode: engineMode,
-            compatible: engineVersion !== engineMode
-        };
-    }
-    /**
-   * 针对同源的 TheWorld 和 360 的 external 对象进行检测。
-   * @param {String} key, 关键字，用于检测浏览器的安装路径中出现的关键字。
-   * @return {Undefined,Boolean,Object} 返回 undefined 或 false 表示检测未命中。
-   */
-    function checkTW360External(key) {
-        if (!external) {
-            return;
-        }
-        // return undefined.
-        try {
-            //        360安装路径：
-            //        C:%5CPROGRA~1%5C360%5C360se3%5C360SE.exe
-            var runpath = external.twGetRunPath.toLowerCase();
-            // 360SE 3.x ~ 5.x support.
-            // 暴露的 external.twGetVersion 和 external.twGetSecurityID 均为 undefined。
-            // 因此只能用 try/catch 而无法使用特性判断。
-            var security = external.twGetSecurityID(window);
-            var version = external.twGetVersion(security);
-            if (runpath && runpath.indexOf(key) === -1) {
-                return false;
-            }
-            if (version) {
-                return {
-                    version: version
-                };
-            }
-        } catch (ex) {}
-    }
-    var ENGINE = [ [ "trident", re_msie ], //["blink", /blink\/([0-9.+]+)/],
-    [ "webkit", /\bapplewebkit[\/]?([0-9.+]+)/ ], [ "gecko", /\bgecko\/(\d+)/ ], [ "presto", /\bpresto\/([0-9.]+)/ ], [ "androidwebkit", /\bandroidwebkit\/([0-9.]+)/ ], [ "coolpadwebkit", /\bcoolpadwebkit\/([0-9.]+)/ ] ];
-    var BROWSER = [ // Sogou.
-    [ "sg", / se ([0-9.x]+)/ ], // TheWorld (世界之窗)
-    // 由于裙带关系，TW API 与 360 高度重合。
-    // 只能通过 UA 和程序安装路径中的应用程序名来区分。
-    // TheWorld 的 UA 比 360 更靠谱，所有将 TheWorld 的规则放置到 360 之前。
-    [ "tw", function(ua) {
-        var x = checkTW360External("theworld");
-        if (typeof x !== "undefined") {
-            return x;
-        }
-        return "theworld";
-    } ], // 360SE, 360EE.
-    [ "360", function(ua) {
-        var x = checkTW360External("360se");
-        if (typeof x !== "undefined") {
-            return x;
-        }
-        if (ua.indexOf("360 aphone browser") !== -1) {
-            return /\b360 aphone browser \(([^\)]+)\)/;
-        }
-        return /\b360(?:se|ee|chrome|browser)\b/;
-    } ], // Maxthon
-    [ "mx", function(ua) {
-        try {
-            if (external && (external.mxVersion || external.max_version)) {
-                return {
-                    version: external.mxVersion || external.max_version
-                };
-            }
-        } catch (ex) {}
-        return /\bmaxthon(?:[ \/]([0-9.]+))?/;
-    } ], [ "qq", /\bm?qqbrowser\/([0-9.]+)/ ], [ "green", "greenbrowser" ], [ "tt", /\btencenttraveler ([0-9.]+)/ ], [ "lb", function(ua) {
-        if (ua.indexOf("lbbrowser") === -1) {
-            return false;
-        }
-        var version;
-        try {
-            if (external && external.LiebaoGetVersion) {
-                version = external.LiebaoGetVersion();
-            }
-        } catch (ex) {}
-        return {
-            version: version || NA_VERSION
-        };
-    } ], [ "tao", /\btaobrowser\/([0-9.]+)/ ], [ "fs", /\bcoolnovo\/([0-9.]+)/ ], [ "sy", "saayaa" ], // 有基于 Chromniun 的急速模式和基于 IE 的兼容模式。必须在 IE 的规则之前。
-    [ "baidu", /\bbidubrowser[ \/]([0-9.x]+)/ ], // 后面会做修复版本号，这里只要能识别是 IE 即可。
-    [ "ie", re_msie ], [ "mi", /\bmiuibrowser\/([0-9.]+)/ ], // Opera 15 之后开始使用 Chromniun 内核，需要放在 Chrome 的规则之前。
-    [ "opera", function(ua) {
-        var re_opera_old = /\bopera.+version\/([0-9.ab]+)/;
-        var re_opera_new = /\bopr\/([0-9.]+)/;
-        return re_opera_old.test(ua) ? re_opera_old : re_opera_new;
-    } ], [ "chrome", / (?:chrome|crios|crmo)\/([0-9.]+)/ ], // UC 浏览器，可能会被识别为 Android 浏览器，规则需要前置。
-    [ "uc", function(ua) {
-        if (ua.indexOf("ucbrowser/") >= 0) {
-            return /\bucbrowser\/([0-9.]+)/;
-        } else if (/\buc\/[0-9]/.test(ua)) {
-            return /\buc\/([0-9.]+)/;
-        } else if (ua.indexOf("ucweb") >= 0) {
-            return /\bucweb[\/]?([0-9.]+)?/;
-        } else {
-            return /\b(?:ucbrowser|uc)\b/;
-        }
-    } ], // Android 默认浏览器。该规则需要在 safari 之前。
-    [ "android", function(ua) {
-        if (ua.indexOf("android") === -1) {
-            return;
-        }
-        return /\bversion\/([0-9.]+(?: beta)?)/;
-    } ], [ "safari", /\bversion\/([0-9.]+(?: beta)?)(?: mobile(?:\/[a-z0-9]+)?)? safari\// ], // 如果不能被识别为 Safari，则猜测是 WebView。
-    [ "webview", /\bcpu(?: iphone)? os (?:[0-9._]+).+\bapplewebkit\b/ ], [ "firefox", /\bfirefox\/([0-9.ab]+)/ ], [ "nokia", /\bnokiabrowser\/([0-9.]+)/ ] ];
-    /**
-   * UserAgent Detector.
-   * @param {String} ua, userAgent.
-   * @param {Object} expression
-   * @return {Object}
-   *    返回 null 表示当前表达式未匹配成功。
-   */
-    function detect(name, expression, ua) {
-        var expr = isFunction(expression) ? expression.call(null, ua) : expression;
-        if (!expr) {
-            return null;
-        }
-        var info = {
-            name: name,
-            version: NA_VERSION,
-            codename: ""
-        };
-        var t = toString(expr);
-        if (expr === true) {
-            return info;
-        } else if (t === "[object String]") {
-            if (ua.indexOf(expr) !== -1) {
-                return info;
-            }
-        } else if (isObject(expr)) {
-            // Object
-            if (expr.hasOwnProperty("version")) {
-                info.version = expr.version;
-            }
-            return info;
-        } else if (expr.exec) {
-            // RegExp
-            var m = expr.exec(ua);
-            if (m) {
-                if (m.length >= 2 && m[1]) {
-                    info.version = m[1].replace(/_/g, ".");
-                } else {
-                    info.version = NA_VERSION;
-                }
-                return info;
-            }
-        }
-    }
-    var na = {
-        name: "na",
-        version: NA_VERSION
-    };
-    // 初始化识别。
-    function init(ua, patterns, factory, detector) {
-        var detected = na;
-        each(patterns, function(pattern) {
-            var d = detect(pattern[0], pattern[1], ua);
-            if (d) {
-                detected = d;
-                return false;
-            }
-        });
-        factory.call(detector, detected.name, detected.version);
-    }
-    /**
-   * 解析 UserAgent 字符串
-   * @param {String} ua, userAgent string.
-   * @return {Object}
-   */
-    var parse = function(ua) {
-        ua = (ua || "").toLowerCase();
-        var d = {};
-        init(ua, DEVICES, function(name, version) {
-            var v = parseFloat(version);
-            d.device = {
-                name: name,
-                version: v,
-                fullVersion: version
-            };
-            d.device[name] = v;
-        }, d);
-        init(ua, OS, function(name, version) {
-            var v = parseFloat(version);
-            d.os = {
-                name: name,
-                version: v,
-                fullVersion: version
-            };
-            d.os[name] = v;
-        }, d);
-        var ieCore = IEMode(ua);
-        init(ua, ENGINE, function(name, version) {
-            var mode = version;
-            // IE 内核的浏览器，修复版本号及兼容模式。
-            if (ieCore) {
-                version = ieCore.engineVersion || ieCore.engineMode;
-                mode = ieCore.engineMode;
-            }
-            var v = parseFloat(version);
-            d.engine = {
-                name: name,
-                version: v,
-                fullVersion: version,
-                mode: parseFloat(mode),
-                fullMode: mode,
-                compatible: ieCore ? ieCore.compatible : false
-            };
-            d.engine[name] = v;
-        }, d);
-        init(ua, BROWSER, function(name, version) {
-            var mode = version;
-            // IE 内核的浏览器，修复浏览器版本及兼容模式。
-            if (ieCore) {
-                // 仅修改 IE 浏览器的版本，其他 IE 内核的版本不修改。
-                if (name === "ie") {
-                    version = ieCore.browserVersion;
-                }
-                mode = ieCore.browserMode;
-            }
-            var v = parseFloat(version);
-            d.browser = {
-                name: name,
-                version: v,
-                fullVersion: version,
-                mode: parseFloat(mode),
-                fullMode: mode,
-                compatible: ieCore ? ieCore.compatible : false
-            };
-            d.browser[name] = v;
-        }, d);
-        return d;
-    };
-    detector = parse(userAgent + " " + appVersion + " " + vendor);
-    detector.parse = parse;
-
-    // exports add
-    function mixTo(r, s) {
-        var p;
-        for (p in s) {
-            if (s.hasOwnProperty(p)) {
-                r[p] = s[p];
-            }
-        }
-    }
-    var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/gi;
-    var decideMobile = function(ua) {
-        var match = mobilePattern.exec(ua);
-        return match ? match[1]: '';
-    };
-
-    detector.mobile = decideMobile(userAgent);
-
-    mixTo(exports, {
-        detector: detector,
-        decideMobile: decideMobile,
-        isIE6: detector.browser.ie && detector.browser.version == 6,
-        isMobile: !!detector.mobile
-    });
-})(tbtx);
-
-
-;(function(S) {
-    var $ = S.$,
-        exports = S;
-
-    // Position
-    // --------
-    // 定位工具组件，将一个 DOM 节点相对对另一个 DOM 节点进行定位操作。
-    // 代码易改，人生难得
-    var Position = exports, VIEWPORT = {
-        _id: "VIEWPORT",
-        nodeType: 1
-    }, isPinFixed = false, ua = (window.navigator.userAgent || "").toLowerCase(), isIE6 = ua.indexOf("msie 6") !== -1;
-    // 将目标元素相对于基准元素进行定位
-    // 这是 Position 的基础方法，接收两个参数，分别描述了目标元素和基准元素的定位点
-    Position.pin = function(pinObject, baseObject) {
-        // 将两个参数转换成标准定位对象 { element: a, x: 0, y: 0 }
-        pinObject = normalize(pinObject);
-        baseObject = normalize(baseObject);
-        // 设定目标元素的 position 为绝对定位
-        // 若元素的初始 position 不为 absolute，会影响元素的 display、宽高等属性
-        var pinElement = $(pinObject.element);
-        if (pinElement.css("position") !== "fixed" || isIE6) {
-            pinElement.css("position", "absolute");
-            isPinFixed = false;
-        } else {
-            // 定位 fixed 元素的标志位，下面有特殊处理
-            isPinFixed = true;
-        }
-        // 将位置属性归一化为数值
-        // 注：必须放在上面这句 `css('position', 'absolute')` 之后，
-        //    否则获取的宽高有可能不对
-        posConverter(pinObject);
-        posConverter(baseObject);
-        var parentOffset = getParentOffset(pinElement);
-        var baseOffset = baseObject.offset();
-        // 计算目标元素的位置
-        var top = baseOffset.top + baseObject.y - pinObject.y - parentOffset.top;
-        var left = baseOffset.left + baseObject.x - pinObject.x - parentOffset.left;
-        // 定位目标元素
-        pinElement.css({
-            left: left,
-            top: top
-        });
-    };
-    // 将目标元素相对于基准元素进行居中定位
-    // 接受两个参数，分别为目标元素和定位的基准元素，都是 DOM 节点类型
-    Position.center = function(pinElement, baseElement) {
-        Position.pin({
-            element: pinElement,
-            x: "50%",
-            y: "50%"
-        }, {
-            element: baseElement,
-            x: "50%",
-            y: "50%"
-        });
-    };
-    // 这是当前可视区域的伪 DOM 节点
-    // 需要相对于当前可视区域定位时，可传入此对象作为 element 参数
-    Position.VIEWPORT = VIEWPORT;
-    // Helpers
-    // -------
-    // 将参数包装成标准的定位对象，形似 { element: a, x: 0, y: 0 }
-    function normalize(posObject) {
-        posObject = toElement(posObject) || {};
-        if (posObject.nodeType) {
-            posObject = {
-                element: posObject
-            };
-        }
-        var element = toElement(posObject.element) || VIEWPORT;
-        if (element.nodeType !== 1) {
-            throw new Error("posObject.element is invalid.");
-        }
-        var result = {
-            element: element,
-            x: posObject.x || 0,
-            y: posObject.y || 0
-        };
-        // config 的深度克隆会替换掉 Position.VIEWPORT, 导致直接比较为 false
-        var isVIEWPORT = element === VIEWPORT || element._id === "VIEWPORT";
-        // 归一化 offset
-        result.offset = function() {
-            // 若定位 fixed 元素，则父元素的 offset 没有意义
-            if (isPinFixed) {
-                return {
-                    left: 0,
-                    top: 0
-                };
-            } else if (isVIEWPORT) {
-                return {
-                    left: $(document).scrollLeft(),
-                    top: $(document).scrollTop()
-                };
-            } else {
-                return getOffset($(element)[0]);
-            }
-        };
-        // 归一化 size, 含 padding 和 border
-        result.size = function() {
-            var el = isVIEWPORT ? $(window) : $(element);
-            return {
-                width: el.outerWidth(),
-                height: el.outerHeight()
-            };
-        };
-        return result;
-    }
-    // 对 x, y 两个参数为 left|center|right|%|px 时的处理，全部处理为纯数字
-    function posConverter(pinObject) {
-        pinObject.x = xyConverter(pinObject.x, pinObject, "width");
-        pinObject.y = xyConverter(pinObject.y, pinObject, "height");
-    }
-    // 处理 x, y 值，都转化为数字
-    function xyConverter(x, pinObject, type) {
-        // 先转成字符串再说！好处理
-        x = x + "";
-        // 处理 px
-        x = x.replace(/px/gi, "");
-        // 处理 alias
-        if (/\D/.test(x)) {
-            x = x.replace(/(?:top|left)/gi, "0%").replace(/center/gi, "50%").replace(/(?:bottom|right)/gi, "100%");
-        }
-        // 将百分比转为像素值
-        if (x.indexOf("%") !== -1) {
-            //支持小数
-            x = x.replace(/(\d+(?:\.\d+)?)%/gi, function(m, d) {
-                return pinObject.size()[type] * (d / 100);
-            });
-        }
-        // 处理类似 100%+20px 的情况
-        if (/[+\-*\/]/.test(x)) {
-            try {
-                // eval 会影响压缩
-                // new Function 方法效率高于 for 循环拆字符串的方法
-                // 参照：http://jsperf.com/eval-newfunction-for
-                x = new Function("return " + x)();
-            } catch (e) {
-                throw new Error("Invalid position value: " + x);
-            }
-        }
-        // 转回为数字
-        return numberize(x);
-    }
-    // 获取 offsetParent 的位置
-    function getParentOffset(element) {
-        var parent = element.offsetParent();
-        // IE7 下，body 子节点的 offsetParent 为 html 元素，其 offset 为
-        // { top: 2, left: 2 }，会导致定位差 2 像素，所以这里将 parent
-        // 转为 document.body
-        if (parent[0] === document.documentElement) {
-            parent = $(document.body);
-        }
-        // 修正 ie6 下 absolute 定位不准的 bug
-        if (isIE6) {
-            parent.css("zoom", 1);
-        }
-        // 获取 offsetParent 的 offset
-        var offset;
-        // 当 offsetParent 为 body，
-        // 而且 body 的 position 是 static 时
-        // 元素并不按照 body 来定位，而是按 document 定位
-        // http://jsfiddle.net/afc163/hN9Tc/2/
-        // 因此这里的偏移值直接设为 0 0
-        if (parent[0] === document.body && parent.css("position") === "static") {
-            offset = {
-                top: 0,
-                left: 0
-            };
-        } else {
-            offset = getOffset(parent[0]);
-        }
-        // 根据基准元素 offsetParent 的 border 宽度，来修正 offsetParent 的基准位置
-        offset.top += numberize(parent.css("border-top-width"));
-        offset.left += numberize(parent.css("border-left-width"));
-        return offset;
-    }
-    function numberize(s) {
-        return parseFloat(s, 10) || 0;
-    }
-    function toElement(element) {
-        return $(element)[0];
-    }
-    // fix jQuery 1.7.2 offset
-    // document.body 的 position 是 absolute 或 relative 时
-    // jQuery.offset 方法无法正确获取 body 的偏移值
-    //   -> http://jsfiddle.net/afc163/gMAcp/
-    // jQuery 1.9.1 已经修正了这个问题
-    //   -> http://jsfiddle.net/afc163/gMAcp/1/
-    // 这里先实现一份
-    // 参照 kissy 和 jquery 1.9.1
-    //   -> https://github.com/kissyteam/kissy/blob/master/src/dom/sub-modules/base/src/base/offset.js#L366 
-    //   -> https://github.com/jquery/jquery/blob/1.9.1/src/offset.js#L28
-    function getOffset(element) {
-        var box = element.getBoundingClientRect(), docElem = document.documentElement;
-        // < ie8 不支持 win.pageXOffset, 则使用 docElem.scrollLeft
-        return {
-            left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || document.body.clientLeft || 0),
-            top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || document.body.clientTop || 0)
-        };
-    }
-})(tbtx);
-
-;(function(S) {
-    var parseResult = S.parseUrl();
-    parseResult.query = S.getQueryParam();
-    S.data("urlInfo", parseResult);
-
-    var ROOT = parseResult.scheme + "://" + parseResult.domain;
-    if (parseResult.port) {
-        ROOT += ":" + parseResult.port;
-    }
-
-    if (!(/^http/i).test(ROOT)) {
-        ROOT = '';
-    }
-
-    var path = {
-        getuserinfo: '/interface/getuserinfo.htm',
-        getlogininfo: '/interface/getlogininfo.htm',       // 临时登陆状态判断
-        taobao_login_page : '/applogin.htm',
-        login: '/applogin.htm?ref=' + encodeURIComponent(location.href)
-    };
-
-    S.mix({
-        ROOT: ROOT,
-        path: path
-    });
-})(tbtx);
-
-
-;// 依赖jQuery的代码
-(function(S) {
-    var global = S.global,
-        $ = S.$,
-        noop = S.noop,
-        each = S.each,
-        ucfirst = S.ucfirst,
-        singleton = S.singleton,
-        throttle = S.throttle;
-
-    var doc = document,
-        de = doc.documentElement,
-        head = doc.head || doc.getElementsByTagName("head")[0] || de;
-
-
-    // jQuery singleton instances
-    var $instances = [
-        ["window", function() {
-            return $(window);
-        }],
-        ["document", function() {
-            return $(doc);
-        }],
-        ["head", function() {
-            return $(head);
-        }],
-        ["body", function() {
-            return $('body');
-        }]
-    ];
-    each($instances, function(instance) {
-        S["get" + ucfirst(instance[0])] = singleton(instance[1]);
-    });
-
-    var getDocument = S.getDocument,
-        getWindow = S.getWindow,
-
-        pageHeight = function() {
-            return getDocument().height();
-            // return doc.body.scrollHeight;
-        },
-        pageWidth = function() {
-            return getDocument().width();
-            // return doc.body.scrollWidth;
-        },
-
-        scrollX = function() {
-            return getWindow().scrollLeft();
-            // return window.pageXOffset || (de && de.scrollLeft) || doc.body.scrollLeft;
-        },
-        scrollY = function() {
-            return getWindow().scrollTop();
-            // return window.pageYOffset || (de && de.scrollTop) || doc.body.scrollTop;
-        },
-
-        viewportHeight = function() {
-            return getWindow().height();
-            // var de = document.documentElement;      //IE67的严格模式
-            // return window.innerHeight || (de && de.clientHeight) || doc.body.clientHeight;
-        },
-        viewportWidth = function() {
-            return getWindow().width();
-            // return window.innerWidth || (de && de.clientWidth) || doc.body.clientWidth;
-        },
-
-        fullViewport = function(selector) {
-            return $(selector).css({
-                width: viewportWidth(),
-                height: viewportHeight()
-            });
-        },
-
-        fullPage = function(selector) {
-            return $(selector).css({
-                width: pageWidth(),
-                height: pageHeight()
-            });
-        },
-
-        getScroller = singleton(function() {
-            var scroller = doc.body;
-            if (/msie [67]/.test(navigator.userAgent.toLowerCase())) {
-                scroller = doc.documentElement;
-            }
-            return $(scroller);
-        }),
-        /**
-         * 停止body的滚动条
-         * @return {[type]} [description]
-         */
-        stopBodyScroll = function() {
-            getScroller().css("overflow", "hidden");
-            return this;
-        },
-        /**
-         * 恢复body的滚动条
-         * @return {[type]} [description]
-         */
-        resetBodyScroll = function() {
-            getScroller().css("overflow", "auto");
-            return this;
-        },
-
-        contains = $.contains || function(a, b) {
-            //noinspection JSBitwiseOperatorUsage
-            return !!(a.compareDocumentPosition(b) & 16);
-        },
-        isInDocument = function(element) {
-            return contains(de, element);
-        },
-
-        // 距离topline多少px才算inView
-        // 元素是否出现在视口内
-        // 超出也不在view
-        isInView = function(selector, top) {
-            top = top || 0;
-
-            var element = $(selector),
-                elemHeight = element.innerHeight(),
-                win = getWindow(),
-                winHeight = win.height();
-            if (top == "center" || typeof top !== "number") {
-                top = (winHeight- elemHeight)/2;
-            }
-
-            var scrollTop = win.scrollTop();
-            var scrollBottom = scrollTop + winHeight;
-            var elementTop = element.offset().top + top;
-            var elementBottom = elementTop + elemHeight;
-            // 只判断垂直位置是否在可视区域，不判断水平。只有要部分区域在可视区域，就返回 true
-            return elementTop < scrollBottom && elementBottom > scrollTop;
-        },
-
-        scrollTo = function(selector) {
-            var top;
-            if (typeof selector == "number") {
-                top = selector;
-            } else {
-                var $target = $(selector),
-                    offsetTop = $target.offset().top;
-
-                top = offsetTop - (viewportHeight() - $target.innerHeight())/2;
-            }
-
-            $('body,html').animate({
-                scrollTop: top
-            }, 800);
-            return this;
-        },
-
-        limitLength = function(selector, attr, suffix) {
-            var $elements = $(selector);
-            suffix = suffix || '...';
-            attr = attr || 'data-max';
-
-            $elements.each(function() {
-                var $element = $(this);
-                var max = parseInt($element.attr(attr), 10);
-                var conent = $.trim($element.text());
-                if (conent.length <= max) {
-                    return;
-                }
-
-                conent = conent.slice(0, max - suffix.length) + suffix;
-                $element.text(conent);
-            });
-            return this;
-        },
-
-        flash = function(selector, flashColor, bgColor) {
-            var $elements = $(selector);
-            bgColor = bgColor || "#FFF";
-            flashColor = flashColor || "#FF9";
-            $elements.each(function(index, element) {
-                var $element = $(element);
-                $element.css("background-color", flashColor).fadeOut("fast", function() {
-                    $element.fadeIn("fast", function() {
-                        $element.css("background-color", bgColor).focus().select();
-                    });
-                });
-            });
-            return this;
-        },
-        // 返回顶部
-        flyToTop = function(selector) {
-            var $container = $(selector);
-
-            // 大于offset消失
-            var offset = $container.data("offset");
-            if (offset) {
-                // fade in #back-top
-                S.on("window.scroll", function(top) {
-                    if (top > offset) {
-                        $container.fadeIn();
-                    } else {
-                        $container.fadeOut();
-                    }
-                });
-            }
-
-            // 默认监听J-fly-to-top, 没找到则监听自身
-            var $flyer = $container.find(".J-fly-to-top"),
-                $listener = $flyer.length ? $flyer : $container;
-
-            $listener.on('click', function(){
-                scrollTo(0);
-                return false;
-            });
-            return this;
-        },
-
-        initWangWang = function(callback) {
-            callback = callback || noop;
-            var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
-            if (global.KISSY) {
-                S.loadScript(webww, callback);
-            } else {
-                S.loadScript(["http://a.tbcdn.cn/s/kissy/1.2.0/kissy-min.js", webww], callback);
-            }
-            return this;
-        };
-
-    setTimeout(function() {
-        var $window = getWindow();
-        var winWidth = $window.width();
-        var winHeight = $window.height();
-        var scrollTop = $window.scrollTop();
-        $window.on("resize", throttle(function() {
-            // 干掉JSHint的检测
-            var winNewWidth = $window.width();
-            var winNewHeight = $window.height();
-            // IE678 莫名其妙触发 resize
-            // http://stackoverflow.com/questions/1852751/window-resize-event-firing-in-internet-explorer
-            if (winWidth !== winNewWidth || winHeight !== winNewHeight) {
-                S.trigger("window.resize", winNewWidth, winNewHeight);
-            }
-            winWidth = winNewWidth;
-            winHeight = winNewHeight;
-        }, 80)).on("scroll", throttle(function() {
-            var scrollNewTop = $window.scrollTop();
-            if (scrollTop !== scrollNewTop) {
-                S.trigger("window.scroll", scrollNewTop, scrollTop);
-                // if (scrollTop > scrollNewTop) {
-                //     S.trigger("window.scroll.up", scrollNewTop, scrollTop);
-                // } else {
-                //     S.trigger("window.scroll.down", scrollNewTop, scrollTop);
-                // }
-            }
-
-            scrollTop = scrollNewTop;
-        }, 80));
-    }, 0);
-
-    S.mix({
-        // page & viewport
-        pageWidth: pageWidth,
-        pageHeight: pageHeight,
-        scrollY: scrollY,
-        scrollX: scrollX,
-        viewportHeight: viewportHeight,
-        viewportWidth: viewportWidth,
-        fullViewport: fullViewport,
-        fullPage: fullPage,
-
-        stopBodyScroll: stopBodyScroll,
-        resetBodyScroll: resetBodyScroll,
-
-        contains: contains,
-        isInDocument: isInDocument,
-        // support fn
-        isInView: isInView,
-        scrollTo: scrollTo,
-        limitLength: limitLength,
-        initWangWang: initWangWang,
-        flash: flash,
-        flyToTop: flyToTop,
-
-        /**
-         * http://www.taobao.com/go/act/video/open_dev_play.php
-         * @param  {[type]} config [description]
-         * @return {[type]}        [description]
-         */
-        embedPlayer: function(allConfig) {
-            allConfig = allConfig || {};
-            S.loadScript("http://api.video.taobao.com/video/getPlayerJS").done(function() {
-                // 自动生成id
-                $(allConfig.div).each(function(index, el) {
-                    var element = $(el);
-                    var config = $.extend({}, allConfig, element.data());
-
-                    element = $("<div></div>").appendTo(element);
-                    var id = "tbtx-player-" + S.uniqueCid();
-                    element.attr("id", id);
-
-                    config.div = id;
-
-                    // vid uid div自己传
-                    var must = {
-                        "width": "100%",
-                        "height": "100%"
-                    };
-                    tb_player_object.embedPlayer(S.mix(must, config), config, config);
-                });
-
-            });
-        }
-    });
-})(tbtx);
-
-
-;(function(S) {
-    var $ = S.$;
-    var doc = document;
-    var support = S.namespace("support");
-
-    function transitionEnd() {
-        var el = document.createElement('support');
-
-        var transEndEventNames = {
-            'WebkitTransition': 'webkitTransitionEnd',
-            'MozTransition': 'transitionend',
-            'OTransition': 'oTransitionEnd otransitionend',
-            'transition': 'transitionend'
-        };
-
-        for (var name in transEndEventNames) {
-            if (el.style[name] !== undefined) {
-                return {
-                    end: transEndEventNames[name]
-                };
-            }
-        }
-    }
-
-    $.extend(support, {
-        transition: transitionEnd(),
-        placeholder: 'placeholder' in doc.createElement('input')
-    });
-
-    // fix placeholder
-    $(function() {
-        if (!support.placeholder && $("input[placeholder], textarea[placeholder]").length) {
-            /*
-                input, textarea { color: #000; }
-                .placeholder { color: #aaa; }
-             */
-            S.loadScript("base/js/plugin/jquery.placeholder.js", function() {
-                $('input, textarea').placeholder();
-            });
-        }
-    });
-})(tbtx);
-
-
 ;(function(S) {
     var $ = S.$,
         Class = S.Class,
         Widget = S.Widget,
         singleton = S.singleton;
+
+    S.ready(function(S) {
+        $ = S.$;
+    });
 
     var ua = (window.navigator.userAgent || "").toLowerCase(),
         isIE6 = ua.indexOf("msie 6") !== -1;
@@ -4844,10 +4814,42 @@ requireModule('promise/polyfill').polyfill();
 })(tbtx);
 
 ;(function(S) {
+    var parseResult = S.parseUrl();
+    parseResult.query = S.getQueryParam();
+    S.data("urlInfo", parseResult);
+
+    var ROOT = parseResult.scheme + "://" + parseResult.domain;
+    if (parseResult.port) {
+        ROOT += ":" + parseResult.port;
+    }
+
+    if (!(/^http/i).test(ROOT)) {
+        ROOT = '';
+    }
+
+    var path = {
+        getuserinfo: '/interface/getuserinfo.htm',
+        getlogininfo: '/interface/getlogininfo.htm',       // 临时登陆状态判断
+        taobao_login_page : '/applogin.htm',
+        login: '/applogin.htm?ref=' + encodeURIComponent(location.href)
+    };
+
+    S.mix({
+        ROOT: ROOT,
+        path: path
+    });
+})(tbtx);
+
+
+;(function(S) {
     var $ = S.$,
         isPending = S.isPending,
         PATH = S.path,
         TIMEOUT = 10000;
+
+    S.ready(function(S) {
+        $ = S.$;
+    });
 
     // cookie写入JSToken，服务器端处理后清掉，如果url的token跟cookie的不对应则
     // 参数非法，防止重复提交

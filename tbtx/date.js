@@ -1,11 +1,6 @@
-(function(exports) {
+(function(S) {
 
-    function isType(type) {
-        return function(obj) {
-            return {}.toString.call(obj) == "[object " + type + "]";
-        };
-    }
-    var isDate = isType("Date");
+    var isDate = S.isDate;
 
     /*
      * 将日期格式化成字符串
@@ -105,19 +100,10 @@
         }
 
         var type = typeof date;
-        return type == 'number' || type == 'string' ? new Date(date) : new Date();
+        return (type == 'number' || type == 'string') ? new Date(date) : new Date();
     }
 
-    function mixTo(r, s) {
-        var p;
-        for (p in s) {
-            if (s.hasOwnProperty(p)) {
-                r[p] = s[p];
-            }
-        }
-    }
-
-    mixTo(exports, {
+    S.mix({
         normalizeDate: normalizeDate,
         ago: ago,
         formatDate: formatDate
