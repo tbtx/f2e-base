@@ -1,6 +1,6 @@
 /*
  * overlay.popup
- * 2014-03-10 2:41:33
+ * 2014-03-11 3:55:20
  */
 (function($, global) {
     var S = global.tbtx,
@@ -58,7 +58,9 @@
             var self = this;
 
             if (this.get("hideOnClick")) {
-                this.delegateEvents('click', this.hide);
+                this.delegateEvents('click', function() {
+                    self.hide();
+                });
             }
             this._setupResize();
 
@@ -275,16 +277,21 @@
 
         events: {
             "click .J-popup-close": "hide",
-            "click .close": "hide"
+            "click .close": "hide",
+            "click [data-role=close]": "hide"
         },
 
         init: function(selector, config) {
-            config = config || {};
-            var isHtml = isString(selector) && (selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3);
-            if (isHtml) {
-                config.template = selector;
+            if (S.isPlainObject(selector)) {
+                config = selector;
             } else {
-                config.element = selector;
+                config = config || {};
+                var isHtml = isString(selector) && (selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3);
+                if (isHtml) {
+                    config.template = selector;
+                } else {
+                    config.element = selector;
+                }
             }
 
             Popup.superclass.init.call(this, config);

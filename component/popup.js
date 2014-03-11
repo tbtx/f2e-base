@@ -31,16 +31,21 @@
 
         events: {
             "click .J-popup-close": "hide",
-            "click .close": "hide"
+            "click .close": "hide",
+            "click [data-role=close]": "hide"
         },
 
         init: function(selector, config) {
-            config = config || {};
-            var isHtml = isString(selector) && (selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3);
-            if (isHtml) {
-                config.template = selector;
+            if (S.isPlainObject(selector)) {
+                config = selector;
             } else {
-                config.element = selector;
+                config = config || {};
+                var isHtml = isString(selector) && (selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3);
+                if (isHtml) {
+                    config.template = selector;
+                } else {
+                    config.element = selector;
+                }
             }
 
             Popup.superclass.init.call(this, config);

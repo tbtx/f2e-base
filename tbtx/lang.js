@@ -762,6 +762,20 @@
             return str.trim();
         },
 
+        bind: function(fn, context) {
+            if (arguments.length < 2 && context === undefined) {
+                return fn;
+            }
+
+            var slice = [].slice,
+                args = slice.call(arguments, 2);
+
+            return function() {
+                var innerArgs = slice.call(arguments, 0);
+                return fn.apply(context, args.concat(innerArgs));
+            };
+        },
+
         isPlainObject: isPlainObject,
         /**
          * 判断jQuery deferred对象是否正在处理中

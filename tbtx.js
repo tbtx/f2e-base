@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-10 2:41:33
+ * 2014-03-11 3:55:19
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1683,6 +1683,20 @@ requireModule('promise/polyfill').polyfill();
             return str.trim();
         },
 
+        bind: function(fn, context) {
+            if (arguments.length < 2 && context === undefined) {
+                return fn;
+            }
+
+            var slice = [].slice,
+                args = slice.call(arguments, 2);
+
+            return function() {
+                var innerArgs = slice.call(arguments, 0);
+                return fn.apply(context, args.concat(innerArgs));
+            };
+        },
+
         isPlainObject: isPlainObject,
         /**
          * 判断jQuery deferred对象是否正在处理中
@@ -2211,6 +2225,7 @@ requireModule('promise/polyfill').polyfill();
                 drop: "overlay",
                 popup: "overlay",
                 tip: "drop",
+                lightbox: "overlay",
                 templatable: "handlebars",
                 autocomplete: ["overlay", "templatable"]
                 // switchable 如果想要easing效果需要自己require

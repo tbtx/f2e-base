@@ -267,6 +267,7 @@
                 drop: "overlay",
                 popup: "overlay",
                 tip: "drop",
+                lightbox: "overlay",
                 templatable: "handlebars",
                 autocomplete: ["overlay", "templatable"]
                 // switchable 如果想要easing效果需要自己require

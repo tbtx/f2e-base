@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>lightbox</title>
+    <link rel="stylesheet" href="http://static.tianxia.taobao.com/tbtx/base/css/reset.css">
+    <link rel="stylesheet" href="http://static.tianxia.taobao.com/tbtx/base/css/component/lightbox.css">
+    <style>
+    body {
+        height: 2000px;
+    }
+    #demo img {
+        width: 100px;
+    }
+    </style>
+</head>
+<body>
+    <div id="demo">
+        <div>
+            <a href="http://gtms03.alicdn.com/tps/i3/T1UJ1jFzJaXXXSNpju-99-88.png"><img src="http://gtms03.alicdn.com/tps/i3/T1UJ1jFzJaXXXSNpju-99-88.png" alt="" data-title="1" data-desc="1111111"></a>
+        </div>
+        <a  href="http://gtms01.alicdn.com/tps/i1/T1VAGKFqXXXXaa2jzf-163-44.png"><img src="http://gtms01.alicdn.com/tps/i1/T1VAGKFqXXXXaa2jzf-163-44.png" alt="" data-title="2" data-desc="1111111"></a>
+        <a href="http://gtms02.alicdn.com/tps/i2/T1fZyKFudXXXaa2jzf-163-44.png"><img src="http://gtms02.alicdn.com/tps/i2/T1VvX3FCBfXXXQy2.w-839-1609.jpg" alt="" data-title="3" data-desc="1111111"></a>
+        <a href="http://gtms03.alicdn.com/tps/i3/T1l1CEFv4aXXaa2jzf-163-44.png"><img src="http://gtms03.alicdn.com/tps/i3/T1fO9yFBxaXXcHEQUc-1002-95.jpg" alt="" data-title="4" data-desc="1111111"></a>
+    </div>
+
+    <script src="../../tbtx.js"></script>
+    <script type="text/template" id="template">
+    <div>
+        <div class="lightbox" data-role="content">
+            <div class="lightbox-wrapper">
+                <div class="lightbox-outer">
+                    <div class="lightbox-inner" data-role="img">
+                    </div>
+                    <a title="下一张" data-role="prev" class="lightbox-nav lightbox-prev" href="javascript:;"><span></span></a>
+                    <a title="上一张" data-role="next" class="lightbox-nav lightbox-next" href="javascript:;"><span></span></a>
+                    <a title="Close" class="lightbox-close" href="javascript:;" data-role="close">close</a>
+
+                    <div class="lightbox-loading" data-role="loading"><div></div></div
+                </div>
+
+                <div class="lightbox-info">
+                    <span class="child" data-role="title"></span>
+                    <span class="child" data-role="desc"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    </script>
+    <script>
+    tbtx.ready(function(S) {
+        S.require("lightbox", function() {
+            var instance = new S.Lightbox({
+                delegateNode: "#demo",
+                template: "#template"
+            }).render();
+
+            window.instance = instance;
+        });
+    });
+
+    </script>
+</body>
+</html>

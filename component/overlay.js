@@ -54,7 +54,9 @@
             var self = this;
 
             if (this.get("hideOnClick")) {
-                this.delegateEvents('click', this.hide);
+                this.delegateEvents('click', function() {
+                    self.hide();
+                });
             }
             this._setupResize();
 
