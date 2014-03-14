@@ -103,6 +103,9 @@
         },
 
         contains = function(a, b) {
+            if ($.contains) {
+                return $.contains(a, b);
+            }
             //noinspection JSBitwiseOperatorUsage
             return !!(a.compareDocumentPosition(b) & 16);
         },

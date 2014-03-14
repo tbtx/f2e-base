@@ -204,6 +204,29 @@
                     }
                 }
             }
+        },
+
+        // 加载tanx代码
+        loadTanx: function(container, tanxid) {
+            $(container).each(function(index, el) {
+                var element = $(el),
+                    data = element.data();
+
+                var id = data.tanxid || tanxid;
+                if (id) {
+                    element.empty().append('<a style="display:none!important" id="tanx-a-mm_' + id + '"></a>');
+                    var s = document.createElement("script");
+                    s.type = "text/javascript";
+                    s.charset = "gbk";
+                    s.id = "tanx-s-mm_" + id;
+                    s.async = true;
+                    s.src = "http://p.tanx.com/ex?i=mm_" + id;
+                    var h = document.getElementsByTagName("head")[0];
+                    if (h) {
+                        h.insertBefore(s, h.firstChild);
+                    }
+                }
+            });
         }
     });
 })(tbtx);

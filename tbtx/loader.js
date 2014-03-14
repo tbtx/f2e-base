@@ -252,12 +252,12 @@
 
             alias: {
                 "jquery": "jquery/jquery-1.8.3.min.js",
-                "handlebars": "miiee/handlebars.js",
+                "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
                 "easing": "plugin/jquery.easing.1.3.js"
             },
 
             paths: {
-                miiee: '../../../miiee/js',
+                miiee: '../../../miiee',
                 plugin: '../plugin',
                 gallery: '../gallery',
                 jquery: '../jquery'

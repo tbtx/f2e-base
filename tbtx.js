@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-11 3:55:19
+ * 2014-03-14 5:50:36
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2210,12 +2210,12 @@ requireModule('promise/polyfill').polyfill();
 
             alias: {
                 "jquery": "jquery/jquery-1.8.3.min.js",
-                "handlebars": "miiee/handlebars.js",
+                "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
                 "easing": "plugin/jquery.easing.1.3.js"
             },
 
             paths: {
-                miiee: '../../../miiee/js',
+                miiee: '../../../miiee',
                 plugin: '../plugin',
                 gallery: '../gallery',
                 jquery: '../jquery'
@@ -3511,6 +3511,9 @@ requireModule('promise/polyfill').polyfill();
         },
 
         contains = function(a, b) {
+            if ($.contains) {
+                return $.contains(a, b);
+            }
             //noinspection JSBitwiseOperatorUsage
             return !!(a.compareDocumentPosition(b) & 16);
         },
@@ -5062,6 +5065,29 @@ requireModule('promise/polyfill').polyfill();
                     }
                 }
             }
+        },
+
+        // 加载tanx代码
+        loadTanx: function(container, tanxid) {
+            $(container).each(function(index, el) {
+                var element = $(el),
+                    data = element.data();
+
+                var id = data.tanxid || tanxid;
+                if (id) {
+                    element.empty().append('<a style="display:none!important" id="tanx-a-mm_' + id + '"></a>');
+                    var s = document.createElement("script");
+                    s.type = "text/javascript";
+                    s.charset = "gbk";
+                    s.id = "tanx-s-mm_" + id;
+                    s.async = true;
+                    s.src = "http://p.tanx.com/ex?i=mm_" + id;
+                    var h = document.getElementsByTagName("head")[0];
+                    if (h) {
+                        h.insertBefore(s, h.firstChild);
+                    }
+                }
+            });
         }
     });
 })(tbtx);

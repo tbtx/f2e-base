@@ -45,4 +45,4 @@
     $(function() {
         draggable("[data-draggable]");
     });
-})(jQuery, tbtx || jQuery);
+})(jQuery, this.tbtx || jQuery);
