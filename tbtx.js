@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-14 5:50:36
+ * 2014-03-18 12:17:04
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1671,6 +1671,8 @@ requireModule('promise/polyfill').polyfill();
         return des;
     };
 
+    var reCommentContents = /\/\*!?(?:\@preserve)?\s*(?:\r\n|\n)([\s\S]*?)(?:\r\n|\n)\s*\*\//;
+
     // S
     S.mix({
         mix: mix,
@@ -1934,6 +1936,24 @@ requireModule('promise/polyfill').polyfill();
         endsWith: function(str, suffix) {
             var index = str.length - suffix.length;
             return index >= 0 && str.indexOf(suffix, index) == index;
+        },
+
+        /*
+         * https://github.com/sindresorhus/multiline
+         * 用js写多行html模板
+         */
+        multiline: function (fn) {
+            if (typeof fn !== 'function') {
+                return '';
+            }
+
+            var match = reCommentContents.exec(fn.toString());
+
+            if (!match) {
+                throw new TypeError('Multiline comment missing.');
+            }
+
+            return match[1];
         },
 
         choice: choice,
@@ -3529,7 +3549,7 @@ requireModule('promise/polyfill').polyfill();
 
             var element = $(selector),
                 elemHeight = element.innerHeight(),
-                win = getWindow(),
+                win = S.getWindow(),
                 winHeight = win.height();
             if (top == "center" || typeof top !== "number") {
                 top = (winHeight- elemHeight)/2;

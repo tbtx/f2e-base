@@ -121,7 +121,7 @@
 
             var element = $(selector),
                 elemHeight = element.innerHeight(),
-                win = getWindow(),
+                win = S.getWindow(),
                 winHeight = win.height();
             if (top == "center" || typeof top !== "number") {
                 top = (winHeight- elemHeight)/2;

@@ -47,7 +47,7 @@ module.exports = function(grunt) {
         // Tasks being executed with 'grunt watch'
         watch: {
             js: {
-                files: ['tbtx/*.js', 'component/*.js'],
+                files: ['tbtx/*.js'],
                 tasks: ['jshint', 'concat', 'uglify']
             }
         }

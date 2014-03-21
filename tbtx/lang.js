@@ -750,6 +750,8 @@
         return des;
     };
 
+    var reCommentContents = /\/\*!?(?:\@preserve)?\s*(?:\r\n|\n)([\s\S]*?)(?:\r\n|\n)\s*\*\//;
+
     // S
     S.mix({
         mix: mix,
@@ -1013,6 +1015,24 @@
         endsWith: function(str, suffix) {
             var index = str.length - suffix.length;
             return index >= 0 && str.indexOf(suffix, index) == index;
+        },
+
+        /*
+         * https://github.com/sindresorhus/multiline
+         * 用js写多行html模板
+         */
+        multiline: function (fn) {
+            if (typeof fn !== 'function') {
+                return '';
+            }
+
+            var match = reCommentContents.exec(fn.toString());
+
+            if (!match) {
+                throw new TypeError('Multiline comment missing.');
+            }
+
+            return match[1];
         },
 
         choice: choice,
