@@ -2,7 +2,9 @@
 
     var cidCounter = 0;
 
-    S = global[S] = {
+    S = global[S] = global[S] || {};
+
+    mix(S, {
 
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
@@ -21,11 +23,6 @@
             return this;
         },
 
-        /*
-         * debug mod off
-         */
-        debug: false,
-
         /**
          * staticUrl 默认静态文件url前缀
          * 会在后面根据实际的地址重写，这里作为备用
@@ -39,12 +36,22 @@
          */
         global: global,
 
-        _tbtx: global[S],
-
         /**
          * 空函数，在需要使用空函数作为参数时使用
          */
         noop: function() {},
+
+        _config: {},
+
+        config: function(k, v) {
+            var config = this._config;
+            if (S.isPlainObject(k)) {
+                S.mix(config, k);
+            } else if (S.isString(k)) {
+                config[k] = v;
+            }
+            return this;
+        },
 
         /**
          * client unique id
@@ -56,6 +63,15 @@
 
         $: global.jQuery || global.Zepto
 
-    };
+    });
+
+    function mix(des, source) {
+        var i;
+
+        for (i in source) {
+            des[i] = source[i];
+        }
+        return des;
+    }
 
 })(this, 'tbtx');

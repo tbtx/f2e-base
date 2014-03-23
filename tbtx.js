@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-18 12:17:04
+ * 2014-03-23 11:36:27
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -8,7 +8,9 @@
 
     var cidCounter = 0;
 
-    S = global[S] = {
+    S = global[S] = global[S] || {};
+
+    mix(S, {
 
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
@@ -27,11 +29,6 @@
             return this;
         },
 
-        /*
-         * debug mod off
-         */
-        debug: false,
-
         /**
          * staticUrl 默认静态文件url前缀
          * 会在后面根据实际的地址重写，这里作为备用
@@ -45,12 +42,22 @@
          */
         global: global,
 
-        _tbtx: global[S],
-
         /**
          * 空函数，在需要使用空函数作为参数时使用
          */
         noop: function() {},
+
+        _config: {},
+
+        config: function(k, v) {
+            var config = this._config;
+            if (S.isPlainObject(k)) {
+                S.mix(config, k);
+            } else if (S.isString(k)) {
+                config[k] = v;
+            }
+            return this;
+        },
 
         /**
          * client unique id
@@ -62,7 +69,16 @@
 
         $: global.jQuery || global.Zepto
 
-    };
+    });
+
+    function mix(des, source) {
+        var i;
+
+        for (i in source) {
+            des[i] = source[i];
+        }
+        return des;
+    }
 
 })(this, 'tbtx');
 
@@ -867,6 +883,323 @@ requireModule('promise/polyfill').polyfill();
 
 })(Promise.prototype);
 
+;if (typeof JSON !== 'object') {
+    JSON = {};
+}
+
+(function() {
+    'use strict';
+
+    function f(n) {
+        // Format integers to have at least two digits.
+        return n < 10 ? '0' + n : n;
+    }
+
+    if (typeof Date.prototype.toJSON !== 'function') {
+
+        Date.prototype.toJSON = function() {
+
+            return isFinite(this.valueOf()) ? this.getUTCFullYear() + '-' +
+                f(this.getUTCMonth() + 1) + '-' +
+                f(this.getUTCDate()) + 'T' +
+                f(this.getUTCHours()) + ':' +
+                f(this.getUTCMinutes()) + ':' +
+                f(this.getUTCSeconds()) + 'Z' : null;
+        };
+
+        String.prototype.toJSON =
+            Number.prototype.toJSON =
+            Boolean.prototype.toJSON = function() {
+                return this.valueOf();
+        };
+    }
+
+    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        gap,
+        indent,
+        meta = { // table of character substitutions
+            '\b': '\\b',
+            '\t': '\\t',
+            '\n': '\\n',
+            '\f': '\\f',
+            '\r': '\\r',
+            '"': '\\"',
+            '\\': '\\\\'
+        },
+        rep;
+
+
+    function quote(string) {
+
+        // If the string contains no control characters, no quote characters, and no
+        // backslash characters, then we can safely slap some quotes around it.
+        // Otherwise we must also replace the offending characters with safe escape
+        // sequences.
+
+        escapable.lastIndex = 0;
+        return escapable.test(string) ? '"' + string.replace(escapable, function(a) {
+            var c = meta[a];
+            return typeof c === 'string' ? c : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+        }) + '"' : '"' + string + '"';
+    }
+
+
+    function str(key, holder) {
+
+        // Produce a string from holder[key].
+
+        var i, // The loop counter.
+            k, // The member key.
+            v, // The member value.
+            length,
+            mind = gap,
+            partial,
+            value = holder[key];
+
+        // If the value has a toJSON method, call it to obtain a replacement value.
+
+        if (value && typeof value === 'object' &&
+            typeof value.toJSON === 'function') {
+            value = value.toJSON(key);
+        }
+
+        // If we were called with a replacer function, then call the replacer to
+        // obtain a replacement value.
+
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+
+        // What happens next depends on the value's type.
+
+        switch (typeof value) {
+            case 'string':
+                return quote(value);
+
+            case 'number':
+
+                // JSON numbers must be finite. Encode non-finite numbers as null.
+
+                return isFinite(value) ? String(value) : 'null';
+
+            case 'boolean':
+            case 'null':
+
+                // If the value is a boolean or null, convert it to a string. Note:
+                // typeof null does not produce 'null'. The case is included here in
+                // the remote chance that this gets fixed someday.
+
+                return String(value);
+
+                // If the type is 'object', we might be dealing with an object or an array or
+                // null.
+
+            case 'object':
+
+                // Due to a specification blunder in ECMAScript, typeof null is 'object',
+                // so watch out for that case.
+
+                if (!value) {
+                    return 'null';
+                }
+
+                // Make an array to hold the partial results of stringifying this object value.
+
+                gap += indent;
+                partial = [];
+
+                // Is the value an array?
+
+                if (Object.prototype.toString.apply(value) === '[object Array]') {
+
+                    // The value is an array. Stringify every element. Use null as a placeholder
+                    // for non-JSON values.
+
+                    length = value.length;
+                    for (i = 0; i < length; i += 1) {
+                        partial[i] = str(i, value) || 'null';
+                    }
+
+                    // Join all of the elements together, separated with commas, and wrap them in
+                    // brackets.
+
+                    v = partial.length === 0 ? '[]' : gap ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']' : '[' + partial.join(',') + ']';
+                    gap = mind;
+                    return v;
+                }
+
+                // If the replacer is an array, use it to select the members to be stringified.
+
+                if (rep && typeof rep === 'object') {
+                    length = rep.length;
+                    for (i = 0; i < length; i += 1) {
+                        if (typeof rep[i] === 'string') {
+                            k = rep[i];
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                } else {
+
+                    // Otherwise, iterate through all of the keys in the object.
+
+                    for (k in value) {
+                        if (Object.prototype.hasOwnProperty.call(value, k)) {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+
+                // Join all of the member texts together, separated with commas,
+                // and wrap them in braces.
+
+                v = partial.length === 0 ? '{}' : gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}' : '{' + partial.join(',') + '}';
+                gap = mind;
+                return v;
+        }
+    }
+
+    // If the JSON object does not yet have a stringify method, give it one.
+
+    if (typeof JSON.stringify !== 'function') {
+        JSON.stringify = function(value, replacer, space) {
+
+            // The stringify method takes a value and an optional replacer, and an optional
+            // space parameter, and returns a JSON text. The replacer can be a function
+            // that can replace values, or an array of strings that will select the keys.
+            // A default replacer method can be provided. Use of the space parameter can
+            // produce text that is more easily readable.
+
+            var i;
+            gap = '';
+            indent = '';
+
+            // If the space parameter is a number, make an indent string containing that
+            // many spaces.
+
+            if (typeof space === 'number') {
+                for (i = 0; i < space; i += 1) {
+                    indent += ' ';
+                }
+
+                // If the space parameter is a string, it will be used as the indent string.
+
+            } else if (typeof space === 'string') {
+                indent = space;
+            }
+
+            // If there is a replacer, it must be a function or an array.
+            // Otherwise, throw an error.
+
+            rep = replacer;
+            if (replacer && typeof replacer !== 'function' &&
+                (typeof replacer !== 'object' ||
+                    typeof replacer.length !== 'number')) {
+                throw new Error('JSON.stringify');
+            }
+
+            // Make a fake root object containing our value under the key of ''.
+            // Return the result of stringifying the value.
+
+            return str('', {
+                '': value
+            });
+        };
+    }
+
+
+    // If the JSON object does not yet have a parse method, give it one.
+
+    if (typeof JSON.parse !== 'function') {
+        JSON.parse = function(text, reviver) {
+
+            // The parse method takes a text and an optional reviver function, and returns
+            // a JavaScript value if the text is a valid JSON text.
+
+            var j;
+
+            function walk(holder, key) {
+
+                // The walk method is used to recursively walk the resulting structure so
+                // that modifications can be made.
+
+                var k, v, value = holder[key];
+                if (value && typeof value === 'object') {
+                    for (k in value) {
+                        if (Object.prototype.hasOwnProperty.call(value, k)) {
+                            v = walk(value, k);
+                            if (v !== undefined) {
+                                value[k] = v;
+                            } else {
+                                delete value[k];
+                            }
+                        }
+                    }
+                }
+                return reviver.call(holder, key, value);
+            }
+
+
+            // Parsing happens in four stages. In the first stage, we replace certain
+            // Unicode characters with escape sequences. JavaScript handles many characters
+            // incorrectly, either silently deleting them, or treating them as line endings.
+
+            text = String(text);
+            cx.lastIndex = 0;
+            if (cx.test(text)) {
+                text = text.replace(cx, function(a) {
+                    return '\\u' +
+                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+                });
+            }
+
+            // In the second stage, we run the text against regular expressions that look
+            // for non-JSON patterns. We are especially concerned with '()' and 'new'
+            // because they can cause invocation, and '=' because it can cause mutation.
+            // But just to be safe, we want to reject all unexpected forms.
+
+            // We split the second stage into 4 regexp operations in order to work around
+            // crippling inefficiencies in IE's and Safari's regexp engines. First we
+            // replace the JSON backslash pairs with '@' (a non-JSON character). Second, we
+            // replace all simple value tokens with ']' characters. Third, we delete all
+            // open brackets that follow a colon or comma or that begin the text. Finally,
+            // we look to see that the remaining characters are only whitespace or ']' or
+            // ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.
+
+            if (/^[\],:{}\s]*$/
+                .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
+                    .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
+                    .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+
+                // In the third stage we use the eval function to compile the text into a
+                // JavaScript structure. The '{' operator is subject to a syntactic ambiguity
+                // in JavaScript: it can begin a block or an object literal. We wrap the text
+                // in parens to eliminate the ambiguity.
+
+                j = eval('(' + text + ')');
+
+                // In the optional fourth stage, we recursively walk the new structure, passing
+                // each name/value pair to a reviver function for possible transformation.
+
+                return typeof reviver === 'function' ? walk({
+                    '': j
+                }, '') : j;
+            }
+
+            // If the text is not JSON parseable, then a SyntaxError is thrown.
+
+            throw new SyntaxError('JSON.parse');
+        };
+    }
+}());
+
+
 ;(function(S) {
 
     function Cache(name) {
@@ -917,21 +1250,370 @@ requireModule('promise/polyfill').polyfill();
     };
 
     S.Cache = Cache;
+
 })(tbtx);
 
 ;(function(global, S, undefined) {
     // 语言扩展
     // 不依赖jQuery
-    // 内部使用S，简化tbtx
 
+    /*
+     * shim first
+     */
     var AP = Array.prototype,
         OP = Object.prototype,
         SP = String.prototype,
+        FP = Function.prototype,
         toString = OP.toString,
+        slice = AP.slice,
         FALSE = false,
-        TRUE = true,
-        EMPTY = '',
-        class2type = {},
+        TRUE = true;
+
+    /**
+     * Object.keys
+     */
+    if (typeof Object.keys != "function") {
+        var hasEnumBug = !({
+                toString: 1
+            }['propertyIsEnumerable']('toString')),
+            enumProperties = [
+                'constructor',
+                'hasOwnProperty',
+                'isPrototypeOf',
+                'propertyIsEnumerable',
+                'toString',
+                'toLocaleString',
+                'valueOf'
+            ];
+
+        Object.keys = function(o) {
+            var ret = [],
+                p,
+                i;
+            for (p in o) {
+                ret.push(p);
+            }
+            if (hasEnumBug) {
+                for (i = enumProperties.length - 1; i >= 0; i--) {
+                    p = enumProperties[i];
+                    if (hasOwnProperty(o, p)) {
+                        result.push(p);
+                    }
+                }
+            }
+
+            return ret;
+        };
+    }
+    S.keys = function(o) {
+        return Object.keys(o);
+    };
+
+    if (typeof FP.bind != "function") {
+        FP.bind = function(context) {
+            var args = slice.call(arguments, 1),
+                self = this, 
+                noop = function() {},
+                ret = function () {
+                    // 已经bind过，context还应该是this
+                    return self.apply(this instanceof noop && context ? this : context, args.concat(slice.call(arguments)));
+                };
+
+            noop.prototype = this.prototype;
+            ret.prototype = new noop();
+            return ret;
+        };
+    }
+    S.bind = function(fn, context) {
+        return fn.bind(context);
+    };
+
+    /**
+     * Date.now
+     */
+    if (typeof Date.now != "function") {
+        Date.now = function() {
+            return +new Date();
+        };
+    }
+    S.Now = function() {
+        return Date.now();
+    };
+
+    // ES5 15.5.4.20
+    // whitespace from: http://es5.github.io/#x15.5.4.20
+    // 所有可能的空白
+    var ws = "\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003" +
+        "\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028" +
+        "\u2029\uFEFF";
+    if (!SP.trim || ws.trim()) {
+        // http://blog.stevenlevithan.com/archives/faster-trim-javascript
+        // http://perfectionkills.com/whitespace-deviations/
+        ws = "[" + ws + "]";
+        var trimBeginRegexp = new RegExp("^" + ws + ws + "*"),
+            trimEndRegexp = new RegExp(ws + ws + "*$");
+
+        SP.trim = function() {
+            return String(this)
+                .replace(trimBeginRegexp, "")
+                .replace(trimEndRegexp, "");
+        };
+    }
+    S.trim = function(str) {
+        return str.trim();
+    };
+
+    /*
+     * array shim
+     * Array.prototype.every
+     * Array.prototype.filter
+     * Array.prototype.forEach
+     * Array.prototype.indexOf
+     * Array.prototype.lastIndexOf
+     * Array.prototype.map
+     * Array.prototype.some
+     * Array.prototype.reduce
+     * Array.prototype.reduceRight
+     * Array.isArray
+     */
+
+    if (typeof AP.forEach != "function") {
+        AP.forEach = function(fn, context) {
+            var i,
+                length;
+            for (i = 0, length = this.length; i < length; i++) {
+                fn.call(context, this[i], i, this);
+            }
+        };
+    }
+
+    if (typeof AP.map != "function") {
+        AP.map = function(fn, context) {
+            var ret = [],
+                i,
+                length;
+            
+            for (i = 0, length = this.length; i < length; i++) {
+                ret.push(fn.call(context, this[i], i, this));
+            }
+            return ret;
+        };
+    }
+
+    if (typeof AP.filter != "function") {
+        AP.filter = function(fn, context) {
+            var ret = [],
+                i,
+                length,
+                item;
+            for (i = 0, length = this.length; i < length; i++) {
+                item = this[i];
+                if (fn.call(context, item, i, this)) {
+                    ret.push(item);
+                }
+            }
+            return ret;
+        };
+    }
+
+    if (typeof AP.some != "function") {
+        AP.some = function(fn, context) {
+            var i,
+                length = this.length;
+            for (i = 0; i < length; i++) {
+                if (fn.call(context, this[i], i, this)) {
+                    return TRUE;
+                }
+            }
+            return FALSE;
+        };
+    }
+
+    if (typeof AP.every != "function") {
+        AP.every = function(fn, context) {
+            var i,
+                length = this.length;
+            for (i = 0; i < length; i++) {
+                if (!fn.call(context, this[i], i, this)) {
+                    return FALSE;
+                }
+            }
+            return TRUE;
+        };
+    }
+
+    if (typeof AP.indexOf != "function") {
+        AP.indexOf = function(searchElement, fromIndex) {
+            var ret = -1,
+                i,
+                length = this.length;
+
+            fromIndex = fromIndex * 1 || 0;
+            i = fromIndex;
+            i = i >= 0 ? i : Math.max(0, length + i);
+            
+            for ( ; i < length; i++) {
+                if (this[i] === searchElement) {
+                    return i;
+                }
+            }
+            return ret;
+        };
+    }
+
+    if (typeof AP.lastIndexOf != "function") {
+        AP.lastIndexOf = function(searchElement, fromIndex) {
+            var ret = -1,
+                length = this.length,
+                i = length - 1;
+            
+            fromIndex = fromIndex * 1 || length - 1;
+            i = Math.min(i, fromIndex);
+
+            for ( ; i > -1; i--) {
+                if (this[i] === searchElement) {
+                    return i;
+                }
+            }
+            return ret;
+        };
+    }
+
+    if (typeof AP.reduce != "function") {
+        AP.reduce = function (fn, initialValue) {
+            var previous = initialValue,
+                i = 0,
+                length = this.length;
+
+            if (typeof initialValue === "undefined") {
+                previous = this[0];
+                i = 1;
+            }
+
+            for ( ; i < length; i++) {
+                previous = fn(previous, this[i], i, this);
+            }
+            return previous;
+        };
+    }
+
+    if (typeof AP.reduceRight != "function") {
+        AP.reduceRight = function(fn, initialValue) {
+            var length = this.length,
+                i = length - 1,
+                previous = initialValue;
+            
+            if (initialValue === undefined) {
+                previous = this[length - 1];
+                i--;
+            }
+            for ( ; i > -1; i--) {
+                previous = fn(previous, this[i], i, this);
+            }
+            return previous;
+        };
+    }
+
+    "forEach map filter every some".split(" ").forEach(function(name) {
+        /**
+         * iter object and array
+         * only use when you want to iter both array and object, if only array, please use [].map/filter..
+         * @param  {Array/Object}   object      the object to iter
+         * @param  {Function}       fn          the iter process fn
+         * @param  {Boolean}        isIterKey   is iter object's key, default is val, only for object
+         * @return {Boolean/Array}              the process result
+         */
+        S[name] = function(object, fn, isIterKey) {
+            if (!object || typeof object !== "object") {
+                return object;
+            }
+
+            var keys;
+            if (S.isObject(object)) {
+                keys = Object.keys(object);
+
+                object = isIterKey ? keys : keys.map(function(key) {
+                    return object[key];
+                });
+            }
+
+            return object[name](fn);
+        };
+    });
+
+    // return false终止循环
+    var each = S.each = function(object, fn, context) {
+        if (object) {
+            var key,
+                val,
+                keys,
+                i = 0,
+                length = object.length,
+                // do not use typeof obj == 'function': bug in phantomjs
+                isObj = length === undefined || type(object) == 'function';
+
+            context = context || null;
+
+            if (isObj) {
+                keys = Object.keys(object);
+                for (; i < keys.length; i++) {
+                    key = keys[i];
+                    // can not use hasOwnProperty
+                    if (fn.call(context, object[key], key, object) === FALSE) {
+                        break;
+                    }
+                }
+            } else {
+                for (val = object[0]; i < length; val = object[++i]) {
+                    if (fn.call(context, val, i, object) === FALSE) {
+                        break;
+                    }
+                }
+            }
+        }
+        return object;
+    };
+
+    "reduce reduceRight".split(" ").forEach(function(name) {
+        S[name] = function(array, fn, initialValue) {
+            if (typeof initialValue == "undefined") {
+                return array[name](fn);
+            }
+            return array[name](fn, initialValue);
+        };
+    });
+
+    "indexOf lastIndexOf".split(" ").forEach(function(name) {
+        S[name] = function(array, searchElement, fromIndex) {
+            return array[name](searchElement, fromIndex);
+        };
+    });
+
+    var class2type = {};
+    "Boolean Number String Function Array Date RegExp Object".split(" ").forEach(function(name) {
+        var lc;
+        class2type["[object " + name + "]"] = (lc = name.toLowerCase());
+        S['is' + name] = function(o) {
+            return type(o) === lc;
+        };
+    });
+    S.isArray = Array.isArray || S.isArray;
+
+    var EMPTY = '',
+
+        /**
+         * 单例模式
+         * return only one instance
+         * @param  {Function} fn      the function to return the instance
+         * @param  {object}   context
+         * @return {Function}
+         */
+        singleton = function(fn, context) {
+            var result;
+            return function() {
+                return result || (result = fn.apply(context, arguments));
+            };
+        },
 
         /**
          * jQuery type()
@@ -942,108 +1624,8 @@ requireModule('promise/polyfill').polyfill();
                 class2type[toString.call(obj)] || 'object';
         },
 
-        /**
-         * jQ的each在fn中参数顺序与forEach不同
-         */
-        each = function(object, fn, context) {
-            if (object) {
-                var key,
-                    val,
-                    keysArray,
-                    i = 0,
-                    length = object.length,
-                    // do not use typeof obj == 'function': bug in phantomjs
-                    isObj = length === undefined || type(object) == 'function';
-
-                context = context || null;
-
-                if (isObj) {
-                    keysArray = keys(object);
-                    for (; i < keysArray.length; i++) {
-                        key = keysArray[i];
-                        // can not use hasOwnProperty
-                        if (fn.call(context, object[key], key, object) === FALSE) {
-                            break;
-                        }
-                    }
-                } else {
-                    for (val = object[0]; i < length; val = object[++i]) {
-                        if (fn.call(context, val, i, object) === FALSE) {
-                            break;
-                        }
-                    }
-                }
-            }
-            return object;
-        },
-
-        isString = function(val) {
-            return type(val) === 'string';
-        },
-
-        isArray = Array.isArray || function(val) {
-            return type(val) === 'array';
-        },
-
         inArray = function(arr, item) {
-            return indexOf(arr, item) > -1;
-        },
-
-        /**
-         * 修正IE7以下字符串不支持下标获取字符
-         */
-        indexOf = AP.indexOf ?
-            function(arr, item) {
-                return arr.indexOf(item);
-            } : function(arr, item) {
-                var i;
-                if (isString(arr)) {
-                    for (i = 0; i < arr.length; i++) {
-                        if (arr.charAt(i) === item) {
-                            return i;
-                        }
-                    }
-                } else {
-                    for (i = 0; i < arr.length; i++) {
-                        if (arr[i] === item) {
-                            return i;
-                        }
-                    }
-                }
-                return -1;
-        },
-
-        hasEnumBug = !({
-            toString: 1
-        }['propertyIsEnumerable']('toString')),
-        enumProperties = [
-            'constructor',
-            'hasOwnProperty',
-            'isPrototypeOf',
-            'propertyIsEnumerable',
-            'toString',
-            'toLocaleString',
-            'valueOf'
-        ],
-        keys = Object.keys ? function(o) {
-            return Object.keys(o);
-        } : function(o) {
-            var ret = [],
-                p,
-                i;
-            for (p in o) {
-                ret.push(p);
-            }
-            if (hasEnumBug) {
-                for (i = enumProperties.length - 1; i >= 0; i--) {
-                    p = enumProperties[i];
-                    if (o.hasOwnProperty(p)) {
-                        result.push(p);
-                    }
-                }
-            }
-
-            return ret;
+            return arr.indexOf(item) > -1;
         },
 
         isPlainObject = function(obj) {
@@ -1074,10 +1656,10 @@ requireModule('promise/polyfill').polyfill();
         },
 
         makeArray = function(o) {
-            if (o === null || !o) {
+            if (o === null || o === undefined) {
                 return [];
             }
-            if (isArray(o)) {
+            if (S.isArray(o)) {
                 return o;
             }
             var lengthType = typeof o.length,
@@ -1125,7 +1707,7 @@ requireModule('promise/polyfill').polyfill();
             var array,
                 random,
                 temp;
-            if (isArray(m)) {
+            if (S.isArray(m)) {
                 array = m;
                 m = 0;
                 n = array.length;
@@ -1151,7 +1733,7 @@ requireModule('promise/polyfill').polyfill();
          * test code: https://gist.github.com/4507739
          */
         shuffle = function(array) {
-            if (!isArray(array)) {
+            if (!S.isArray(array)) {
                 return [];
             }
 
@@ -1174,56 +1756,6 @@ requireModule('promise/polyfill').polyfill();
             return array;
         },
 
-        // oo实现
-        Class = function(parent, properties) {
-            if (!S.isFunction(parent)) {
-                properties = parent;
-                parent = null;
-            }
-            properties = properties || {};
-
-            var klass = function() {
-                if (parent) {
-                    parent.apply(this, arguments);
-                }
-                if (this.constructor === klass && this.init) {
-                    this.init.apply(this, arguments);
-                }
-            };
-
-            if (parent) {
-                // var subclass = function() {};
-                // subclass.prototype = parent.prototype;
-                // klass.prototype = new subclass();
-
-                // or
-                // mix(klass.prototype, parent.prototype);
-
-                // 继承静态属性
-                // mix(klass, parent);
-
-                var proto = createProto(parent.prototype);
-                mix(proto, klass.prototype);
-                klass.prototype = proto;
-
-                // ClassA.superclass.method显示调用父类方法
-                klass.superclass = parent.prototype;
-            }
-
-            // klass.prototype.init = function() {}; // need to be overwrite
-            klass.fn = klass.prototype;
-            klass.fn.constructor = klass;
-
-            mix(klass, Class.Mutators);
-            klass.fn.proxy = klass.proxy;
-
-            return klass.include(properties);
-        },
-
-        Now = Date.now || function() {
-            return +new Date();
-        },
-
         /**
          * 在underscore里面有实现，这个版本借鉴的是kissy
          */
@@ -1236,10 +1768,10 @@ requireModule('promise/polyfill').polyfill();
                 });
             }
 
-            var last = Now();
+            var last = S.Now();
 
             return (function() {
-                var now = Now();
+                var now = S.Now();
                 if (now - last > ms) {
                     last = now;
                     fn.apply(context || this, arguments);
@@ -1271,7 +1803,7 @@ requireModule('promise/polyfill').polyfill();
             if (!S.isNotEmptyString(str)) {
                 return str;
             }
-            if ( !(isPlainObject(o) || isArray(o)) ) {
+            if ( !(isPlainObject(o) || S.isArray(o)) ) {
                 return str;
             }
             return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
@@ -1340,7 +1872,7 @@ requireModule('promise/polyfill').polyfill();
                 len = pairs.length;
 
             for (; i < len; ++i) {
-                eqIndex = indexOf(pairs[i], eq);
+                eqIndex = pairs[i].indexOf(eq);
                 if (eqIndex == -1) { // 没有=
                     key = decode(pairs[i]);
                     val = undefined;
@@ -1359,139 +1891,6 @@ requireModule('promise/polyfill').polyfill();
             return ret;
         },
 
-        // from caja uri
-        URI_RE = new RegExp(
-            "^" +
-            "(?:" +
-            "([^:/?#]+)" + // scheme
-            ":)?" +
-            "(?://" +
-            "(?:([^/?#]*)@)?" + // credentials
-            "([^/?#:@]*)" + // domain
-            "(?::([0-9]+))?" + // port
-            ")?" +
-            "([^?#]+)?" + // path
-            "(?:\\?([^#]*))?" + // query
-            "(?:#(.*))?" + // fragment
-            "$"
-        ),
-
-        parseCache = new S.Cache("parseUrl"),
-
-        /**
-         * parse url
-         * @param  {url}    url     the url to be parsed
-         * @return {Object}         a object with url info
-         */
-        parseUrl = function(url) {
-            var ret = {},
-                match;
-            url = url || location.href;
-
-            var cache = parseCache.get(url);
-            if (cache) {
-                return cache;
-            }
-
-            if (!S.isNotEmptyString(url)) {
-                return ret;
-            }
-            match = URI_RE.exec(url);
-            if (match) {
-                // 统一undefined为string
-                each(match, function(item, index) {
-                    if (!item) {
-                        match[index] = "";
-                    }
-                });
-                ret = {
-                    scheme: match[1],
-                    credentials: match[2],
-                    domain: match[3],
-                    port: match[4],
-                    path: match[5],
-                    query: match[6],
-                    fragment: match[7]
-                };
-            }
-            parseCache.set(url, ret);
-            return ret;
-        },
-        getFragment = function(url) {
-            return parseUrl(url).fragment;
-        },
-        getQueryParam = function(name, url) {
-            if (S.isUri(name)) {
-                url = name;
-                name = "";
-            }
-            var parseResult = parseUrl(url),
-                query = parseResult.query;
-            if (S.isString(parseResult.query)) {
-                query = unparam(query);
-            }
-
-            return name ? query[name] || "": query;
-        },
-        addQueryParam = function(name, value, url) {
-            var input = {};
-            if (isPlainObject(name)) {
-                url = value;
-                input = name;
-            } else {
-                input[name] = value;
-            }
-            var parseResult = parseUrl(url),
-                query = parseResult.query;
-            if (S.isString(query)) {
-                query = unparam(parseResult.query);
-            }
-
-            parseResult.query = mix(query, input);
-            return parseToUri(parseResult);
-        },
-        removeQueryParam = function(name, url) {
-            name = S.isArray(name) ? name: [name];
-            var parseResult = parseUrl(url),
-                query = unparam(parseResult.query);
-
-            each(name, function(item) {
-                if (query[item]) {
-                    delete query[item];
-                }
-            });
-            parseResult.query = query;
-            return parseToUri(parseResult);
-        },
-        // parseResult -> uri
-        parseToUri = function(parseResult) {
-            var ret = [parseResult.scheme, "://", parseResult.domain],
-                t;
-
-            t = parseResult.port;
-            if (t) {
-                ret.push(":" + t);
-            }
-
-            ret.push(parseResult.path);
-
-            t = parseResult.query;
-            if (typeof t == "object") {
-                t = param(t);
-            }
-            if (t) {
-                ret.push("?" + t);
-            }
-
-            t = parseResult.fragment;
-            if (t) {
-                ret.push("#" + t);
-            }
-
-            return ret.join("");
-        },
-
-
         htmlEntities = {
             '&amp;': '&',
             '&gt;': '>',
@@ -1502,32 +1901,23 @@ requireModule('promise/polyfill').polyfill();
             '&#x27;': "'"
         },
         reverseEntities = {},
-        escapeReg,
-        unEscapeReg,
-        getEscapeReg = function() {
-            if (escapeReg) {
-                return escapeReg;
-            }
+        getEscapeReg = singleton(function() {
             var str = EMPTY;
-            each(htmlEntities, function(entity, index) {
+            S.forEach(htmlEntities, function(entity, index) {
                 str += entity + '|';
             });
             str = str.slice(0, -1);
-            escapeReg = new RegExp(str, 'g');
-            return escapeReg;
-        },
-        getUnEscapeReg = function() {
-            if (unEscapeReg) {
-                return unEscapeReg;
-            }
+            return new RegExp(str, 'g');
+        }),
+        getUnEscapeReg = singleton(function() {
             var str = EMPTY;
-            each(reverseEntities, function(entity, index) {
+            S.forEach(reverseEntities, function(entity, index) {
                 str += entity + '|';
             });
             str += '&#(\\d{1,5});';
-            unEscapeReg = new RegExp(str, 'g');
-            return unEscapeReg;
-        },
+
+            return new RegExp(str, 'g');
+        }),
 
         escapeHtml = function(text) {
             return String(text).replace(getEscapeReg(), function(all) {
@@ -1546,17 +1936,51 @@ requireModule('promise/polyfill').polyfill();
         }
     })();
 
-    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, lc) {
-        class2type["[object " + name + "]"] = (lc =name.toLowerCase());
-        S['is' + name] = function(o) {
-            return type(o) === lc;
-        };
-    });
-    S.isArray = Array.isArray || S.isArray;
+    // oo实现
+    var Class = function(parent, properties) {
+        if (!S.isFunction(parent)) {
+            properties = parent;
+            parent = null;
+        }
+        properties = properties || {};
 
-    function hasOwnProperty(o, p) {
-        return OP.hasOwnProperty.call(o, p);
-    }
+        var klass = function() {
+            if (parent) {
+                parent.apply(this, arguments);
+            }
+            if (this.constructor === klass && this.init) {
+                this.init.apply(this, arguments);
+            }
+        };
+
+        if (parent) {
+            // var subclass = function() {};
+            // subclass.prototype = parent.prototype;
+            // klass.prototype = new subclass();
+
+            // or
+            // mix(klass.prototype, parent.prototype);
+
+            // 继承静态属性
+            // mix(klass, parent);
+
+            var proto = createProto(parent.prototype);
+            mix(proto, klass.prototype);
+            klass.prototype = proto;
+
+            // ClassA.superclass.method显示调用父类方法
+            klass.superclass = parent.prototype;
+        }
+
+        // klass.prototype.init = function() {}; // need to be overwrite
+        klass.fn = klass.prototype;
+        klass.fn.constructor = klass;
+
+        mix(klass, Class.Mutators);
+        klass.fn.proxy = klass.proxy;
+
+        return klass.include(properties);
+    };
 
     // Shared empty constructor function to aid in prototype-chain creation.
     function Ctor() {}
@@ -1600,7 +2024,7 @@ requireModule('promise/polyfill').polyfill();
         Implements: Implements
     };
     function Implements(items) {
-        if (!isArray(items)) {
+        if (!S.isArray(items)) {
             items = [items];
         }
         var proto = this.prototype || this,
@@ -1615,33 +2039,6 @@ requireModule('promise/polyfill').polyfill();
         cls.Implements = Implements;
         return cls;
     }
-    function isValidParamValue(val) {
-        var t = typeof val;
-        // If the type of val is null, undefined, number, string, boolean, return TRUE.
-        return val === null || (t !== 'object' && t !== 'function');
-    }
-
-
-    // ES5 15.5.4.20
-    // whitespace from: http://es5.github.io/#x15.5.4.20
-    var ws = "\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003" +
-        "\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028" +
-        "\u2029\uFEFF";
-    if (!String.prototype.trim || ws.trim()) {
-        // http://blog.stevenlevithan.com/archives/faster-trim-javascript
-        // http://perfectionkills.com/whitespace-deviations/
-        ws = "[" + ws + "]";
-        var trimBeginRegexp = new RegExp("^" + ws + ws + "*"),
-            trimEndRegexp = new RegExp(ws + ws + "*$");
-        SP.trim = function () {
-            if (this === void 0 || this === null) {
-                throw new TypeError("can't convert "+this+" to object");
-            }
-            return String(this)
-                .replace(trimBeginRegexp, "")
-                .replace(trimEndRegexp, "");
-        };
-    }
 
 
     var mix = S.mix = function(des, source, blacklist, over, deep) {
@@ -1654,12 +2051,11 @@ requireModule('promise/polyfill').polyfill();
             source = des;
             des = this;
         }
-        if (!blacklist) {
-            blacklist = [];
+        if (typeof over != "boolean") {
+            over = TRUE;
         }
-        if (!over) {
-            over = true; // 默认重写
-        }
+        blacklist = blacklist || [];
+        
         for (i in source) {
             if (inArray(blacklist, i)) {
                 continue;
@@ -1671,35 +2067,37 @@ requireModule('promise/polyfill').polyfill();
         return des;
     };
 
-    var reCommentContents = /\/\*!?(?:\@preserve)?\s*(?:\r\n|\n)([\s\S]*?)(?:\r\n|\n)\s*\*\//;
+    /**
+     * util
+     */
+    function hasOwnProperty(o, p) {
+        return OP.hasOwnProperty.call(o, p);
+    }
+    function toObject(o) {
+        return Object(o);
+    }
+    function isValidParamValue(val) {
+        var t = typeof val;
+        // If the type of val is null, undefined, number, string, boolean, return TRUE.
+        return val === null || (t !== 'object' && t !== 'function');
+    }
 
     // S
     S.mix({
+
         mix: mix,
+
+        Class: Class,
         classify: classify,
+
         isNotEmptyString: function(val) {
-            return isString(val) && val !== '';
-        },
-
-        trim: function(str) {
-            return str.trim();
-        },
-
-        bind: function(fn, context) {
-            if (arguments.length < 2 && context === undefined) {
-                return fn;
-            }
-
-            var slice = [].slice,
-                args = slice.call(arguments, 2);
-
-            return function() {
-                var innerArgs = slice.call(arguments, 0);
-                return fn.apply(context, args.concat(innerArgs));
-            };
+            return S.isString(val) && val !== '';
         },
 
         isPlainObject: isPlainObject,
+        inArray: inArray,
+        type: type,
+
         /**
          * 判断jQuery deferred对象是否正在处理中
          * @param  {deferred object}
@@ -1714,31 +2112,6 @@ requireModule('promise/polyfill').polyfill();
                 return val.state() === "pending";
             }
             return FALSE;
-        },
-
-        isUri: function(val) {
-            var match;
-            if (S.isNotEmptyString(val)) {
-                match = URI_RE.exec(val);
-                if (match && match[1]) {
-                    return TRUE;
-                }
-            }
-            return FALSE;
-        },
-
-        /**
-         * 单例模式
-         * return only one instance
-         * @param  {Function} fn      the function to return the instance
-         * @param  {object}   context
-         * @return {Function}
-         */
-        singleton: function(fn, context) {
-            var result;
-            return function() {
-                return result || (result = fn.apply(context, arguments));
-            };
         },
 
         // upercase str's first letter
@@ -1792,96 +2165,8 @@ requireModule('promise/polyfill').polyfill();
                 }
             };
         },
-        inArray: inArray,
-        type: type,
-        each: each,
-        indexOf: indexOf,
 
-        filter: AP.filter ?
-            function(arr, fn, context) {
-                return AP.filter.call(arr, fn, context);
-            } : function(arr, fn, context) {
-                var ret = [];
-                each(arr, function(item, i) {
-                    if (fn.call(context || this, item, i, arr)) {
-                        ret.push(item);
-                    }
-                });
-                return ret;
-            },
-
-        map: AP.map ?
-            function (arr, fn, context) {
-                return AP.map.call(arr, fn, context || this);
-            } : function (arr, fn, context) {
-                var len = arr.length,
-                    ret = new Array(len);
-                for (var i = 0; i < len; i++) {
-                    var el = typeof arr === 'string' ? arr.charAt(i) : arr[i];
-                    if (el ||
-                        //ie<9 in invalid when typeof arr == string
-                        i in arr) {
-                        ret[i] = fn.call(context || this, el, i, arr);
-                    }
-                }
-                return ret;
-            },
-
-        every: AP.every ?
-            function (arr, fn, context) {
-                return AP.every.call(arr, fn, context || this);
-            } :
-            function (arr, fn, context) {
-                var len = arr && arr.length || 0;
-                for (var i = 0; i < len; i++) {
-                    if (i in arr && !fn.call(context, arr[i], i, arr)) {
-                        return FALSE;
-                    }
-                }
-                return TRUE;
-            },
-
-        /**
-         * Tests whether some element in the array passes the test implemented by the provided function.
-         * @method
-         * @param arr {Array} the array to iterate
-         * @param callback {Function} the function to execute on each item
-         * @param [context] {Object} optional context object
-         * @member KISSY
-         * @return {Boolean} whether some element in the array passes the test implemented by the provided function.
-         */
-        some: AP.some ?
-            function (arr, fn, context) {
-                return AP.some.call(arr, fn, context || this);
-            } :
-            function (arr, fn, context) {
-                var len = arr && arr.length || 0;
-                for (var i = 0; i < len; i++) {
-                    if (i in arr && fn.call(context, arr[i], i, arr)) {
-                        return TRUE;
-                    }
-                }
-                return FALSE;
-            },
-
-        reduce: function(array, callback, initialValue) {
-            var previous = initialValue,
-                k = 0,
-                length = array.length,
-                dummy;
-
-            if (typeof initialValue === "undefined") {
-                previous = array[0];
-                k = 1;
-            }
-
-            if (typeof callback === "function") {
-                for (k; k < length; k++) {
-                    dummy = array.hasOwnProperty(k) && (previous = callback(previous, array[k], k, array));
-                }
-            }
-            return previous;
-        },
+        singleton: singleton,
 
         unique: function(arr) {
             var ret = [],
@@ -1910,7 +2195,6 @@ requireModule('promise/polyfill').polyfill();
             return String(str).replace(/[^\x00-\xff]/g, "aa").length;
         },
 
-        keys: keys,
         makeArray: makeArray,
         deepCopy: deepCopy,
 
@@ -1938,43 +2222,327 @@ requireModule('promise/polyfill').polyfill();
             return index >= 0 && str.indexOf(suffix, index) == index;
         },
 
-        /*
-         * https://github.com/sindresorhus/multiline
-         * 用js写多行html模板
-         */
-        multiline: function (fn) {
-            if (typeof fn !== 'function') {
-                return '';
-            }
-
-            var match = reCommentContents.exec(fn.toString());
-
-            if (!match) {
-                throw new TypeError('Multiline comment missing.');
-            }
-
-            return match[1];
-        },
-
         choice: choice,
         shuffle: shuffle,
-        Class: Class,
-        Now: Now,
         throttle: throttle,
         curry: curry,
         substitute: substitute,
+
         unparam: unparam,
         param: param,
-        parseUrl: parseUrl,
-        getFragment: getFragment,
-        getQueryParam: getQueryParam,
-        addQueryParam: addQueryParam,
-        removeQueryParam: removeQueryParam,
+
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
 })(this, tbtx, undefined);
 
+
+;(function(S) {
+
+    var TRUE = true,
+        FALSE = false,
+        Class = S.Class,
+        each = S.each,
+        param = S.param,
+        unparam = S.unparam;
+
+    var urlEncode = function (s) {
+            return encodeURIComponent(String(s));
+        },
+        urlDecode = function (s) {
+            return decodeURIComponent(s.replace(/\+/g, ' '));
+        };
+
+    var Query = S.Query = new Class({
+
+        init: function(query) {
+            this._query = query || '';
+            this._queryMap = unparam(this._query);
+        },
+
+        /**
+         * Return parameter value corresponding to current key
+         * @param {String} [key]
+         */
+        get: function (key) {
+            var _queryMap = this._queryMap;
+            if (key) {
+                return _queryMap[key];
+            } else {
+                return _queryMap;
+            }
+        },
+
+        /**
+         * Parameter names.
+         * @return {String[]}
+         */
+        keys: function () {
+            return S.keys(this._queryMap);
+        },
+
+        /**
+         * Set parameter value corresponding to current key
+         * @param {String} key
+         * @param value
+         * @chainable
+         */
+        set: function (key, value) {
+            var _queryMap = this._queryMap;
+            if (typeof key === 'string') {
+                this._queryMap[key] = value;
+            } else {
+                if (key instanceof Query) {
+                    key = key.get();
+                }
+                S.each(key, function (v, k) {
+                    _queryMap[k] = v;
+                });
+            }
+            return this;
+        },
+
+        /**
+         * Remove parameter with specified name.
+         * @param {String} key
+         * @chainable
+         */
+        remove: function (key) {
+            if (key) {
+                delete this._queryMap[key];
+            } else {
+                this._queryMap = {};
+            }
+            return this;
+
+        },
+
+        /**
+         * Add parameter value corresponding to current key
+         * @param {String} key
+         * @param value
+         * @chainable
+         */
+        add: function (key, value) {
+            var _queryMap = this._queryMap,
+                currentValue;
+            if (typeof key === 'string') {
+                currentValue = _queryMap[key];
+                if (currentValue === undefined) {
+                    currentValue = value;
+                } else {
+                    currentValue = [].concat(currentValue).concat(value);
+                }
+                _queryMap[key] = currentValue;
+            } else {
+                if (key instanceof Query) {
+                    key = key.get();
+                }
+                for (var k in key) {
+                    this.add(k, key[k]);
+                }
+            }
+            return this;
+        },
+
+        /**
+         * Serialize query to string.
+         * @param {Boolean} [serializeArray=true]
+         * whether append [] to key name when value 's type is array
+         */
+        toString: function (serializeArray) {
+            return S.param(this._queryMap, undefined, undefined, serializeArray);
+        }
+
+    });
+
+
+    // from caja uri
+    var URI_RE = new RegExp(
+            "^" +
+            "(?:" +
+            "([^:/?#]+)" + // scheme
+            ":)?" +
+            "(?://" +
+            "(?:([^/?#]*)@)?" + // credentials
+            "([^/?#:@]*)" + // domain
+            "(?::([0-9]+))?" + // port
+            ")?" +
+            "([^?#]+)?" + // path
+            "(?:\\?([^#]*))?" + // query
+            "(?:#(.*))?" + // fragment
+            "$"
+        ),
+        REG_INFO = {
+            scheme: 1,
+            credentials: 2,
+            domain: 3,
+            port: 4,
+            path: 5,
+            query: 6,
+            fragment: 7
+        };
+
+    var Uri = S.Uri = new Class({
+        
+        init: function(uriStr) {
+            var components,
+                self = this;
+
+            S.mix(self, {
+                scheme: '',
+                credentials: '',
+                domain: '',
+                port: '',
+                path: '',
+                query: '',
+                fragment: ''
+            });
+
+            components = Uri.getComponents(uriStr);
+
+            S.each(components, function (v, key) {
+                if (key === 'query') {
+                    // need encoded content
+                    self.query = new Query(v);
+                } else {
+                    // https://github.com/kissyteam/kissy/issues/298
+                    try {
+                        v = urlDecode(v);
+                    } catch (e) {
+                        S.error(e + 'urlDecode error : ' + v);
+                    }
+                    // need to decode to get data structure in memory
+                    self[key] = v;
+                }
+            });
+
+            return self;
+        },
+
+        getFragment: function () {
+            return this.fragment;
+        },
+
+        toString: function (serializeArray) {
+            var out = [],
+                self = this,
+                scheme = self.scheme,
+                domain = self.domain,
+                path = self.path,
+                port = self.port,
+                fragment = self.fragment,
+                query = self.query.toString(serializeArray),
+                credentials = self.credentials;
+
+            if (scheme) {
+                out.push(scheme);
+                out.push(':');
+            }
+
+            if (domain) {
+                out.push('//');
+                if (credentials) {
+                    out.push(credentials);
+                    out.push('@');
+                }
+
+                out.push(encodeURIComponent(domain));
+
+                if (port) {
+                    out.push(':');
+                    out.push(port);
+                }
+            }
+
+            if (path) {
+                out.push(path);
+            }
+
+            if (query) {
+                out.push('?');
+                out.push(query);
+            }
+
+            if (fragment) {
+                out.push('#');
+                out.push(fragment);
+            }
+
+            return out.join('');
+        }
+    });
+    
+    Uri.Query = Query;
+    Uri.getComponents = function (url) {
+        url = url || location.href;
+        
+        var m,
+            ret = {};
+
+        if (!S.isNotEmptyString(url)) {
+            return ret;
+        }
+        
+        m = url.match(URI_RE) || [];
+
+        S.each(REG_INFO, function(index, key) {
+            ret[key] = m[index] || "";
+        });
+        return ret;
+    };
+
+    S.mix({
+         isUri: function(val) {
+            var match;
+            if (S.isNotEmptyString(val)) {
+                match = URI_RE.exec(val);
+                if (match && match[1]) {
+                    return TRUE;
+                }
+            }
+            return FALSE;
+        },
+        parseUrl: function(url) {
+            return Uri.getComponents(url);
+        },
+        getFragment: function(url) {
+            return new Uri(url).getFragment();
+        },
+        getQueryParam: function(name, url) {
+            if (S.isUri(name)) {
+                url = name;
+                name = "";
+            }
+            var uri = new Uri(url);
+            return uri.query.get(name) || "";
+        },
+        addQueryParam: function(name, value, url) {
+            var input = {};
+            if (S.isPlainObject(name)) {
+                url = value;
+                input = name;
+            } else {
+                input[name] = value;
+            }
+            var uri = new Uri(url);
+            uri.query.add(input);
+
+            return uri.toString();
+        },
+        removeQueryParam: function(name, url) {
+            name = S.makeArray(name);
+            var uri = new Uri(url);
+
+            name.forEach(function(item) {
+                uri.query.remove(item);
+            });
+            return uri.toString();
+        }
+
+    });
+
+})(tbtx);
 
 ;(function(S) {
     var noop = S.noop;
@@ -2220,42 +2788,7 @@ requireModule('promise/polyfill').polyfill();
 
         global = S.global,
 
-        data = Loader.data = {
-
-            baseUrl: S.staticUrl + "base/js/component/",
-
-            // baseUrl: "http://static.tianxia.taobao.com/tbtx/" + "base/js/component/",
-
-            // urlArgs: "2013.12.19.0",
-
-            alias: {
-                "jquery": "jquery/jquery-1.8.3.min.js",
-                "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
-                "easing": "plugin/jquery.easing.1.3.js"
-            },
-
-            paths: {
-                miiee: '../../../miiee',
-                plugin: '../plugin',
-                gallery: '../gallery',
-                jquery: '../jquery'
-            },
-
-            deps: {
-                drop: "overlay",
-                popup: "overlay",
-                tip: "drop",
-                lightbox: "overlay",
-                templatable: "handlebars",
-                autocomplete: ["overlay", "templatable"]
-                // switchable 如果想要easing效果需要自己require
-                // switchable: "easing"
-            },
-
-            exports: {
-                // handlebars: "Handlebars"
-            }
-        };
+        data = Loader.data = {};
 
     Loader.config = function(configData) {
         for (var key in configData) {
@@ -2337,7 +2870,6 @@ requireModule('promise/polyfill').polyfill();
     function Module(uri, deps) {
         this.uri = uri;
         this.dependencies = deps || [];
-        this.exports = null;
         this.status = 0;
 
         // Who depends on me
@@ -2368,28 +2900,6 @@ requireModule('promise/polyfill').polyfill();
             var mod = this;
             return !S.startsWith(mod.uri, requirePrefix);
         },
-
-        // 从tbtx.Popup之类解析出exports
-        // parseExports: function() {
-        //     var mod = this;
-        //     var uri = mod.uri;
-        //     var id = uriToId[uri];
-
-        //     // 只解析component或者配置过export的模块
-        //     if (uri.indexOf("base/js/component") === -1 || !data.exports[id]) {
-        //         return;
-        //     }
-
-        //     // 默认exports 为tbtx.xxx, xxx首字母大写
-        //     var target = data.exports[id] || "tbtx." + S.ucfirst(id);
-        //     target = target.split(".");
-
-        //     var ret = global;
-        //     while(target.length) {
-        //         ret = ret[target.shift()];
-        //     }
-        //     mod.exports = ret || null;
-        // },
 
         // Load module.dependencies and fire onload when all done
         load: function() {
@@ -2554,11 +3064,6 @@ requireModule('promise/polyfill').polyfill();
             // 获取依赖模块的export并且执行callback
             mod.callback = function() {
 
-                // var uris = mod.resolve();
-                // var exports = S.map(uris, function(uri) {
-                //     return cachedMods[uri].exports;
-                // });
-
                 if (callback) {
                     callback.apply(global);
                 }
@@ -2585,6 +3090,39 @@ requireModule('promise/polyfill').polyfill();
     S.require = function(ids, callback) {
         return Module.require(ids, callback,  requirePrefix + cid());
     };
+
+    Loader.config({
+        baseUrl: S.staticUrl + "base/js/component/",
+
+        // baseUrl: "http://static.tianxia.taobao.com/tbtx/" + "base/js/component/",
+
+        // urlArgs: "2013.12.19.0",
+
+        alias: {
+            "jquery": "jquery/jquery-1.8.3.min.js",
+            "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
+            "easing": "plugin/jquery.easing.1.3.js"
+        },
+
+        paths: {
+            miiee: '../../../miiee',
+            plugin: '../plugin',
+            gallery: '../gallery',
+            jquery: '../jquery'
+        },
+
+        deps: {
+            drop: "overlay",
+            popup: "overlay",
+            tip: "drop",
+            lightbox: "overlay",
+            templatable: "handlebars",
+            autocomplete: ["overlay", "templatable"]
+            // switchable 如果想要easing效果需要自己require
+            // switchable: "easing"
+        }
+    });
+
 })(tbtx);
 
 
@@ -3897,7 +4435,7 @@ requireModule('promise/polyfill').polyfill();
         var method = host[methodName];
         if (!method) {
             // throw new Error("Invalid method name: " + methodName);
-            S.error("Invalid method name: " + methodName);
+            S.error("aspect: Invalid method name: " + methodName);
         }
         return method;
     }

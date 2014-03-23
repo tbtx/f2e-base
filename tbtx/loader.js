@@ -242,42 +242,7 @@
 
         global = S.global,
 
-        data = Loader.data = {
-
-            baseUrl: S.staticUrl + "base/js/component/",
-
-            // baseUrl: "http://static.tianxia.taobao.com/tbtx/" + "base/js/component/",
-
-            // urlArgs: "2013.12.19.0",
-
-            alias: {
-                "jquery": "jquery/jquery-1.8.3.min.js",
-                "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
-                "easing": "plugin/jquery.easing.1.3.js"
-            },
-
-            paths: {
-                miiee: '../../../miiee',
-                plugin: '../plugin',
-                gallery: '../gallery',
-                jquery: '../jquery'
-            },
-
-            deps: {
-                drop: "overlay",
-                popup: "overlay",
-                tip: "drop",
-                lightbox: "overlay",
-                templatable: "handlebars",
-                autocomplete: ["overlay", "templatable"]
-                // switchable 如果想要easing效果需要自己require
-                // switchable: "easing"
-            },
-
-            exports: {
-                // handlebars: "Handlebars"
-            }
-        };
+        data = Loader.data = {};
 
     Loader.config = function(configData) {
         for (var key in configData) {
@@ -359,7 +324,6 @@
     function Module(uri, deps) {
         this.uri = uri;
         this.dependencies = deps || [];
-        this.exports = null;
         this.status = 0;
 
         // Who depends on me
@@ -390,28 +354,6 @@
             var mod = this;
             return !S.startsWith(mod.uri, requirePrefix);
         },
-
-        // 从tbtx.Popup之类解析出exports
-        // parseExports: function() {
-        //     var mod = this;
-        //     var uri = mod.uri;
-        //     var id = uriToId[uri];
-
-        //     // 只解析component或者配置过export的模块
-        //     if (uri.indexOf("base/js/component") === -1 || !data.exports[id]) {
-        //         return;
-        //     }
-
-        //     // 默认exports 为tbtx.xxx, xxx首字母大写
-        //     var target = data.exports[id] || "tbtx." + S.ucfirst(id);
-        //     target = target.split(".");
-
-        //     var ret = global;
-        //     while(target.length) {
-        //         ret = ret[target.shift()];
-        //     }
-        //     mod.exports = ret || null;
-        // },
 
         // Load module.dependencies and fire onload when all done
         load: function() {
@@ -576,11 +518,6 @@
             // 获取依赖模块的export并且执行callback
             mod.callback = function() {
 
-                // var uris = mod.resolve();
-                // var exports = S.map(uris, function(uri) {
-                //     return cachedMods[uri].exports;
-                // });
-
                 if (callback) {
                     callback.apply(global);
                 }
@@ -607,4 +544,37 @@
     S.require = function(ids, callback) {
         return Module.require(ids, callback,  requirePrefix + cid());
     };
+
+    Loader.config({
+        baseUrl: S.staticUrl + "base/js/component/",
+
+        // baseUrl: "http://static.tianxia.taobao.com/tbtx/" + "base/js/component/",
+
+        // urlArgs: "2013.12.19.0",
+
+        alias: {
+            "jquery": "jquery/jquery-1.8.3.min.js",
+            "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
+            "easing": "plugin/jquery.easing.1.3.js"
+        },
+
+        paths: {
+            miiee: '../../../miiee',
+            plugin: '../plugin',
+            gallery: '../gallery',
+            jquery: '../jquery'
+        },
+
+        deps: {
+            drop: "overlay",
+            popup: "overlay",
+            tip: "drop",
+            lightbox: "overlay",
+            templatable: "handlebars",
+            autocomplete: ["overlay", "templatable"]
+            // switchable 如果想要easing效果需要自己require
+            // switchable: "easing"
+        }
+    });
+
 })(tbtx);

@@ -27,7 +27,7 @@
         var method = host[methodName];
         if (!method) {
             // throw new Error("Invalid method name: " + methodName);
-            S.error("Invalid method name: " + methodName);
+            S.error("aspect: Invalid method name: " + methodName);
         }
         return method;
     }

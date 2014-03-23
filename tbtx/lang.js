@@ -1,16 +1,364 @@
 (function(global, S, undefined) {
     // 语言扩展
     // 不依赖jQuery
-    // 内部使用S，简化tbtx
 
+    /*
+     * shim first
+     */
     var AP = Array.prototype,
         OP = Object.prototype,
         SP = String.prototype,
+        FP = Function.prototype,
         toString = OP.toString,
+        slice = AP.slice,
         FALSE = false,
-        TRUE = true,
-        EMPTY = '',
-        class2type = {},
+        TRUE = true;
+
+    /**
+     * Object.keys
+     */
+    if (typeof Object.keys != "function") {
+        var hasEnumBug = !({
+                toString: 1
+            }['propertyIsEnumerable']('toString')),
+            enumProperties = [
+                'constructor',
+                'hasOwnProperty',
+                'isPrototypeOf',
+                'propertyIsEnumerable',
+                'toString',
+                'toLocaleString',
+                'valueOf'
+            ];
+
+        Object.keys = function(o) {
+            var ret = [],
+                p,
+                i;
+            for (p in o) {
+                ret.push(p);
+            }
+            if (hasEnumBug) {
+                for (i = enumProperties.length - 1; i >= 0; i--) {
+                    p = enumProperties[i];
+                    if (hasOwnProperty(o, p)) {
+                        result.push(p);
+                    }
+                }
+            }
+
+            return ret;
+        };
+    }
+    S.keys = function(o) {
+        return Object.keys(o);
+    };
+
+    if (typeof FP.bind != "function") {
+        FP.bind = function(context) {
+            var args = slice.call(arguments, 1),
+                self = this, 
+                noop = function() {},
+                ret = function () {
+                    // 已经bind过，context还应该是this
+                    return self.apply(this instanceof noop && context ? this : context, args.concat(slice.call(arguments)));
+                };
+
+            noop.prototype = this.prototype;
+            ret.prototype = new noop();
+            return ret;
+        };
+    }
+    S.bind = function(fn, context) {
+        return fn.bind(context);
+    };
+
+    /**
+     * Date.now
+     */
+    if (typeof Date.now != "function") {
+        Date.now = function() {
+            return +new Date();
+        };
+    }
+    S.Now = function() {
+        return Date.now();
+    };
+
+    // ES5 15.5.4.20
+    // whitespace from: http://es5.github.io/#x15.5.4.20
+    // 所有可能的空白
+    var ws = "\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003" +
+        "\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028" +
+        "\u2029\uFEFF";
+    if (!SP.trim || ws.trim()) {
+        // http://blog.stevenlevithan.com/archives/faster-trim-javascript
+        // http://perfectionkills.com/whitespace-deviations/
+        ws = "[" + ws + "]";
+        var trimBeginRegexp = new RegExp("^" + ws + ws + "*"),
+            trimEndRegexp = new RegExp(ws + ws + "*$");
+
+        SP.trim = function() {
+            return String(this)
+                .replace(trimBeginRegexp, "")
+                .replace(trimEndRegexp, "");
+        };
+    }
+    S.trim = function(str) {
+        return str.trim();
+    };
+
+    /*
+     * array shim
+     * Array.prototype.every
+     * Array.prototype.filter
+     * Array.prototype.forEach
+     * Array.prototype.indexOf
+     * Array.prototype.lastIndexOf
+     * Array.prototype.map
+     * Array.prototype.some
+     * Array.prototype.reduce
+     * Array.prototype.reduceRight
+     * Array.isArray
+     */
+
+    if (typeof AP.forEach != "function") {
+        AP.forEach = function(fn, context) {
+            var i,
+                length;
+            for (i = 0, length = this.length; i < length; i++) {
+                fn.call(context, this[i], i, this);
+            }
+        };
+    }
+
+    if (typeof AP.map != "function") {
+        AP.map = function(fn, context) {
+            var ret = [],
+                i,
+                length;
+            
+            for (i = 0, length = this.length; i < length; i++) {
+                ret.push(fn.call(context, this[i], i, this));
+            }
+            return ret;
+        };
+    }
+
+    if (typeof AP.filter != "function") {
+        AP.filter = function(fn, context) {
+            var ret = [],
+                i,
+                length,
+                item;
+            for (i = 0, length = this.length; i < length; i++) {
+                item = this[i];
+                if (fn.call(context, item, i, this)) {
+                    ret.push(item);
+                }
+            }
+            return ret;
+        };
+    }
+
+    if (typeof AP.some != "function") {
+        AP.some = function(fn, context) {
+            var i,
+                length = this.length;
+            for (i = 0; i < length; i++) {
+                if (fn.call(context, this[i], i, this)) {
+                    return TRUE;
+                }
+            }
+            return FALSE;
+        };
+    }
+
+    if (typeof AP.every != "function") {
+        AP.every = function(fn, context) {
+            var i,
+                length = this.length;
+            for (i = 0; i < length; i++) {
+                if (!fn.call(context, this[i], i, this)) {
+                    return FALSE;
+                }
+            }
+            return TRUE;
+        };
+    }
+
+    if (typeof AP.indexOf != "function") {
+        AP.indexOf = function(searchElement, fromIndex) {
+            var ret = -1,
+                i,
+                length = this.length;
+
+            fromIndex = fromIndex * 1 || 0;
+            i = fromIndex;
+            i = i >= 0 ? i : Math.max(0, length + i);
+            
+            for ( ; i < length; i++) {
+                if (this[i] === searchElement) {
+                    return i;
+                }
+            }
+            return ret;
+        };
+    }
+
+    if (typeof AP.lastIndexOf != "function") {
+        AP.lastIndexOf = function(searchElement, fromIndex) {
+            var ret = -1,
+                length = this.length,
+                i = length - 1;
+            
+            fromIndex = fromIndex * 1 || length - 1;
+            i = Math.min(i, fromIndex);
+
+            for ( ; i > -1; i--) {
+                if (this[i] === searchElement) {
+                    return i;
+                }
+            }
+            return ret;
+        };
+    }
+
+    if (typeof AP.reduce != "function") {
+        AP.reduce = function (fn, initialValue) {
+            var previous = initialValue,
+                i = 0,
+                length = this.length;
+
+            if (typeof initialValue === "undefined") {
+                previous = this[0];
+                i = 1;
+            }
+
+            for ( ; i < length; i++) {
+                previous = fn(previous, this[i], i, this);
+            }
+            return previous;
+        };
+    }
+
+    if (typeof AP.reduceRight != "function") {
+        AP.reduceRight = function(fn, initialValue) {
+            var length = this.length,
+                i = length - 1,
+                previous = initialValue;
+            
+            if (initialValue === undefined) {
+                previous = this[length - 1];
+                i--;
+            }
+            for ( ; i > -1; i--) {
+                previous = fn(previous, this[i], i, this);
+            }
+            return previous;
+        };
+    }
+
+    "forEach map filter every some".split(" ").forEach(function(name) {
+        /**
+         * iter object and array
+         * only use when you want to iter both array and object, if only array, please use [].map/filter..
+         * @param  {Array/Object}   object      the object to iter
+         * @param  {Function}       fn          the iter process fn
+         * @param  {Boolean}        isIterKey   is iter object's key, default is val, only for object
+         * @return {Boolean/Array}              the process result
+         */
+        S[name] = function(object, fn, isIterKey) {
+            if (!object || typeof object !== "object") {
+                return object;
+            }
+
+            var keys;
+            if (S.isObject(object)) {
+                keys = Object.keys(object);
+
+                object = isIterKey ? keys : keys.map(function(key) {
+                    return object[key];
+                });
+            }
+
+            return object[name](fn);
+        };
+    });
+
+    // return false终止循环
+    var each = S.each = function(object, fn, context) {
+        if (object) {
+            var key,
+                val,
+                keys,
+                i = 0,
+                length = object.length,
+                // do not use typeof obj == 'function': bug in phantomjs
+                isObj = length === undefined || type(object) == 'function';
+
+            context = context || null;
+
+            if (isObj) {
+                keys = Object.keys(object);
+                for (; i < keys.length; i++) {
+                    key = keys[i];
+                    // can not use hasOwnProperty
+                    if (fn.call(context, object[key], key, object) === FALSE) {
+                        break;
+                    }
+                }
+            } else {
+                for (val = object[0]; i < length; val = object[++i]) {
+                    if (fn.call(context, val, i, object) === FALSE) {
+                        break;
+                    }
+                }
+            }
+        }
+        return object;
+    };
+
+    "reduce reduceRight".split(" ").forEach(function(name) {
+        S[name] = function(array, fn, initialValue) {
+            if (typeof initialValue == "undefined") {
+                return array[name](fn);
+            }
+            return array[name](fn, initialValue);
+        };
+    });
+
+    "indexOf lastIndexOf".split(" ").forEach(function(name) {
+        S[name] = function(array, searchElement, fromIndex) {
+            return array[name](searchElement, fromIndex);
+        };
+    });
+
+    var class2type = {};
+    "Boolean Number String Function Array Date RegExp Object".split(" ").forEach(function(name) {
+        var lc;
+        class2type["[object " + name + "]"] = (lc = name.toLowerCase());
+        S['is' + name] = function(o) {
+            return type(o) === lc;
+        };
+    });
+    S.isArray = Array.isArray || S.isArray;
+
+    var EMPTY = '',
+
+        /**
+         * 单例模式
+         * return only one instance
+         * @param  {Function} fn      the function to return the instance
+         * @param  {object}   context
+         * @return {Function}
+         */
+        singleton = function(fn, context) {
+            var result;
+            return function() {
+                return result || (result = fn.apply(context, arguments));
+            };
+        },
 
         /**
          * jQuery type()
@@ -21,108 +369,8 @@
                 class2type[toString.call(obj)] || 'object';
         },
 
-        /**
-         * jQ的each在fn中参数顺序与forEach不同
-         */
-        each = function(object, fn, context) {
-            if (object) {
-                var key,
-                    val,
-                    keysArray,
-                    i = 0,
-                    length = object.length,
-                    // do not use typeof obj == 'function': bug in phantomjs
-                    isObj = length === undefined || type(object) == 'function';
-
-                context = context || null;
-
-                if (isObj) {
-                    keysArray = keys(object);
-                    for (; i < keysArray.length; i++) {
-                        key = keysArray[i];
-                        // can not use hasOwnProperty
-                        if (fn.call(context, object[key], key, object) === FALSE) {
-                            break;
-                        }
-                    }
-                } else {
-                    for (val = object[0]; i < length; val = object[++i]) {
-                        if (fn.call(context, val, i, object) === FALSE) {
-                            break;
-                        }
-                    }
-                }
-            }
-            return object;
-        },
-
-        isString = function(val) {
-            return type(val) === 'string';
-        },
-
-        isArray = Array.isArray || function(val) {
-            return type(val) === 'array';
-        },
-
         inArray = function(arr, item) {
-            return indexOf(arr, item) > -1;
-        },
-
-        /**
-         * 修正IE7以下字符串不支持下标获取字符
-         */
-        indexOf = AP.indexOf ?
-            function(arr, item) {
-                return arr.indexOf(item);
-            } : function(arr, item) {
-                var i;
-                if (isString(arr)) {
-                    for (i = 0; i < arr.length; i++) {
-                        if (arr.charAt(i) === item) {
-                            return i;
-                        }
-                    }
-                } else {
-                    for (i = 0; i < arr.length; i++) {
-                        if (arr[i] === item) {
-                            return i;
-                        }
-                    }
-                }
-                return -1;
-        },
-
-        hasEnumBug = !({
-            toString: 1
-        }['propertyIsEnumerable']('toString')),
-        enumProperties = [
-            'constructor',
-            'hasOwnProperty',
-            'isPrototypeOf',
-            'propertyIsEnumerable',
-            'toString',
-            'toLocaleString',
-            'valueOf'
-        ],
-        keys = Object.keys ? function(o) {
-            return Object.keys(o);
-        } : function(o) {
-            var ret = [],
-                p,
-                i;
-            for (p in o) {
-                ret.push(p);
-            }
-            if (hasEnumBug) {
-                for (i = enumProperties.length - 1; i >= 0; i--) {
-                    p = enumProperties[i];
-                    if (o.hasOwnProperty(p)) {
-                        result.push(p);
-                    }
-                }
-            }
-
-            return ret;
+            return arr.indexOf(item) > -1;
         },
 
         isPlainObject = function(obj) {
@@ -153,10 +401,10 @@
         },
 
         makeArray = function(o) {
-            if (o === null || !o) {
+            if (o === null || o === undefined) {
                 return [];
             }
-            if (isArray(o)) {
+            if (S.isArray(o)) {
                 return o;
             }
             var lengthType = typeof o.length,
@@ -204,7 +452,7 @@
             var array,
                 random,
                 temp;
-            if (isArray(m)) {
+            if (S.isArray(m)) {
                 array = m;
                 m = 0;
                 n = array.length;
@@ -230,7 +478,7 @@
          * test code: https://gist.github.com/4507739
          */
         shuffle = function(array) {
-            if (!isArray(array)) {
+            if (!S.isArray(array)) {
                 return [];
             }
 
@@ -253,56 +501,6 @@
             return array;
         },
 
-        // oo实现
-        Class = function(parent, properties) {
-            if (!S.isFunction(parent)) {
-                properties = parent;
-                parent = null;
-            }
-            properties = properties || {};
-
-            var klass = function() {
-                if (parent) {
-                    parent.apply(this, arguments);
-                }
-                if (this.constructor === klass && this.init) {
-                    this.init.apply(this, arguments);
-                }
-            };
-
-            if (parent) {
-                // var subclass = function() {};
-                // subclass.prototype = parent.prototype;
-                // klass.prototype = new subclass();
-
-                // or
-                // mix(klass.prototype, parent.prototype);
-
-                // 继承静态属性
-                // mix(klass, parent);
-
-                var proto = createProto(parent.prototype);
-                mix(proto, klass.prototype);
-                klass.prototype = proto;
-
-                // ClassA.superclass.method显示调用父类方法
-                klass.superclass = parent.prototype;
-            }
-
-            // klass.prototype.init = function() {}; // need to be overwrite
-            klass.fn = klass.prototype;
-            klass.fn.constructor = klass;
-
-            mix(klass, Class.Mutators);
-            klass.fn.proxy = klass.proxy;
-
-            return klass.include(properties);
-        },
-
-        Now = Date.now || function() {
-            return +new Date();
-        },
-
         /**
          * 在underscore里面有实现，这个版本借鉴的是kissy
          */
@@ -315,10 +513,10 @@
                 });
             }
 
-            var last = Now();
+            var last = S.Now();
 
             return (function() {
-                var now = Now();
+                var now = S.Now();
                 if (now - last > ms) {
                     last = now;
                     fn.apply(context || this, arguments);
@@ -350,7 +548,7 @@
             if (!S.isNotEmptyString(str)) {
                 return str;
             }
-            if ( !(isPlainObject(o) || isArray(o)) ) {
+            if ( !(isPlainObject(o) || S.isArray(o)) ) {
                 return str;
             }
             return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
@@ -419,7 +617,7 @@
                 len = pairs.length;
 
             for (; i < len; ++i) {
-                eqIndex = indexOf(pairs[i], eq);
+                eqIndex = pairs[i].indexOf(eq);
                 if (eqIndex == -1) { // 没有=
                     key = decode(pairs[i]);
                     val = undefined;
@@ -438,139 +636,6 @@
             return ret;
         },
 
-        // from caja uri
-        URI_RE = new RegExp(
-            "^" +
-            "(?:" +
-            "([^:/?#]+)" + // scheme
-            ":)?" +
-            "(?://" +
-            "(?:([^/?#]*)@)?" + // credentials
-            "([^/?#:@]*)" + // domain
-            "(?::([0-9]+))?" + // port
-            ")?" +
-            "([^?#]+)?" + // path
-            "(?:\\?([^#]*))?" + // query
-            "(?:#(.*))?" + // fragment
-            "$"
-        ),
-
-        parseCache = new S.Cache("parseUrl"),
-
-        /**
-         * parse url
-         * @param  {url}    url     the url to be parsed
-         * @return {Object}         a object with url info
-         */
-        parseUrl = function(url) {
-            var ret = {},
-                match;
-            url = url || location.href;
-
-            var cache = parseCache.get(url);
-            if (cache) {
-                return cache;
-            }
-
-            if (!S.isNotEmptyString(url)) {
-                return ret;
-            }
-            match = URI_RE.exec(url);
-            if (match) {
-                // 统一undefined为string
-                each(match, function(item, index) {
-                    if (!item) {
-                        match[index] = "";
-                    }
-                });
-                ret = {
-                    scheme: match[1],
-                    credentials: match[2],
-                    domain: match[3],
-                    port: match[4],
-                    path: match[5],
-                    query: match[6],
-                    fragment: match[7]
-                };
-            }
-            parseCache.set(url, ret);
-            return ret;
-        },
-        getFragment = function(url) {
-            return parseUrl(url).fragment;
-        },
-        getQueryParam = function(name, url) {
-            if (S.isUri(name)) {
-                url = name;
-                name = "";
-            }
-            var parseResult = parseUrl(url),
-                query = parseResult.query;
-            if (S.isString(parseResult.query)) {
-                query = unparam(query);
-            }
-
-            return name ? query[name] || "": query;
-        },
-        addQueryParam = function(name, value, url) {
-            var input = {};
-            if (isPlainObject(name)) {
-                url = value;
-                input = name;
-            } else {
-                input[name] = value;
-            }
-            var parseResult = parseUrl(url),
-                query = parseResult.query;
-            if (S.isString(query)) {
-                query = unparam(parseResult.query);
-            }
-
-            parseResult.query = mix(query, input);
-            return parseToUri(parseResult);
-        },
-        removeQueryParam = function(name, url) {
-            name = S.isArray(name) ? name: [name];
-            var parseResult = parseUrl(url),
-                query = unparam(parseResult.query);
-
-            each(name, function(item) {
-                if (query[item]) {
-                    delete query[item];
-                }
-            });
-            parseResult.query = query;
-            return parseToUri(parseResult);
-        },
-        // parseResult -> uri
-        parseToUri = function(parseResult) {
-            var ret = [parseResult.scheme, "://", parseResult.domain],
-                t;
-
-            t = parseResult.port;
-            if (t) {
-                ret.push(":" + t);
-            }
-
-            ret.push(parseResult.path);
-
-            t = parseResult.query;
-            if (typeof t == "object") {
-                t = param(t);
-            }
-            if (t) {
-                ret.push("?" + t);
-            }
-
-            t = parseResult.fragment;
-            if (t) {
-                ret.push("#" + t);
-            }
-
-            return ret.join("");
-        },
-
-
         htmlEntities = {
             '&amp;': '&',
             '&gt;': '>',
@@ -581,32 +646,23 @@
             '&#x27;': "'"
         },
         reverseEntities = {},
-        escapeReg,
-        unEscapeReg,
-        getEscapeReg = function() {
-            if (escapeReg) {
-                return escapeReg;
-            }
+        getEscapeReg = singleton(function() {
             var str = EMPTY;
-            each(htmlEntities, function(entity, index) {
+            S.forEach(htmlEntities, function(entity, index) {
                 str += entity + '|';
             });
             str = str.slice(0, -1);
-            escapeReg = new RegExp(str, 'g');
-            return escapeReg;
-        },
-        getUnEscapeReg = function() {
-            if (unEscapeReg) {
-                return unEscapeReg;
-            }
+            return new RegExp(str, 'g');
+        }),
+        getUnEscapeReg = singleton(function() {
             var str = EMPTY;
-            each(reverseEntities, function(entity, index) {
+            S.forEach(reverseEntities, function(entity, index) {
                 str += entity + '|';
             });
             str += '&#(\\d{1,5});';
-            unEscapeReg = new RegExp(str, 'g');
-            return unEscapeReg;
-        },
+
+            return new RegExp(str, 'g');
+        }),
 
         escapeHtml = function(text) {
             return String(text).replace(getEscapeReg(), function(all) {
@@ -625,17 +681,51 @@
         }
     })();
 
-    each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, lc) {
-        class2type["[object " + name + "]"] = (lc =name.toLowerCase());
-        S['is' + name] = function(o) {
-            return type(o) === lc;
-        };
-    });
-    S.isArray = Array.isArray || S.isArray;
+    // oo实现
+    var Class = function(parent, properties) {
+        if (!S.isFunction(parent)) {
+            properties = parent;
+            parent = null;
+        }
+        properties = properties || {};
 
-    function hasOwnProperty(o, p) {
-        return OP.hasOwnProperty.call(o, p);
-    }
+        var klass = function() {
+            if (parent) {
+                parent.apply(this, arguments);
+            }
+            if (this.constructor === klass && this.init) {
+                this.init.apply(this, arguments);
+            }
+        };
+
+        if (parent) {
+            // var subclass = function() {};
+            // subclass.prototype = parent.prototype;
+            // klass.prototype = new subclass();
+
+            // or
+            // mix(klass.prototype, parent.prototype);
+
+            // 继承静态属性
+            // mix(klass, parent);
+
+            var proto = createProto(parent.prototype);
+            mix(proto, klass.prototype);
+            klass.prototype = proto;
+
+            // ClassA.superclass.method显示调用父类方法
+            klass.superclass = parent.prototype;
+        }
+
+        // klass.prototype.init = function() {}; // need to be overwrite
+        klass.fn = klass.prototype;
+        klass.fn.constructor = klass;
+
+        mix(klass, Class.Mutators);
+        klass.fn.proxy = klass.proxy;
+
+        return klass.include(properties);
+    };
 
     // Shared empty constructor function to aid in prototype-chain creation.
     function Ctor() {}
@@ -679,7 +769,7 @@
         Implements: Implements
     };
     function Implements(items) {
-        if (!isArray(items)) {
+        if (!S.isArray(items)) {
             items = [items];
         }
         var proto = this.prototype || this,
@@ -694,33 +784,6 @@
         cls.Implements = Implements;
         return cls;
     }
-    function isValidParamValue(val) {
-        var t = typeof val;
-        // If the type of val is null, undefined, number, string, boolean, return TRUE.
-        return val === null || (t !== 'object' && t !== 'function');
-    }
-
-
-    // ES5 15.5.4.20
-    // whitespace from: http://es5.github.io/#x15.5.4.20
-    var ws = "\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003" +
-        "\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028" +
-        "\u2029\uFEFF";
-    if (!String.prototype.trim || ws.trim()) {
-        // http://blog.stevenlevithan.com/archives/faster-trim-javascript
-        // http://perfectionkills.com/whitespace-deviations/
-        ws = "[" + ws + "]";
-        var trimBeginRegexp = new RegExp("^" + ws + ws + "*"),
-            trimEndRegexp = new RegExp(ws + ws + "*$");
-        SP.trim = function () {
-            if (this === void 0 || this === null) {
-                throw new TypeError("can't convert "+this+" to object");
-            }
-            return String(this)
-                .replace(trimBeginRegexp, "")
-                .replace(trimEndRegexp, "");
-        };
-    }
 
 
     var mix = S.mix = function(des, source, blacklist, over, deep) {
@@ -733,12 +796,11 @@
             source = des;
             des = this;
         }
-        if (!blacklist) {
-            blacklist = [];
+        if (typeof over != "boolean") {
+            over = TRUE;
         }
-        if (!over) {
-            over = true; // 默认重写
-        }
+        blacklist = blacklist || [];
+        
         for (i in source) {
             if (inArray(blacklist, i)) {
                 continue;
@@ -750,35 +812,37 @@
         return des;
     };
 
-    var reCommentContents = /\/\*!?(?:\@preserve)?\s*(?:\r\n|\n)([\s\S]*?)(?:\r\n|\n)\s*\*\//;
+    /**
+     * util
+     */
+    function hasOwnProperty(o, p) {
+        return OP.hasOwnProperty.call(o, p);
+    }
+    function toObject(o) {
+        return Object(o);
+    }
+    function isValidParamValue(val) {
+        var t = typeof val;
+        // If the type of val is null, undefined, number, string, boolean, return TRUE.
+        return val === null || (t !== 'object' && t !== 'function');
+    }
 
     // S
     S.mix({
+
         mix: mix,
+
+        Class: Class,
         classify: classify,
+
         isNotEmptyString: function(val) {
-            return isString(val) && val !== '';
-        },
-
-        trim: function(str) {
-            return str.trim();
-        },
-
-        bind: function(fn, context) {
-            if (arguments.length < 2 && context === undefined) {
-                return fn;
-            }
-
-            var slice = [].slice,
-                args = slice.call(arguments, 2);
-
-            return function() {
-                var innerArgs = slice.call(arguments, 0);
-                return fn.apply(context, args.concat(innerArgs));
-            };
+            return S.isString(val) && val !== '';
         },
 
         isPlainObject: isPlainObject,
+        inArray: inArray,
+        type: type,
+
         /**
          * 判断jQuery deferred对象是否正在处理中
          * @param  {deferred object}
@@ -793,31 +857,6 @@
                 return val.state() === "pending";
             }
             return FALSE;
-        },
-
-        isUri: function(val) {
-            var match;
-            if (S.isNotEmptyString(val)) {
-                match = URI_RE.exec(val);
-                if (match && match[1]) {
-                    return TRUE;
-                }
-            }
-            return FALSE;
-        },
-
-        /**
-         * 单例模式
-         * return only one instance
-         * @param  {Function} fn      the function to return the instance
-         * @param  {object}   context
-         * @return {Function}
-         */
-        singleton: function(fn, context) {
-            var result;
-            return function() {
-                return result || (result = fn.apply(context, arguments));
-            };
         },
 
         // upercase str's first letter
@@ -871,96 +910,8 @@
                 }
             };
         },
-        inArray: inArray,
-        type: type,
-        each: each,
-        indexOf: indexOf,
 
-        filter: AP.filter ?
-            function(arr, fn, context) {
-                return AP.filter.call(arr, fn, context);
-            } : function(arr, fn, context) {
-                var ret = [];
-                each(arr, function(item, i) {
-                    if (fn.call(context || this, item, i, arr)) {
-                        ret.push(item);
-                    }
-                });
-                return ret;
-            },
-
-        map: AP.map ?
-            function (arr, fn, context) {
-                return AP.map.call(arr, fn, context || this);
-            } : function (arr, fn, context) {
-                var len = arr.length,
-                    ret = new Array(len);
-                for (var i = 0; i < len; i++) {
-                    var el = typeof arr === 'string' ? arr.charAt(i) : arr[i];
-                    if (el ||
-                        //ie<9 in invalid when typeof arr == string
-                        i in arr) {
-                        ret[i] = fn.call(context || this, el, i, arr);
-                    }
-                }
-                return ret;
-            },
-
-        every: AP.every ?
-            function (arr, fn, context) {
-                return AP.every.call(arr, fn, context || this);
-            } :
-            function (arr, fn, context) {
-                var len = arr && arr.length || 0;
-                for (var i = 0; i < len; i++) {
-                    if (i in arr && !fn.call(context, arr[i], i, arr)) {
-                        return FALSE;
-                    }
-                }
-                return TRUE;
-            },
-
-        /**
-         * Tests whether some element in the array passes the test implemented by the provided function.
-         * @method
-         * @param arr {Array} the array to iterate
-         * @param callback {Function} the function to execute on each item
-         * @param [context] {Object} optional context object
-         * @member KISSY
-         * @return {Boolean} whether some element in the array passes the test implemented by the provided function.
-         */
-        some: AP.some ?
-            function (arr, fn, context) {
-                return AP.some.call(arr, fn, context || this);
-            } :
-            function (arr, fn, context) {
-                var len = arr && arr.length || 0;
-                for (var i = 0; i < len; i++) {
-                    if (i in arr && fn.call(context, arr[i], i, arr)) {
-                        return TRUE;
-                    }
-                }
-                return FALSE;
-            },
-
-        reduce: function(array, callback, initialValue) {
-            var previous = initialValue,
-                k = 0,
-                length = array.length,
-                dummy;
-
-            if (typeof initialValue === "undefined") {
-                previous = array[0];
-                k = 1;
-            }
-
-            if (typeof callback === "function") {
-                for (k; k < length; k++) {
-                    dummy = array.hasOwnProperty(k) && (previous = callback(previous, array[k], k, array));
-                }
-            }
-            return previous;
-        },
+        singleton: singleton,
 
         unique: function(arr) {
             var ret = [],
@@ -989,7 +940,6 @@
             return String(str).replace(/[^\x00-\xff]/g, "aa").length;
         },
 
-        keys: keys,
         makeArray: makeArray,
         deepCopy: deepCopy,
 
@@ -1017,38 +967,15 @@
             return index >= 0 && str.indexOf(suffix, index) == index;
         },
 
-        /*
-         * https://github.com/sindresorhus/multiline
-         * 用js写多行html模板
-         */
-        multiline: function (fn) {
-            if (typeof fn !== 'function') {
-                return '';
-            }
-
-            var match = reCommentContents.exec(fn.toString());
-
-            if (!match) {
-                throw new TypeError('Multiline comment missing.');
-            }
-
-            return match[1];
-        },
-
         choice: choice,
         shuffle: shuffle,
-        Class: Class,
-        Now: Now,
         throttle: throttle,
         curry: curry,
         substitute: substitute,
+
         unparam: unparam,
         param: param,
-        parseUrl: parseUrl,
-        getFragment: getFragment,
-        getQueryParam: getQueryParam,
-        addQueryParam: addQueryParam,
-        removeQueryParam: removeQueryParam,
+
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });
