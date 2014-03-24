@@ -57,7 +57,7 @@
     if (typeof FP.bind != "function") {
         FP.bind = function(context) {
             var args = slice.call(arguments, 1),
-                self = this, 
+                self = this,
                 noop = function() {},
                 ret = function () {
                     // 已经bind过，context还应该是this
@@ -137,7 +137,7 @@
             var ret = [],
                 i,
                 length;
-            
+
             for (i = 0, length = this.length; i < length; i++) {
                 ret.push(fn.call(context, this[i], i, this));
             }
@@ -196,7 +196,7 @@
             fromIndex = fromIndex * 1 || 0;
             i = fromIndex;
             i = i >= 0 ? i : Math.max(0, length + i);
-            
+
             for ( ; i < length; i++) {
                 if (this[i] === searchElement) {
                     return i;
@@ -211,7 +211,7 @@
             var ret = -1,
                 length = this.length,
                 i = length - 1;
-            
+
             fromIndex = fromIndex * 1 || length - 1;
             i = Math.min(i, fromIndex);
 
@@ -247,7 +247,7 @@
             var length = this.length,
                 i = length - 1,
                 previous = initialValue;
-            
+
             if (initialValue === undefined) {
                 previous = this[length - 1];
                 i--;
@@ -501,140 +501,6 @@
             return array;
         },
 
-        /**
-         * 在underscore里面有实现，这个版本借鉴的是kissy
-         */
-        throttle = function(fn, ms, context) {
-            ms = ms || 100; // 150 -> 100
-
-            if (ms === -1) {
-                return (function() {
-                    fn.apply(context || this, arguments);
-                });
-            }
-
-            var last = S.Now();
-
-            return (function() {
-                var now = S.Now();
-                if (now - last > ms) {
-                    last = now;
-                    fn.apply(context || this, arguments);
-                }
-            });
-        },
-
-        /**
-         * 函数柯里化
-         * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
-         */
-        curry = function(fn) {
-            var slice = [].slice,
-                args = slice.call(arguments, 1);
-
-            return function() {
-                var innerArgs = slice.call(arguments),
-                    retArgs = args.concat(innerArgs);
-                return fn.apply(null, retArgs);
-            };
-        },
-
-        /**
-         * {{ name }} -> {{ o[name] }}
-         * \{{}} -> \{{}}
-         * based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
-         */
-        substitute = function(str, o, regexp) {
-            if (!S.isNotEmptyString(str)) {
-                return str;
-            }
-            if ( !(isPlainObject(o) || S.isArray(o)) ) {
-                return str;
-            }
-            return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
-                if (match.charAt(0) === '\\') {
-                    return match.slice(1);
-                }
-                return (o[name] === undefined) ? '' : o[name];
-            });
-        },
-
-        param = function (o, sep, eq, serializeArray) {
-            sep = sep || '&';
-            eq = eq || '=';
-            if (serializeArray === undefined) {
-                serializeArray = TRUE;
-            }
-            var buf = [], key, i, v, len, val,
-                encode = encodeURIComponent;
-            for (key in o) {
-                val = o[key];
-                key = encode(key);
-
-                // val is valid non-array value
-                if (isValidParamValue(val)) {
-                    buf.push(key);
-                    if (val !== undefined) {
-                        buf.push(eq, encode(val + EMPTY));
-                    }
-                    buf.push(sep);
-                } else if (S.isArray(val) && val.length) {
-                    // val is not empty array
-                    for (i = 0, len = val.length; i < len; ++i) {
-                        v = val[i];
-                        if (isValidParamValue(v)) {
-                            buf.push(key, (serializeArray ? encode('[]') : EMPTY));
-                            if (v !== undefined) {
-                                buf.push(eq, encode(v + EMPTY));
-                            }
-                            buf.push(sep);
-                        }
-                    }
-                }
-                // ignore other cases, including empty array, Function, RegExp, Date etc.
-
-            }
-
-            buf.pop();
-            return buf.join(EMPTY);
-        },
-        /**
-         * query字符串转为对象
-         */
-        unparam = function(str, sep, eq) {
-            if (!S.isNotEmptyString(str)) {
-                return {};
-            }
-            sep = sep || '&';
-            eq = eq || '=';
-
-            var ret = {},
-                eqIndex,
-                decode = decodeURIComponent,
-                pairs = str.split(sep),
-                key, val,
-                i = 0,
-                len = pairs.length;
-
-            for (; i < len; ++i) {
-                eqIndex = pairs[i].indexOf(eq);
-                if (eqIndex == -1) { // 没有=
-                    key = decode(pairs[i]);
-                    val = undefined;
-                } else {
-                    // remember to decode key!
-                    key = decode(pairs[i].substring(0, eqIndex));
-                    val = pairs[i].substring(eqIndex + 1);
-                    try {
-                        val = decode(val);
-                    } catch (e) {
-                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
-                    }
-                }
-                ret[key] = val;
-            }
-            return ret;
-        },
 
         htmlEntities = {
             '&amp;': '&',
@@ -663,7 +529,6 @@
 
             return new RegExp(str, 'g');
         }),
-
         escapeHtml = function(text) {
             return String(text).replace(getEscapeReg(), function(all) {
                 return reverseEntities[all];
@@ -680,6 +545,7 @@
             reverseEntities[htmlEntities[k]] = k;
         }
     })();
+
 
     // oo实现
     var Class = function(parent, properties) {
@@ -800,7 +666,7 @@
             over = TRUE;
         }
         blacklist = blacklist || [];
-        
+
         for (i in source) {
             if (inArray(blacklist, i)) {
                 continue;
@@ -817,9 +683,6 @@
      */
     function hasOwnProperty(o, p) {
         return OP.hasOwnProperty.call(o, p);
-    }
-    function toObject(o) {
-        return Object(o);
     }
     function isValidParamValue(val) {
         var t = typeof val;
@@ -838,10 +701,11 @@
         isNotEmptyString: function(val) {
             return S.isString(val) && val !== '';
         },
-
         isPlainObject: isPlainObject,
         inArray: inArray,
         type: type,
+        makeArray: makeArray,
+        deepCopy: deepCopy,
 
         /**
          * 判断jQuery deferred对象是否正在处理中
@@ -863,7 +727,6 @@
         ucfirst: function(str) {
             return str.charAt(0).toUpperCase() + str.substring(1);
         },
-
         lcfirst: function(str) {
             return str.charAt(0).toLowerCase() + str.substring(1);
         },
@@ -940,9 +803,6 @@
             return String(str).replace(/[^\x00-\xff]/g, "aa").length;
         },
 
-        makeArray: makeArray,
-        deepCopy: deepCopy,
-
         namespace: function () {
             var args = makeArray(arguments),
                 l = args.length,
@@ -960,8 +820,6 @@
         startsWith: function(str, prefix) {
             return str.lastIndexOf(prefix, 0) === 0;
         },
-
-
         endsWith: function(str, suffix) {
             var index = str.length - suffix.length;
             return index >= 0 && str.indexOf(suffix, index) == index;
@@ -969,12 +827,141 @@
 
         choice: choice,
         shuffle: shuffle,
-        throttle: throttle,
-        curry: curry,
-        substitute: substitute,
 
-        unparam: unparam,
-        param: param,
+        /**
+         * 在underscore里面有实现，这个版本借鉴的是kissy
+         */
+        throttle: function(fn, ms, context) {
+            ms = ms || 100; // 150 -> 100
+
+            if (ms === -1) {
+                return (function() {
+                    fn.apply(context || this, arguments);
+                });
+            }
+
+            var last = S.Now();
+
+            return (function() {
+                var now = S.Now();
+                if (now - last > ms) {
+                    last = now;
+                    fn.apply(context || this, arguments);
+                }
+            });
+        },
+
+        /**
+         * 函数柯里化
+         * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
+         */
+        curry: function(fn) {
+            var slice = [].slice,
+                args = slice.call(arguments, 1);
+
+            return function() {
+                var innerArgs = slice.call(arguments),
+                    retArgs = args.concat(innerArgs);
+                return fn.apply(null, retArgs);
+            };
+        },
+
+        /**
+         * {{ name }} -> {{ o[name] }}
+         * \{{}} -> \{{}}
+         * based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
+         */
+        substitute: function(str, o, regexp) {
+            if (!S.isNotEmptyString(str)) {
+                return str;
+            }
+            if ( !(isPlainObject(o) || S.isArray(o)) ) {
+                return str;
+            }
+            return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
+                if (match.charAt(0) === '\\') {
+                    return match.slice(1);
+                }
+                return (o[name] === undefined) ? '' : o[name];
+            });
+        },
+
+        param: function (o, sep, eq, serializeArray) {
+            sep = sep || '&';
+            eq = eq || '=';
+            if (serializeArray === undefined) {
+                serializeArray = TRUE;
+            }
+            var buf = [], key, i, v, len, val,
+                encode = encodeURIComponent;
+            for (key in o) {
+                val = o[key];
+                key = encode(key);
+
+                // val is valid non-array value
+                if (isValidParamValue(val)) {
+                    buf.push(key);
+                    if (val !== undefined) {
+                        buf.push(eq, encode(val + EMPTY));
+                    }
+                    buf.push(sep);
+                } else if (S.isArray(val) && val.length) {
+                    // val is not empty array
+                    for (i = 0, len = val.length; i < len; ++i) {
+                        v = val[i];
+                        if (isValidParamValue(v)) {
+                            buf.push(key, (serializeArray ? encode('[]') : EMPTY));
+                            if (v !== undefined) {
+                                buf.push(eq, encode(v + EMPTY));
+                            }
+                            buf.push(sep);
+                        }
+                    }
+                }
+                // ignore other cases, including empty array, Function, RegExp, Date etc.
+
+            }
+
+            buf.pop();
+            return buf.join(EMPTY);
+        },
+        /**
+         * query字符串转为对象
+         */
+        unparam: function(str, sep, eq) {
+            if (!S.isNotEmptyString(str)) {
+                return {};
+            }
+            sep = sep || '&';
+            eq = eq || '=';
+
+            var ret = {},
+                eqIndex,
+                decode = decodeURIComponent,
+                pairs = str.split(sep),
+                key, val,
+                i = 0,
+                len = pairs.length;
+
+            for (; i < len; ++i) {
+                eqIndex = pairs[i].indexOf(eq);
+                if (eqIndex == -1) { // 没有=
+                    key = decode(pairs[i]);
+                    val = undefined;
+                } else {
+                    // remember to decode key!
+                    key = decode(pairs[i].substring(0, eqIndex));
+                    val = pairs[i].substring(eqIndex + 1);
+                    try {
+                        val = decode(val);
+                    } catch (e) {
+                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
+                    }
+                }
+                ret[key] = val;
+            }
+            return ret;
+        },
 
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml

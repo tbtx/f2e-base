@@ -30,7 +30,6 @@ describe('lang', function() {
 				var f = function() {
 					return this.name;
 				};
-
 				expect(f.bind(o)()).toEqual("value");
 				expect(S.bind(f, o)()).toEqual("value");
 			});
@@ -192,7 +191,7 @@ describe('lang', function() {
 		describe('filter', function() {
 			it("should filter the array", function() {
 				var array = [1, 2, 3, 4, 5];
-				
+
 				var r = S.filter(array, function(elem, index, arr) {
 					expect(arr).toBe(array);
 					return elem % 2 == 0;

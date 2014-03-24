@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-23 11:36:27
+ * 2014-03-24 12:42:04
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -46,18 +46,6 @@
          * 空函数，在需要使用空函数作为参数时使用
          */
         noop: function() {},
-
-        _config: {},
-
-        config: function(k, v) {
-            var config = this._config;
-            if (S.isPlainObject(k)) {
-                S.mix(config, k);
-            } else if (S.isString(k)) {
-                config[k] = v;
-            }
-            return this;
-        },
 
         /**
          * client unique id
@@ -1312,7 +1300,7 @@ requireModule('promise/polyfill').polyfill();
     if (typeof FP.bind != "function") {
         FP.bind = function(context) {
             var args = slice.call(arguments, 1),
-                self = this, 
+                self = this,
                 noop = function() {},
                 ret = function () {
                     // 已经bind过，context还应该是this
@@ -1392,7 +1380,7 @@ requireModule('promise/polyfill').polyfill();
             var ret = [],
                 i,
                 length;
-            
+
             for (i = 0, length = this.length; i < length; i++) {
                 ret.push(fn.call(context, this[i], i, this));
             }
@@ -1451,7 +1439,7 @@ requireModule('promise/polyfill').polyfill();
             fromIndex = fromIndex * 1 || 0;
             i = fromIndex;
             i = i >= 0 ? i : Math.max(0, length + i);
-            
+
             for ( ; i < length; i++) {
                 if (this[i] === searchElement) {
                     return i;
@@ -1466,7 +1454,7 @@ requireModule('promise/polyfill').polyfill();
             var ret = -1,
                 length = this.length,
                 i = length - 1;
-            
+
             fromIndex = fromIndex * 1 || length - 1;
             i = Math.min(i, fromIndex);
 
@@ -1502,7 +1490,7 @@ requireModule('promise/polyfill').polyfill();
             var length = this.length,
                 i = length - 1,
                 previous = initialValue;
-            
+
             if (initialValue === undefined) {
                 previous = this[length - 1];
                 i--;
@@ -1756,140 +1744,6 @@ requireModule('promise/polyfill').polyfill();
             return array;
         },
 
-        /**
-         * 在underscore里面有实现，这个版本借鉴的是kissy
-         */
-        throttle = function(fn, ms, context) {
-            ms = ms || 100; // 150 -> 100
-
-            if (ms === -1) {
-                return (function() {
-                    fn.apply(context || this, arguments);
-                });
-            }
-
-            var last = S.Now();
-
-            return (function() {
-                var now = S.Now();
-                if (now - last > ms) {
-                    last = now;
-                    fn.apply(context || this, arguments);
-                }
-            });
-        },
-
-        /**
-         * 函数柯里化
-         * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
-         */
-        curry = function(fn) {
-            var slice = [].slice,
-                args = slice.call(arguments, 1);
-
-            return function() {
-                var innerArgs = slice.call(arguments),
-                    retArgs = args.concat(innerArgs);
-                return fn.apply(null, retArgs);
-            };
-        },
-
-        /**
-         * {{ name }} -> {{ o[name] }}
-         * \{{}} -> \{{}}
-         * based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
-         */
-        substitute = function(str, o, regexp) {
-            if (!S.isNotEmptyString(str)) {
-                return str;
-            }
-            if ( !(isPlainObject(o) || S.isArray(o)) ) {
-                return str;
-            }
-            return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
-                if (match.charAt(0) === '\\') {
-                    return match.slice(1);
-                }
-                return (o[name] === undefined) ? '' : o[name];
-            });
-        },
-
-        param = function (o, sep, eq, serializeArray) {
-            sep = sep || '&';
-            eq = eq || '=';
-            if (serializeArray === undefined) {
-                serializeArray = TRUE;
-            }
-            var buf = [], key, i, v, len, val,
-                encode = encodeURIComponent;
-            for (key in o) {
-                val = o[key];
-                key = encode(key);
-
-                // val is valid non-array value
-                if (isValidParamValue(val)) {
-                    buf.push(key);
-                    if (val !== undefined) {
-                        buf.push(eq, encode(val + EMPTY));
-                    }
-                    buf.push(sep);
-                } else if (S.isArray(val) && val.length) {
-                    // val is not empty array
-                    for (i = 0, len = val.length; i < len; ++i) {
-                        v = val[i];
-                        if (isValidParamValue(v)) {
-                            buf.push(key, (serializeArray ? encode('[]') : EMPTY));
-                            if (v !== undefined) {
-                                buf.push(eq, encode(v + EMPTY));
-                            }
-                            buf.push(sep);
-                        }
-                    }
-                }
-                // ignore other cases, including empty array, Function, RegExp, Date etc.
-
-            }
-
-            buf.pop();
-            return buf.join(EMPTY);
-        },
-        /**
-         * query字符串转为对象
-         */
-        unparam = function(str, sep, eq) {
-            if (!S.isNotEmptyString(str)) {
-                return {};
-            }
-            sep = sep || '&';
-            eq = eq || '=';
-
-            var ret = {},
-                eqIndex,
-                decode = decodeURIComponent,
-                pairs = str.split(sep),
-                key, val,
-                i = 0,
-                len = pairs.length;
-
-            for (; i < len; ++i) {
-                eqIndex = pairs[i].indexOf(eq);
-                if (eqIndex == -1) { // 没有=
-                    key = decode(pairs[i]);
-                    val = undefined;
-                } else {
-                    // remember to decode key!
-                    key = decode(pairs[i].substring(0, eqIndex));
-                    val = pairs[i].substring(eqIndex + 1);
-                    try {
-                        val = decode(val);
-                    } catch (e) {
-                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
-                    }
-                }
-                ret[key] = val;
-            }
-            return ret;
-        },
 
         htmlEntities = {
             '&amp;': '&',
@@ -1918,7 +1772,6 @@ requireModule('promise/polyfill').polyfill();
 
             return new RegExp(str, 'g');
         }),
-
         escapeHtml = function(text) {
             return String(text).replace(getEscapeReg(), function(all) {
                 return reverseEntities[all];
@@ -1935,6 +1788,7 @@ requireModule('promise/polyfill').polyfill();
             reverseEntities[htmlEntities[k]] = k;
         }
     })();
+
 
     // oo实现
     var Class = function(parent, properties) {
@@ -2055,7 +1909,7 @@ requireModule('promise/polyfill').polyfill();
             over = TRUE;
         }
         blacklist = blacklist || [];
-        
+
         for (i in source) {
             if (inArray(blacklist, i)) {
                 continue;
@@ -2072,9 +1926,6 @@ requireModule('promise/polyfill').polyfill();
      */
     function hasOwnProperty(o, p) {
         return OP.hasOwnProperty.call(o, p);
-    }
-    function toObject(o) {
-        return Object(o);
     }
     function isValidParamValue(val) {
         var t = typeof val;
@@ -2093,10 +1944,11 @@ requireModule('promise/polyfill').polyfill();
         isNotEmptyString: function(val) {
             return S.isString(val) && val !== '';
         },
-
         isPlainObject: isPlainObject,
         inArray: inArray,
         type: type,
+        makeArray: makeArray,
+        deepCopy: deepCopy,
 
         /**
          * 判断jQuery deferred对象是否正在处理中
@@ -2118,7 +1970,6 @@ requireModule('promise/polyfill').polyfill();
         ucfirst: function(str) {
             return str.charAt(0).toUpperCase() + str.substring(1);
         },
-
         lcfirst: function(str) {
             return str.charAt(0).toLowerCase() + str.substring(1);
         },
@@ -2195,9 +2046,6 @@ requireModule('promise/polyfill').polyfill();
             return String(str).replace(/[^\x00-\xff]/g, "aa").length;
         },
 
-        makeArray: makeArray,
-        deepCopy: deepCopy,
-
         namespace: function () {
             var args = makeArray(arguments),
                 l = args.length,
@@ -2215,8 +2063,6 @@ requireModule('promise/polyfill').polyfill();
         startsWith: function(str, prefix) {
             return str.lastIndexOf(prefix, 0) === 0;
         },
-
-
         endsWith: function(str, suffix) {
             var index = str.length - suffix.length;
             return index >= 0 && str.indexOf(suffix, index) == index;
@@ -2224,12 +2070,141 @@ requireModule('promise/polyfill').polyfill();
 
         choice: choice,
         shuffle: shuffle,
-        throttle: throttle,
-        curry: curry,
-        substitute: substitute,
 
-        unparam: unparam,
-        param: param,
+        /**
+         * 在underscore里面有实现，这个版本借鉴的是kissy
+         */
+        throttle: function(fn, ms, context) {
+            ms = ms || 100; // 150 -> 100
+
+            if (ms === -1) {
+                return (function() {
+                    fn.apply(context || this, arguments);
+                });
+            }
+
+            var last = S.Now();
+
+            return (function() {
+                var now = S.Now();
+                if (now - last > ms) {
+                    last = now;
+                    fn.apply(context || this, arguments);
+                }
+            });
+        },
+
+        /**
+         * 函数柯里化
+         * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
+         */
+        curry: function(fn) {
+            var slice = [].slice,
+                args = slice.call(arguments, 1);
+
+            return function() {
+                var innerArgs = slice.call(arguments),
+                    retArgs = args.concat(innerArgs);
+                return fn.apply(null, retArgs);
+            };
+        },
+
+        /**
+         * {{ name }} -> {{ o[name] }}
+         * \{{}} -> \{{}}
+         * based on Django, fix kissy, support blank -> {{ name }}, not only {{name}}
+         */
+        substitute: function(str, o, regexp) {
+            if (!S.isNotEmptyString(str)) {
+                return str;
+            }
+            if ( !(isPlainObject(o) || S.isArray(o)) ) {
+                return str;
+            }
+            return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
+                if (match.charAt(0) === '\\') {
+                    return match.slice(1);
+                }
+                return (o[name] === undefined) ? '' : o[name];
+            });
+        },
+
+        param: function (o, sep, eq, serializeArray) {
+            sep = sep || '&';
+            eq = eq || '=';
+            if (serializeArray === undefined) {
+                serializeArray = TRUE;
+            }
+            var buf = [], key, i, v, len, val,
+                encode = encodeURIComponent;
+            for (key in o) {
+                val = o[key];
+                key = encode(key);
+
+                // val is valid non-array value
+                if (isValidParamValue(val)) {
+                    buf.push(key);
+                    if (val !== undefined) {
+                        buf.push(eq, encode(val + EMPTY));
+                    }
+                    buf.push(sep);
+                } else if (S.isArray(val) && val.length) {
+                    // val is not empty array
+                    for (i = 0, len = val.length; i < len; ++i) {
+                        v = val[i];
+                        if (isValidParamValue(v)) {
+                            buf.push(key, (serializeArray ? encode('[]') : EMPTY));
+                            if (v !== undefined) {
+                                buf.push(eq, encode(v + EMPTY));
+                            }
+                            buf.push(sep);
+                        }
+                    }
+                }
+                // ignore other cases, including empty array, Function, RegExp, Date etc.
+
+            }
+
+            buf.pop();
+            return buf.join(EMPTY);
+        },
+        /**
+         * query字符串转为对象
+         */
+        unparam: function(str, sep, eq) {
+            if (!S.isNotEmptyString(str)) {
+                return {};
+            }
+            sep = sep || '&';
+            eq = eq || '=';
+
+            var ret = {},
+                eqIndex,
+                decode = decodeURIComponent,
+                pairs = str.split(sep),
+                key, val,
+                i = 0,
+                len = pairs.length;
+
+            for (; i < len; ++i) {
+                eqIndex = pairs[i].indexOf(eq);
+                if (eqIndex == -1) { // 没有=
+                    key = decode(pairs[i]);
+                    val = undefined;
+                } else {
+                    // remember to decode key!
+                    key = decode(pairs[i].substring(0, eqIndex));
+                    val = pairs[i].substring(eqIndex + 1);
+                    try {
+                        val = decode(val);
+                    } catch (e) {
+                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
+                    }
+                }
+                ret[key] = val;
+            }
+            return ret;
+        },
 
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
@@ -2253,12 +2228,12 @@ requireModule('promise/polyfill').polyfill();
             return decodeURIComponent(s.replace(/\+/g, ' '));
         };
 
-    var Query = S.Query = new Class({
+    var Query = S.Query = function(query) {
+        this._query = query || '';
+        this._queryMap = unparam(this._query);
+    };
 
-        init: function(query) {
-            this._query = query || '';
-            this._queryMap = unparam(this._query);
-        },
+    Query.prototype = {
 
         /**
          * Return parameter value corresponding to current key
@@ -2354,7 +2329,7 @@ requireModule('promise/polyfill').polyfill();
             return S.param(this._queryMap, undefined, undefined, serializeArray);
         }
 
-    });
+    };
 
 
     // from caja uri
@@ -2383,9 +2358,7 @@ requireModule('promise/polyfill').polyfill();
             fragment: 7
         };
 
-    var Uri = S.Uri = new Class({
-        
-        init: function(uriStr) {
+    var Uri = S.Uri = function(uriStr) {
             var components,
                 self = this;
 
@@ -2418,7 +2391,9 @@ requireModule('promise/polyfill').polyfill();
             });
 
             return self;
-        },
+        };
+
+    Uri.prototype = {
 
         getFragment: function () {
             return this.fragment;
@@ -2471,19 +2446,18 @@ requireModule('promise/polyfill').polyfill();
 
             return out.join('');
         }
-    });
-    
-    Uri.Query = Query;
+    };
+
     Uri.getComponents = function (url) {
         url = url || location.href;
-        
+
         var m,
             ret = {};
 
         if (!S.isNotEmptyString(url)) {
             return ret;
         }
-        
+
         m = url.match(URI_RE) || [];
 
         S.each(REG_INFO, function(index, key) {
@@ -3105,6 +3079,7 @@ requireModule('promise/polyfill').polyfill();
         },
 
         paths: {
+            maijia: '../../../maijia',
             miiee: '../../../miiee',
             plugin: '../plugin',
             gallery: '../gallery',
@@ -3120,7 +3095,9 @@ requireModule('promise/polyfill').polyfill();
             autocomplete: ["overlay", "templatable"]
             // switchable 如果想要easing效果需要自己require
             // switchable: "easing"
-        }
+        },
+
+        preload: []
     });
 
 })(tbtx);
@@ -3232,18 +3209,20 @@ requireModule('promise/polyfill').polyfill();
         placeholder: 'placeholder' in doc.createElement('input')
     }, [], false, true);
 
-    // fix placeholder
-    // $(function() {
-    //     if (!support.placeholder && $("input[placeholder], textarea[placeholder]").length) {
+    S.ready(function(S) {
+        var $ = S.$;
+        // fix placeholder
+        $(function() {
+            if (!support.placeholder && $("input[placeholder], textarea[placeholder]").length) {
 
-    //             input, textarea { color: #000; }
-    //             .placeholder { color: #aaa; }
-
-    //         S.require("plugin/jquery.placeholder.js", function() {
-    //             $('input, textarea').placeholder();
-    //         });
-    //     }
-    // });
+                // input, textarea { color: #000; }
+                // .placeholder { color: #aaa; }
+                S.require("plugin/jquery.placeholder.js", function() {
+                    $('input, textarea').placeholder();
+                });
+            }
+        });
+    });
 })(tbtx);
 
 
@@ -3312,34 +3291,58 @@ requireModule('promise/polyfill').polyfill();
         return ret;
     }
 
-    function ago(v1, v2) {
+    function diffDate(v1, v2) {
         v1 = toDate(v1);
         v2 = toDate(v2);
 
         var SECONDS = 60,
             SECONDS_OF_HOUR = SECONDS * 60,
             SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
-            // 月份跟年粗略计算
-            SECONDS_OF_MONTH = SECONDS_OF_DAY * 30,
-            SECONDS_OF_YEAR = SECONDS_OF_DAY * 365,
+
             // diff seconds
             diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
-            dayDiff;
+            remain = diff;
 
-        if (diff >= SECONDS_OF_YEAR) {
-            return Math.floor(diff / SECONDS_OF_YEAR) + "年前";
-        }
-        if (diff >= SECONDS_OF_MONTH) {
-            return Math.floor(diff / SECONDS_OF_MONTH) + "个月前";
-        }
-        if (diff >= SECONDS_OF_DAY) {
-            dayDiff = Math.floor(diff / SECONDS_OF_DAY);
-            return dayDiff == 1 ? "昨天" : dayDiff + "天前";
+        var day, hour, minute, second;
+
+        day = Math.floor(remain / SECONDS_OF_DAY);
+        remain -= day * SECONDS_OF_DAY;
+        hour = Math.floor(remain / SECONDS_OF_HOUR);
+        remain -= hour * SECONDS_OF_HOUR;
+        minute = Math.floor(remain / SECONDS);
+        remain -= minute * SECONDS;
+        second = Math.floor(remain);
+
+        return {
+            day: day,
+            hour: hour,
+            minute: minute,
+            second: second
+        };
+    }
+
+    function ago(v1, v2) {
+        var diff = diffDate(v1, v2);
+
+        var remain = Math.floor(diff.day / 365);
+        if (remain) {
+            return remain + "年前";
         }
 
-        return diff < SECONDS && "刚刚" ||
-            diff < SECONDS_OF_HOUR && Math.floor(diff / SECONDS) + "分钟前" ||
-            diff < SECONDS_OF_DAY && Math.floor(diff / SECONDS_OF_HOUR) + "小时前";
+        remain = Math.floor(diff.day / 30);
+        if (remain) {
+            return remain + "个月前";
+        }
+        if (diff.day) {
+            return diff.day == 1 ? "昨天" : diff.day + "天前";
+        }
+        if (diff.hour) {
+            return diff.hour + "小时前";
+        }
+        if (diff.minute) {
+            return diff.minute + "分钟前";
+        }
+        return "刚刚";
     }
 
     // 字符串/数字 -> Date
@@ -3352,8 +3355,15 @@ requireModule('promise/polyfill').polyfill();
         return (type == 'number' || type == 'string') ? new Date(date) : new Date();
     }
 
+    function padding2(str) {
+        str = String(str);
+        return str.length === 1 ? '0' + str : str;
+    }
+
     S.mix({
         normalizeDate: normalizeDate,
+        diffDate: diffDate,
+        toDate: toDate,
         ago: ago,
         formatDate: formatDate
     });
@@ -3968,9 +3978,6 @@ requireModule('promise/polyfill').polyfill();
 (function(S) {
     var global = S.global,
         $ = S.$,
-        noop = S.noop,
-        each = S.each,
-        ucfirst = S.ucfirst,
         singleton = S.singleton,
         throttle = S.throttle;
 
@@ -3982,24 +3989,23 @@ requireModule('promise/polyfill').polyfill();
         de = doc.documentElement,
         head = doc.head || doc.getElementsByTagName("head")[0] || de;
 
-
     // jQuery singleton instances
-    var $instances = [
-        ["window", function() {
+    var instances = [
+        ["Window", function() {
             return $(window);
         }],
-        ["document", function() {
+        ["Document", function() {
             return $(doc);
         }],
-        ["head", function() {
+        ["Head", function() {
             return $(head);
         }],
-        ["body", function() {
+        ["Body", function() {
             return $('body');
         }]
     ];
-    each($instances, function(instance) {
-        S["get" + ucfirst(instance[0])] = singleton(instance[1]);
+    instances.forEach(function(instance) {
+        S["get" + instance[0]] = singleton(instance[1]);
     });
 
     var pageHeight = function() {
@@ -4046,7 +4052,8 @@ requireModule('promise/polyfill').polyfill();
 
         getScroller = singleton(function() {
             var scroller = doc.body;
-            if (/msie [67]/.test(navigator.userAgent.toLowerCase())) {
+            var browser = S.detector.browser;
+            if (browser.ie && browser.version <= 7) {
                 scroller = doc.documentElement;
             }
             return $(scroller);
@@ -4069,11 +4076,8 @@ requireModule('promise/polyfill').polyfill();
         },
 
         contains = function(a, b) {
-            if ($.contains) {
-                return $.contains(a, b);
-            }
-            //noinspection JSBitwiseOperatorUsage
-            return !!(a.compareDocumentPosition(b) & 16);
+            return $.contains(a, b);
+            // return !!(a.compareDocumentPosition(b) & 16);
         },
         isInDocument = function(element) {
             return contains(de, element);
@@ -4085,8 +4089,12 @@ requireModule('promise/polyfill').polyfill();
         isInView = function(selector, top) {
             top = top || 0;
 
-            var element = $(selector),
-                elemHeight = element.innerHeight(),
+            var element = $(selector);
+            if (!element.length) {
+                return false;
+            }
+
+            var elemHeight = element.innerHeight(),
                 win = S.getWindow(),
                 winHeight = win.height();
             if (top == "center" || typeof top !== "number") {
@@ -4180,7 +4188,7 @@ requireModule('promise/polyfill').polyfill();
         },
 
         initWangWang = function(callback) {
-            callback = callback || noop;
+            callback = callback || S.noop;
             var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
             if (global.KISSY) {
                 S.loadScript(webww, callback);
@@ -5391,16 +5399,16 @@ requireModule('promise/polyfill').polyfill();
 
 ;(function(S) {
     var parseResult = S.parseUrl();
-    parseResult.query = S.getQueryParam();
+    parseResult.query = new S.Query(parseResult.query).get();
     S.data("urlInfo", parseResult);
 
-    var ROOT = parseResult.scheme + "://" + parseResult.domain;
+    var Root = parseResult.scheme + "://" + parseResult.domain;
     if (parseResult.port) {
-        ROOT += ":" + parseResult.port;
+        Root += ":" + parseResult.port;
     }
 
-    if (!(/^http/i).test(ROOT)) {
-        ROOT = '';
+    if (!S.startsWith(parseResult.scheme, "http")) {
+        Root = '';
     }
 
     var path = {
@@ -5411,7 +5419,7 @@ requireModule('promise/polyfill').polyfill();
     };
 
     S.mix({
-        ROOT: ROOT,
+        Root: Root,
         path: path
     });
 })(tbtx);

@@ -559,6 +559,7 @@
         },
 
         paths: {
+            maijia: '../../../maijia',
             miiee: '../../../miiee',
             plugin: '../plugin',
             gallery: '../gallery',
@@ -574,7 +575,9 @@
             autocomplete: ["overlay", "templatable"]
             // switchable 如果想要easing效果需要自己require
             // switchable: "easing"
-        }
+        },
+
+        preload: []
     });
 
 })(tbtx);

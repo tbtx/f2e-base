@@ -63,34 +63,58 @@
         return ret;
     }
 
-    function ago(v1, v2) {
+    function diffDate(v1, v2) {
         v1 = toDate(v1);
         v2 = toDate(v2);
 
         var SECONDS = 60,
             SECONDS_OF_HOUR = SECONDS * 60,
             SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
-            // 月份跟年粗略计算
-            SECONDS_OF_MONTH = SECONDS_OF_DAY * 30,
-            SECONDS_OF_YEAR = SECONDS_OF_DAY * 365,
+
             // diff seconds
             diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
-            dayDiff;
+            remain = diff;
 
-        if (diff >= SECONDS_OF_YEAR) {
-            return Math.floor(diff / SECONDS_OF_YEAR) + "年前";
-        }
-        if (diff >= SECONDS_OF_MONTH) {
-            return Math.floor(diff / SECONDS_OF_MONTH) + "个月前";
-        }
-        if (diff >= SECONDS_OF_DAY) {
-            dayDiff = Math.floor(diff / SECONDS_OF_DAY);
-            return dayDiff == 1 ? "昨天" : dayDiff + "天前";
+        var day, hour, minute, second;
+
+        day = Math.floor(remain / SECONDS_OF_DAY);
+        remain -= day * SECONDS_OF_DAY;
+        hour = Math.floor(remain / SECONDS_OF_HOUR);
+        remain -= hour * SECONDS_OF_HOUR;
+        minute = Math.floor(remain / SECONDS);
+        remain -= minute * SECONDS;
+        second = Math.floor(remain);
+
+        return {
+            day: day,
+            hour: hour,
+            minute: minute,
+            second: second
+        };
+    }
+
+    function ago(v1, v2) {
+        var diff = diffDate(v1, v2);
+
+        var remain = Math.floor(diff.day / 365);
+        if (remain) {
+            return remain + "年前";
         }
 
-        return diff < SECONDS && "刚刚" ||
-            diff < SECONDS_OF_HOUR && Math.floor(diff / SECONDS) + "分钟前" ||
-            diff < SECONDS_OF_DAY && Math.floor(diff / SECONDS_OF_HOUR) + "小时前";
+        remain = Math.floor(diff.day / 30);
+        if (remain) {
+            return remain + "个月前";
+        }
+        if (diff.day) {
+            return diff.day == 1 ? "昨天" : diff.day + "天前";
+        }
+        if (diff.hour) {
+            return diff.hour + "小时前";
+        }
+        if (diff.minute) {
+            return diff.minute + "分钟前";
+        }
+        return "刚刚";
     }
 
     // 字符串/数字 -> Date
@@ -103,8 +127,15 @@
         return (type == 'number' || type == 'string') ? new Date(date) : new Date();
     }
 
+    function padding2(str) {
+        str = String(str);
+        return str.length === 1 ? '0' + str : str;
+    }
+
     S.mix({
         normalizeDate: normalizeDate,
+        diffDate: diffDate,
+        toDate: toDate,
         ago: ago,
         formatDate: formatDate
     });

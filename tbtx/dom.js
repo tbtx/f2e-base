@@ -2,9 +2,6 @@
 (function(S) {
     var global = S.global,
         $ = S.$,
-        noop = S.noop,
-        each = S.each,
-        ucfirst = S.ucfirst,
         singleton = S.singleton,
         throttle = S.throttle;
 
@@ -16,24 +13,23 @@
         de = doc.documentElement,
         head = doc.head || doc.getElementsByTagName("head")[0] || de;
 
-
     // jQuery singleton instances
-    var $instances = [
-        ["window", function() {
+    var instances = [
+        ["Window", function() {
             return $(window);
         }],
-        ["document", function() {
+        ["Document", function() {
             return $(doc);
         }],
-        ["head", function() {
+        ["Head", function() {
             return $(head);
         }],
-        ["body", function() {
+        ["Body", function() {
             return $('body');
         }]
     ];
-    each($instances, function(instance) {
-        S["get" + ucfirst(instance[0])] = singleton(instance[1]);
+    instances.forEach(function(instance) {
+        S["get" + instance[0]] = singleton(instance[1]);
     });
 
     var pageHeight = function() {
@@ -80,7 +76,8 @@
 
         getScroller = singleton(function() {
             var scroller = doc.body;
-            if (/msie [67]/.test(navigator.userAgent.toLowerCase())) {
+            var browser = S.detector.browser;
+            if (browser.ie && browser.version <= 7) {
                 scroller = doc.documentElement;
             }
             return $(scroller);
@@ -103,11 +100,8 @@
         },
 
         contains = function(a, b) {
-            if ($.contains) {
-                return $.contains(a, b);
-            }
-            //noinspection JSBitwiseOperatorUsage
-            return !!(a.compareDocumentPosition(b) & 16);
+            return $.contains(a, b);
+            // return !!(a.compareDocumentPosition(b) & 16);
         },
         isInDocument = function(element) {
             return contains(de, element);
@@ -119,8 +113,12 @@
         isInView = function(selector, top) {
             top = top || 0;
 
-            var element = $(selector),
-                elemHeight = element.innerHeight(),
+            var element = $(selector);
+            if (!element.length) {
+                return false;
+            }
+
+            var elemHeight = element.innerHeight(),
                 win = S.getWindow(),
                 winHeight = win.height();
             if (top == "center" || typeof top !== "number") {
@@ -214,7 +212,7 @@
         },
 
         initWangWang = function(callback) {
-            callback = callback || noop;
+            callback = callback || S.noop;
             var webww = "http://a.tbcdn.cn/p/header/webww-min.js";
             if (global.KISSY) {
                 S.loadScript(webww, callback);

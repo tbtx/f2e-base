@@ -14,12 +14,12 @@
             return decodeURIComponent(s.replace(/\+/g, ' '));
         };
 
-    var Query = S.Query = new Class({
+    var Query = S.Query = function(query) {
+        this._query = query || '';
+        this._queryMap = unparam(this._query);
+    };
 
-        init: function(query) {
-            this._query = query || '';
-            this._queryMap = unparam(this._query);
-        },
+    Query.prototype = {
 
         /**
          * Return parameter value corresponding to current key
@@ -115,7 +115,7 @@
             return S.param(this._queryMap, undefined, undefined, serializeArray);
         }
 
-    });
+    };
 
 
     // from caja uri
@@ -144,9 +144,7 @@
             fragment: 7
         };
 
-    var Uri = S.Uri = new Class({
-        
-        init: function(uriStr) {
+    var Uri = S.Uri = function(uriStr) {
             var components,
                 self = this;
 
@@ -179,7 +177,9 @@
             });
 
             return self;
-        },
+        };
+
+    Uri.prototype = {
 
         getFragment: function () {
             return this.fragment;
@@ -232,19 +232,18 @@
 
             return out.join('');
         }
-    });
-    
-    Uri.Query = Query;
+    };
+
     Uri.getComponents = function (url) {
         url = url || location.href;
-        
+
         var m,
             ret = {};
 
         if (!S.isNotEmptyString(url)) {
             return ret;
         }
-        
+
         m = url.match(URI_RE) || [];
 
         S.each(REG_INFO, function(index, key) {

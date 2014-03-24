@@ -1,15 +1,15 @@
 (function(S) {
     var parseResult = S.parseUrl();
-    parseResult.query = S.getQueryParam();
+    parseResult.query = new S.Query(parseResult.query).get();
     S.data("urlInfo", parseResult);
 
-    var ROOT = parseResult.scheme + "://" + parseResult.domain;
+    var Root = parseResult.scheme + "://" + parseResult.domain;
     if (parseResult.port) {
-        ROOT += ":" + parseResult.port;
+        Root += ":" + parseResult.port;
     }
 
-    if (!(/^http/i).test(ROOT)) {
-        ROOT = '';
+    if (!S.startsWith(parseResult.scheme, "http")) {
+        Root = '';
     }
 
     var path = {
@@ -20,7 +20,7 @@
     };
 
     S.mix({
-        ROOT: ROOT,
+        Root: Root,
         path: path
     });
 })(tbtx);

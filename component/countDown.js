@@ -65,17 +65,13 @@
                 // this.trigger('timeEnd');
             }
 
-            var diff = (target - now)/1000;
 
-            var day = Math.floor(diff / SECONDS_OF_DAY),
-                hour = Math.floor((diff - day * SECONDS_OF_DAY)/SECONDS_OF_HOUR),
-                minute = Math.floor((diff - hour * SECONDS_OF_HOUR - day * SECONDS_OF_DAY)/SECONDS),
-                second = Math.floor(diff - minute * SECONDS - hour * SECONDS_OF_HOUR - day * SECONDS_OF_DAY);
+            var diff = S.diffDate(target, now);
 
-            this.set("day", day);
-            this.set("hour", hour);
-            this.set("minute", minute);
-            this.set("second", second);
+            this.set("day", diff.day);
+            this.set("hour", diff.hour);
+            this.set("minute", diff.minute);
+            this.set("second", diff.second);
         },
 
         _onRenderDay: function(val) {

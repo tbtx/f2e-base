@@ -41,18 +41,6 @@
          */
         noop: function() {},
 
-        _config: {},
-
-        config: function(k, v) {
-            var config = this._config;
-            if (S.isPlainObject(k)) {
-                S.mix(config, k);
-            } else if (S.isString(k)) {
-                config[k] = v;
-            }
-            return this;
-        },
-
         /**
          * client unique id
          * @return {number} cid

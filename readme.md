@@ -32,7 +32,10 @@
 
 	(按顺序)
 	seed.js 库开始文件
+	promise.js es6 promise实现
+	json2.js
 	lang.js 语言扩展
+	uri.js url相关
 	events.js 事件
 	aspect.js before & after
 	attrs: attr操作
