@@ -183,9 +183,6 @@ describe('lang', function() {
 				expect(S.map(arrayLikeObject, function(v) {
 					return v;
 				})).toEqual(["a", "b", "c", 3]);
-				expect(S.map(arrayLikeObject, function(v) {
-					return v;
-				}, true)).toEqual(["1", "2", "3", "length"]);
 			});
 		});
 		describe('filter', function() {
@@ -225,6 +222,33 @@ describe('lang', function() {
 				expect(S.lastIndexOf(str, "b")).toEqual(1);
 			});
 		});
+	});
+
+	describe("shim extend", function() {
+		var object = {
+			a: "123",
+			b: "456"
+		};
+
+		S.forEach(object, function(v, k, object) {
+			expect(object[k]).toEqual(v);
+		});
+
+		var ret = S.map(object, function(v, k, object) {
+			return v + "a";
+		});
+		expect(ret).toEqual({
+			a: "123a",
+			b: "456a"
+		});
+
+		ret = S.filter(object, function(v, k, object) {
+			return v == "123";
+		});
+		expect(ret).toEqual({
+			a: "123"
+		});
+
 	});
 
 	describe("mix", function() {

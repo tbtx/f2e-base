@@ -382,7 +382,7 @@
     var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/gi;
     var decideMobile = function(ua) {
         var match = mobilePattern.exec(ua);
-        return match ? match[1]: '';
+        return match ? match[1] : '';
     };
 
     detector.mobile = decideMobile(userAgent);

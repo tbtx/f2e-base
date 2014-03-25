@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-24 12:42:04
+ * 2014-03-25 3:22:45
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -46,6 +46,21 @@
          * 空函数，在需要使用空函数作为参数时使用
          */
         noop: function() {},
+
+        Config: {},
+
+        config: function(name, value) {
+            var Config = S.Config;
+
+            if (typeof name === 'string') {
+                Config[name] = value;
+            } else {
+                // object
+                mix(Config, name);
+            }
+
+            return S;
+        },
 
         /**
          * client unique id
@@ -1506,26 +1521,44 @@ requireModule('promise/polyfill').polyfill();
         /**
          * iter object and array
          * only use when you want to iter both array and object, if only array, please use [].map/filter..
+         * 要支持object, array, 以及array like object
          * @param  {Array/Object}   object      the object to iter
          * @param  {Function}       fn          the iter process fn
          * @param  {Boolean}        isIterKey   is iter object's key, default is val, only for object
          * @return {Boolean/Array}              the process result
          */
         S[name] = function(object, fn, isIterKey) {
-            if (!object || typeof object !== "object") {
+            if (!object) {
                 return object;
             }
 
-            var keys;
-            if (S.isObject(object)) {
-                keys = Object.keys(object);
+            if (S.isArray(object)) {
+                return object[name](fn);
+            } else {
+                var keys = Object.keys(object),
+                    values = keys.map(function(key) {
+                        return object[key];
+                    });
 
-                object = isIterKey ? keys : keys.map(function(key) {
-                    return object[key];
-                });
+                if (S.inArray(["map", "filter"], name) && !object.length) {
+                    var array = [],
+                        keyRecord = [],
+                        ret = {};
+                    array = values[name](function(item, index) {
+                        var key = keys[index];
+                        keyRecord.push(key);
+                        return fn.call(object, item, key, object);
+                    });
+                    array.forEach(function(item, index) {
+                        ret[keyRecord[index]] = item;
+                    });
+                    return ret;
+                } else {
+                    return values[name](function(item, index) {
+                        return fn.call(object, item, keys[index], object);
+                    });
+                }
             }
-
-            return object[name](fn);
         };
     });
 
@@ -3754,7 +3787,7 @@ requireModule('promise/polyfill').polyfill();
     var mobilePattern = /(iPod|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian)/gi;
     var decideMobile = function(ua) {
         var match = mobilePattern.exec(ua);
-        return match ? match[1]: '';
+        return match ? match[1] : '';
     };
 
     detector.mobile = decideMobile(userAgent);
@@ -4114,10 +4147,10 @@ requireModule('promise/polyfill').polyfill();
             if (typeof selector == "number") {
                 top = selector;
             } else {
-                var $target = $(selector),
-                    offsetTop = $target.offset().top;
+                var target = $(selector),
+                    offsetTop = target.offset().top;
 
-                top = offsetTop - (viewportHeight() - $target.innerHeight())/2;
+                top = offsetTop - (viewportHeight() - target.innerHeight())/2;
             }
 
             $('body,html').animate({
@@ -4127,33 +4160,33 @@ requireModule('promise/polyfill').polyfill();
         },
 
         limitLength = function(selector, attr, suffix) {
-            var $elements = $(selector);
+            var elements = $(selector);
             suffix = suffix || '...';
             attr = attr || 'data-max';
 
-            $elements.each(function() {
-                var $element = $(this);
-                var max = parseInt($element.attr(attr), 10);
-                var conent = $.trim($element.text());
+            elements.each(function(index, el) {
+                var element = $(el);
+                var max = parseInt(element.attr(attr), 10);
+                var conent = S.trim(element.text());
                 if (conent.length <= max) {
                     return;
                 }
 
                 conent = conent.slice(0, max - suffix.length) + suffix;
-                $element.text(conent);
+                element.text(conent);
             });
             return this;
         },
 
         flash = function(selector, flashColor, bgColor) {
-            var $elements = $(selector);
+            var elements = $(selector);
             bgColor = bgColor || "#FFF";
             flashColor = flashColor || "#FF9";
-            $elements.each(function(index, element) {
-                var $element = $(element);
-                $element.css("background-color", flashColor).fadeOut("fast", function() {
-                    $element.fadeIn("fast", function() {
-                        $element.css("background-color", bgColor).focus().select();
+            elements.each(function(index, el) {
+                var element = $(el);
+                element.css("background-color", flashColor).fadeOut("fast", function() {
+                    element.fadeIn("fast", function() {
+                        element.css("background-color", bgColor).focus().select();
                     });
                 });
             });
@@ -4161,26 +4194,26 @@ requireModule('promise/polyfill').polyfill();
         },
         // 返回顶部
         flyToTop = function(selector) {
-            var $container = $(selector);
+            var container = $(selector);
 
             // 大于offset消失
-            var offset = $container.data("offset");
+            var offset = container.data("offset");
             if (offset) {
                 // fade in #back-top
                 S.on("window.scroll", function(top) {
                     if (top > offset) {
-                        $container.fadeIn();
+                        container.fadeIn();
                     } else {
-                        $container.fadeOut();
+                        container.fadeOut();
                     }
                 });
             }
 
             // 默认监听J-fly-to-top, 没找到则监听自身
-            var $flyer = $container.find(".J-fly-to-top"),
-                $listener = $flyer.length ? $flyer : $container;
+            var flyer = container.find(".J-fly-to-top"),
+                listener = flyer.length ? flyer : container;
 
-            $listener.on('click', function(){
+            listener.on('click', function(){
                 scrollTo(0);
                 return false;
             });
@@ -5406,7 +5439,6 @@ requireModule('promise/polyfill').polyfill();
     if (parseResult.port) {
         Root += ":" + parseResult.port;
     }
-
     if (!S.startsWith(parseResult.scheme, "http")) {
         Root = '';
     }
@@ -5443,44 +5475,40 @@ requireModule('promise/polyfill').polyfill();
         return token;
     };
 
-    // 临时跟真正登陆暂时没区分
-    var userCheckDeferred;
-    // 默认使用登陆接口，某些操作使用临时登陆状态即可
-    var userCheck = function(callSuccess, callFailed, isTemp) {
-        if (userCheckDeferred) {
-            return userCheckDeferred.done(callSuccess).fail(callFailed);
-        }
-        userCheckDeferred = $.Deferred();
+    var userCheckInit = S.singleton(function(isTemp) {
+        var promise = $.Deferred();
         $.ajax({
             type: "POST",
             url: isTemp ?  PATH.getlogininfo : PATH.getuserinfo,
             dataType: 'json',
-            data: {},
             timeout: TIMEOUT
         }).done(function(response) {
             var data = response.result && response.result.data,
                 code = response.code;
 
             if (code == 601) {
-                userCheckDeferred.reject();
+                promise.reject();
             } else if (S.inArray([100, 608, 1000], code)) {
                 S.data('user', data);
                 S.data('userName', data.trueName ? data.trueName : data.userNick);
-                userCheckDeferred.resolve(data);
+                promise.resolve(data);
             }
         }).fail(function() {
-            userCheckDeferred.reject();
+            promise.reject();
         });
 
-        userCheckDeferred.done(callSuccess).fail(callFailed).fail(function() {
+        promise.fail(function() {
             // J-login 链接改为登陆
             $('.J-login').attr({
                 href: PATH.login,
                 target: "_self"
             });
         });
-        return userCheckDeferred.promise();
-    };
+
+        return promise;
+    });
+    // 默认使用登陆接口，某些操作使用临时登陆状态即可
+
 
 
     var config = {
@@ -5504,7 +5532,7 @@ requireModule('promise/polyfill').polyfill();
         uid = uid || '';
         site = site || "miiee";
         pic = pic || '';
-        url = url || window.location.href;
+        url = url || location.href;
         title = title || $('meta[name="description"]').attr("content");
 
         var base = 'http://v.t.sina.com.cn/share/share.php?';
@@ -5516,7 +5544,7 @@ requireModule('promise/polyfill').polyfill();
             pic: pic
         };
 
-        var link = base + $.param(params);
+        var link = base + S.param(params);
         $(selecotr).attr({
             href: link,
             target: "_blank"
@@ -5572,7 +5600,10 @@ requireModule('promise/polyfill').polyfill();
 
     S.mix({
         miieeJSToken: miieeJSToken,
-        userCheck: userCheck,
+
+        userCheck: function(success, fail, isTemp) {
+            return userCheckInit(isTemp).done(success).fail(fail).promise();
+        },
 
         initMiiee: function() {
             return S.loadScript(["miiee/js/m.js", "miiee/js/base.js"]);
@@ -5605,7 +5636,7 @@ requireModule('promise/polyfill').polyfill();
         shareToSinaWB: shareToSinaWB,
 
         addToFavourite: function(title, url) {
-            url = url || document.location.href;
+            url = url || location.href;
             title = title || document.title;
 
             var def = function() {
@@ -5654,6 +5685,40 @@ requireModule('promise/polyfill').polyfill();
                     }
                 }
             });
-        }
+        },
+
+        initTaobaoSiteNav: S.singleton(function() {
+            var template = '<div id="J_SiteNav" class="site-nav"><div id="J_SiteNavBd" class="site-nav-bd"><ul id="J_SiteNavBdL" class="site-nav-bd-l"></ul><ul id="J_SiteNavBdR" class="site-nav-bd-r"></ul></div></div>';
+            var sitenav = $(template).prependTo('body'),
+                global = S.global,
+                handler = function() {
+                    // 干掉淘宝登陆
+                    TB.Global.ui = {
+                        l: []
+                    };
+                    TB.Global.blacklist = ["fn-cart"];
+                    TB.Global.init();
+
+                    S.userCheck().done(function() {
+                        $("#J_SiteNavBdL").append('<div id="J_LoginInfo" class="menu"><div id="J_LoginInfoHd" class="menu-hd"><a href="/home.htm" target="_blank">' + S.data("userName") + '</a><a href="/logout.htm">退出</a></div></div>');
+                    }).fail(function() {
+                        $("#J_SiteNavBdL").append('<div id="J_LoginInfo" class="menu"><div id="J_LoginInfoHd" class="menu-hd"><a href="' + S.path.login + '">亲，请登录</a></div></div>');
+                    });
+                };
+
+            // 防止冲掉原有样式，请自行引入
+            // S.loadCss("http://g.tbcdn.cn/tb/global/2.6.10/global-min.css");
+
+            if (global.KISSY && global.TB) {
+                handler();
+                return S;
+            }
+
+            var url = global.KISSY ? "http://g.tbcdn.cn/tb/global/2.6.10/global-min.js" : "http://g.tbcdn.cn/??kissy/k/1.3.2/kissy-min.js,tb/global/2.6.10/global-min.js";
+            S.loadScript(url).done(function() {
+                handler();
+            });
+            return S;
+        })
     });
 })(tbtx);

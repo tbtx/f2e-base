@@ -263,26 +263,44 @@
         /**
          * iter object and array
          * only use when you want to iter both array and object, if only array, please use [].map/filter..
+         * 要支持object, array, 以及array like object
          * @param  {Array/Object}   object      the object to iter
          * @param  {Function}       fn          the iter process fn
          * @param  {Boolean}        isIterKey   is iter object's key, default is val, only for object
          * @return {Boolean/Array}              the process result
          */
         S[name] = function(object, fn, isIterKey) {
-            if (!object || typeof object !== "object") {
+            if (!object) {
                 return object;
             }
 
-            var keys;
-            if (S.isObject(object)) {
-                keys = Object.keys(object);
+            if (S.isArray(object)) {
+                return object[name](fn);
+            } else {
+                var keys = Object.keys(object),
+                    values = keys.map(function(key) {
+                        return object[key];
+                    });
 
-                object = isIterKey ? keys : keys.map(function(key) {
-                    return object[key];
-                });
+                if (S.inArray(["map", "filter"], name) && !object.length) {
+                    var array = [],
+                        keyRecord = [],
+                        ret = {};
+                    array = values[name](function(item, index) {
+                        var key = keys[index];
+                        keyRecord.push(key);
+                        return fn.call(object, item, key, object);
+                    });
+                    array.forEach(function(item, index) {
+                        ret[keyRecord[index]] = item;
+                    });
+                    return ret;
+                } else {
+                    return values[name](function(item, index) {
+                        return fn.call(object, item, keys[index], object);
+                    });
+                }
             }
-
-            return object[name](fn);
         };
     });
 

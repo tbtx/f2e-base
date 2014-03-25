@@ -7,7 +7,6 @@
     if (parseResult.port) {
         Root += ":" + parseResult.port;
     }
-
     if (!S.startsWith(parseResult.scheme, "http")) {
         Root = '';
     }

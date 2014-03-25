@@ -27,7 +27,7 @@ describe('dom', function() {
             S.scrollTo("body");
 
             S.limitLength("p");
-            S.flash("body");
+            // S.flash("body");
 
             S.flyToTop("body");
 

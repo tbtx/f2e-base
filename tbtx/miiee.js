@@ -16,44 +16,40 @@
         return token;
     };
 
-    // 临时跟真正登陆暂时没区分
-    var userCheckDeferred;
-    // 默认使用登陆接口，某些操作使用临时登陆状态即可
-    var userCheck = function(callSuccess, callFailed, isTemp) {
-        if (userCheckDeferred) {
-            return userCheckDeferred.done(callSuccess).fail(callFailed);
-        }
-        userCheckDeferred = $.Deferred();
+    var userCheckInit = S.singleton(function(isTemp) {
+        var promise = $.Deferred();
         $.ajax({
             type: "POST",
             url: isTemp ?  PATH.getlogininfo : PATH.getuserinfo,
             dataType: 'json',
-            data: {},
             timeout: TIMEOUT
         }).done(function(response) {
             var data = response.result && response.result.data,
                 code = response.code;
 
             if (code == 601) {
-                userCheckDeferred.reject();
+                promise.reject();
             } else if (S.inArray([100, 608, 1000], code)) {
                 S.data('user', data);
                 S.data('userName', data.trueName ? data.trueName : data.userNick);
-                userCheckDeferred.resolve(data);
+                promise.resolve(data);
             }
         }).fail(function() {
-            userCheckDeferred.reject();
+            promise.reject();
         });
 
-        userCheckDeferred.done(callSuccess).fail(callFailed).fail(function() {
+        promise.fail(function() {
             // J-login 链接改为登陆
             $('.J-login').attr({
                 href: PATH.login,
                 target: "_self"
             });
         });
-        return userCheckDeferred.promise();
-    };
+
+        return promise;
+    });
+    // 默认使用登陆接口，某些操作使用临时登陆状态即可
+
 
 
     var config = {
@@ -77,7 +73,7 @@
         uid = uid || '';
         site = site || "miiee";
         pic = pic || '';
-        url = url || window.location.href;
+        url = url || location.href;
         title = title || $('meta[name="description"]').attr("content");
 
         var base = 'http://v.t.sina.com.cn/share/share.php?';
@@ -89,7 +85,7 @@
             pic: pic
         };
 
-        var link = base + $.param(params);
+        var link = base + S.param(params);
         $(selecotr).attr({
             href: link,
             target: "_blank"
@@ -145,7 +141,10 @@
 
     S.mix({
         miieeJSToken: miieeJSToken,
-        userCheck: userCheck,
+
+        userCheck: function(success, fail, isTemp) {
+            return userCheckInit(isTemp).done(success).fail(fail).promise();
+        },
 
         initMiiee: function() {
             return S.loadScript(["miiee/js/m.js", "miiee/js/base.js"]);
@@ -178,7 +177,7 @@
         shareToSinaWB: shareToSinaWB,
 
         addToFavourite: function(title, url) {
-            url = url || document.location.href;
+            url = url || location.href;
             title = title || document.title;
 
             var def = function() {
@@ -227,6 +226,40 @@
                     }
                 }
             });
-        }
+        },
+
+        initTaobaoSiteNav: S.singleton(function() {
+            var template = '<div id="J_SiteNav" class="site-nav"><div id="J_SiteNavBd" class="site-nav-bd"><ul id="J_SiteNavBdL" class="site-nav-bd-l"></ul><ul id="J_SiteNavBdR" class="site-nav-bd-r"></ul></div></div>';
+            var sitenav = $(template).prependTo('body'),
+                global = S.global,
+                handler = function() {
+                    // 干掉淘宝登陆
+                    TB.Global.ui = {
+                        l: []
+                    };
+                    TB.Global.blacklist = ["fn-cart"];
+                    TB.Global.init();
+
+                    S.userCheck().done(function() {
+                        $("#J_SiteNavBdL").append('<div id="J_LoginInfo" class="menu"><div id="J_LoginInfoHd" class="menu-hd"><a href="/home.htm" target="_blank">' + S.data("userName") + '</a><a href="/logout.htm">退出</a></div></div>');
+                    }).fail(function() {
+                        $("#J_SiteNavBdL").append('<div id="J_LoginInfo" class="menu"><div id="J_LoginInfoHd" class="menu-hd"><a href="' + S.path.login + '">亲，请登录</a></div></div>');
+                    });
+                };
+
+            // 防止冲掉原有样式，请自行引入
+            // S.loadCss("http://g.tbcdn.cn/tb/global/2.6.10/global-min.css");
+
+            if (global.KISSY && global.TB) {
+                handler();
+                return S;
+            }
+
+            var url = global.KISSY ? "http://g.tbcdn.cn/tb/global/2.6.10/global-min.js" : "http://g.tbcdn.cn/??kissy/k/1.3.2/kissy-min.js,tb/global/2.6.10/global-min.js";
+            S.loadScript(url).done(function() {
+                handler();
+            });
+            return S;
+        })
     });
 })(tbtx);

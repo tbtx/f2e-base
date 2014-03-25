@@ -138,10 +138,10 @@
             if (typeof selector == "number") {
                 top = selector;
             } else {
-                var $target = $(selector),
-                    offsetTop = $target.offset().top;
+                var target = $(selector),
+                    offsetTop = target.offset().top;
 
-                top = offsetTop - (viewportHeight() - $target.innerHeight())/2;
+                top = offsetTop - (viewportHeight() - target.innerHeight())/2;
             }
 
             $('body,html').animate({
@@ -151,33 +151,33 @@
         },
 
         limitLength = function(selector, attr, suffix) {
-            var $elements = $(selector);
+            var elements = $(selector);
             suffix = suffix || '...';
             attr = attr || 'data-max';
 
-            $elements.each(function() {
-                var $element = $(this);
-                var max = parseInt($element.attr(attr), 10);
-                var conent = $.trim($element.text());
+            elements.each(function(index, el) {
+                var element = $(el);
+                var max = parseInt(element.attr(attr), 10);
+                var conent = S.trim(element.text());
                 if (conent.length <= max) {
                     return;
                 }
 
                 conent = conent.slice(0, max - suffix.length) + suffix;
-                $element.text(conent);
+                element.text(conent);
             });
             return this;
         },
 
         flash = function(selector, flashColor, bgColor) {
-            var $elements = $(selector);
+            var elements = $(selector);
             bgColor = bgColor || "#FFF";
             flashColor = flashColor || "#FF9";
-            $elements.each(function(index, element) {
-                var $element = $(element);
-                $element.css("background-color", flashColor).fadeOut("fast", function() {
-                    $element.fadeIn("fast", function() {
-                        $element.css("background-color", bgColor).focus().select();
+            elements.each(function(index, el) {
+                var element = $(el);
+                element.css("background-color", flashColor).fadeOut("fast", function() {
+                    element.fadeIn("fast", function() {
+                        element.css("background-color", bgColor).focus().select();
                     });
                 });
             });
@@ -185,26 +185,26 @@
         },
         // 返回顶部
         flyToTop = function(selector) {
-            var $container = $(selector);
+            var container = $(selector);
 
             // 大于offset消失
-            var offset = $container.data("offset");
+            var offset = container.data("offset");
             if (offset) {
                 // fade in #back-top
                 S.on("window.scroll", function(top) {
                     if (top > offset) {
-                        $container.fadeIn();
+                        container.fadeIn();
                     } else {
-                        $container.fadeOut();
+                        container.fadeOut();
                     }
                 });
             }
 
             // 默认监听J-fly-to-top, 没找到则监听自身
-            var $flyer = $container.find(".J-fly-to-top"),
-                $listener = $flyer.length ? $flyer : $container;
+            var flyer = container.find(".J-fly-to-top"),
+                listener = flyer.length ? flyer : container;
 
-            $listener.on('click', function(){
+            listener.on('click', function(){
                 scrollTo(0);
                 return false;
             });

@@ -41,6 +41,21 @@
          */
         noop: function() {},
 
+        Config: {},
+
+        config: function(name, value) {
+            var Config = S.Config;
+
+            if (typeof name === 'string') {
+                Config[name] = value;
+            } else {
+                // object
+                mix(Config, name);
+            }
+
+            return S;
+        },
+
         /**
          * client unique id
          * @return {number} cid
