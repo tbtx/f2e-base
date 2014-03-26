@@ -4,10 +4,10 @@
         if (!S.$) {
             S.require("jquery").then(function() {
                 S.$ = jQuery;
-                resolve(S);
+                resolve(S, S.$);
             });
         } else {
-            resolve(S);
+            resolve(S, S.$);
         }
     });
 

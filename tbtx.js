@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-26 10:13:09
+ * 2014-03-26 11:18:36
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -3152,10 +3152,10 @@ requireModule('promise/polyfill').polyfill();
         if (!S.$) {
             S.require("jquery").then(function() {
                 S.$ = jQuery;
-                resolve(S);
+                resolve(S, S.$);
             });
         } else {
-            resolve(S);
+            resolve(S, S.$);
         }
     });
 
@@ -4272,6 +4272,11 @@ requireModule('promise/polyfill').polyfill();
         }, 80));
     });
 
+    var wangwangTemplate = '<a target="_blank" href="http://www.taobao.com/webww/ww.php?ver=3&touid={{ nick }}&siteid=cntaobao&status={{ s }}&charset=utf-8"><img border="0" src="http://amos.alicdn.com/realonline.aw?v=2&uid={{ nick }}&site=cntaobao&s={{ s }}&charset=utf-8" alt="{{ prompt }}" /></a>';
+    S.ready(function(S) {
+        S.lightWangWang("[data-role=wangwang]");
+    });
+
     S.mix({
         // page & viewport
         pageWidth: pageWidth,
@@ -4294,6 +4299,22 @@ requireModule('promise/polyfill').polyfill();
         scrollTo: scrollTo,
         limitLength: limitLength,
         initWangWang: initWangWang,
+        // 另一种旺旺实现
+        lightWangWang: function(selector) {
+            var elements = $(selector);
+            elements.each(function(index, el) {
+                var element = $(el),
+                    data = element.data();
+
+                data = S.mix({
+                    prompt: "点击这里给我发消息",
+                    s: 1
+                }, data);
+
+                element.replaceWith(S.substitute(wangwangTemplate, data));
+            });
+        },
+
         flash: flash,
         flyToTop: flyToTop,
 
