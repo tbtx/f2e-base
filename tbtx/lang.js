@@ -280,26 +280,26 @@
                 var keys = Object.keys(object),
                     values = keys.map(function(key) {
                         return object[key];
-                    });
+                    }),
+                    result;
 
-                if (S.inArray(["map", "filter"], name) && !object.length) {
-                    var array = [],
-                        keyRecord = [],
-                        ret = {};
-                    array = values[name](function(item, index) {
-                        var key = keys[index];
-                        keyRecord.push(key);
-                        return fn.call(object, item, key, object);
-                    });
-                    array.forEach(function(item, index) {
-                        ret[keyRecord[index]] = item;
-                    });
+                var process = values[name](function(item, index) {
+                    var key = keys[index];
+                    var ret = fn.call(object, item, key, object);
+
+                    if (!object.length) {
+                        if (name == "filter" && ret) {
+                            result = result || {};
+                            result[key] = item;
+                        }
+                        if (name == "map") {
+                            result = result || {};
+                            result[key] = ret;
+                        }
+                    }
                     return ret;
-                } else {
-                    return values[name](function(item, index) {
-                        return fn.call(object, item, keys[index], object);
-                    });
-                }
+                });
+                return result || process;
             }
         };
     });
@@ -719,6 +719,16 @@
         isNotEmptyString: function(val) {
             return S.isString(val) && val !== '';
         },
+
+        isEmptyObject: function (o) {
+            for (var p in o) {
+                if (p !== undefined) {
+                    return FALSE;
+                }
+            }
+            return TRUE;
+        },
+
         isPlainObject: isPlainObject,
         inArray: inArray,
         type: type,

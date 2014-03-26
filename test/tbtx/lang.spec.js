@@ -226,6 +226,7 @@ describe('lang', function() {
 
 	describe("shim extend", function() {
 		var object = {
+			c: "789",
 			a: "123",
 			b: "456"
 		};
@@ -238,15 +239,17 @@ describe('lang', function() {
 			return v + "a";
 		});
 		expect(ret).toEqual({
+			c: "789a",
 			a: "123a",
 			b: "456a"
 		});
 
 		ret = S.filter(object, function(v, k, object) {
-			return v == "123";
+			return v != "123";
 		});
 		expect(ret).toEqual({
-			a: "123"
+			b: "456",
+			c: "789"
 		});
 
 	});

@@ -21,8 +21,8 @@
 	运行grunt
 
 ## grunt 插件
+
 * jshint: js校验
-* cssmin: css压缩
 * concat: 文件合并
 * uglify: js压缩
 * watch: 检测文件修改并执行相应任务
@@ -31,45 +31,46 @@
 使用 tbtx.xx 对外只有一个接口
 
 	(按顺序)
-	seed.js 库开始文件
-	promise.js es6 promise实现
-	json2.js
-	lang.js 语言扩展
-	uri.js url相关
-	events.js 事件
-	aspect.js before & after
+	seed.js: 库开始文件
+	promise.js: es6 promise实现
+	json2.js: JSON fix
+	cache.js: 缓存
+	lang.js: 语言扩展
+	uri.js: url相关
+	loader: 组件加载
+	preload: fix无jQuery的环境
+	cookie.js: cookie操作
+	support.js: 浏览器支持fix
+	date: 日期格式化
+	detector.js: 嗅探
+	events.js: 事件
+	aspect.js: before & after
 	attrs: attr操作
 	widget: base & widget
-	cookie.js cookie操作
-	date 日期格式化
-	detector.js 嗅探
-	pin 定位
-	path.js 路径
-	dom.js dom操作
-	loader 组件加载
-	support.js 浏览器支持fix
-	msg.js 消息提醒
-	miiee.js miiee相关
+	pin: 定位
+	dom.js: dom操作
+	path.js: 路径
+	msg.js: 消息提醒
+	miiee.js: miiee相关
 
 ## components
-	overlay 覆盖层
-	draggable 拖动
-	sns 分享到社交网络
-	drop 鼠标移上/click 显示对应内容
-	pagination 分页
-	Popup 弹出
-	Drop arale popup
-	Slide 轮播
-	validator 表单校验
-	scrollspy 滚动侦测
-	soltMachine 老虎机
-	switchable 各种切换
-	autocomplete 自动完成
+	templateable: 让组件使用模板
 
-## gallery
-	json2.js
-	require.js + config.js 模块加载
-	store.min.js 客户端存储
+	overlay: 覆盖层
+	draggable: 拖动
+	sns: 分享到社交网络
+	drop: 鼠标移上/click 显示对应内容
+	pagination: 分页
+	Popup: 弹出
+	Drop: arale popup
+	validator: 表单校验
+	scrollspy: 滚动侦测
+	soltMachine: 老虎机
+	tip: arale tip
+	lightbox: 幻灯片
+	countDown: 倒计时
+	switchable: 各种切换
+	autocomplete: 自动完成
 
 ## arale调整
 	Widget移除自动render跟data-api, parseElementFromTemplate增加id, 增加renderMethod和relatedNode来扩展插入方式
@@ -80,5 +81,9 @@
 
 * jasmine
 * totoro
+
+## 文档
+
+[readthedoc](http://tbtx.readthedocs.org)
 
 
