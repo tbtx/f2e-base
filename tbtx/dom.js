@@ -254,8 +254,10 @@
     });
 
     var wangwangTemplate = '<a target="_blank" href="http://www.taobao.com/webww/ww.php?ver=3&touid={{ nick }}&siteid=cntaobao&status={{ s }}&charset=utf-8"><img border="0" src="http://amos.alicdn.com/realonline.aw?v=2&uid={{ nick }}&site=cntaobao&s={{ s }}&charset=utf-8" alt="{{ prompt }}" /></a>';
-    S.ready(function(S) {
-        S.lightWangWang("[data-role=wangwang]");
+    S.ready(function(S, $) {
+        $(function() {
+            S.lightWangWang("[data-role=wangwang]");
+        });
     });
 
     S.mix({

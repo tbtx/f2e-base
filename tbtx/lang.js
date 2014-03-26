@@ -266,16 +266,15 @@
          * 要支持object, array, 以及array like object
          * @param  {Array/Object}   object      the object to iter
          * @param  {Function}       fn          the iter process fn
-         * @param  {Boolean}        isIterKey   is iter object's key, default is val, only for object
          * @return {Boolean/Array}              the process result
          */
-        S[name] = function(object, fn, isIterKey) {
+        S[name] = function(object, fn, context) {
             if (!object) {
                 return object;
             }
 
             if (S.isArray(object)) {
-                return object[name](fn);
+                return object[name](fn, context);
             } else {
                 var keys = Object.keys(object),
                     values = keys.map(function(key) {
@@ -285,7 +284,7 @@
 
                 var process = values[name](function(item, index) {
                     var key = keys[index];
-                    var ret = fn.call(object, item, key, object);
+                    var ret = fn.call(context, item, key, object);
 
                     if (!object.length) {
                         if (name == "filter" && ret) {
@@ -360,7 +359,7 @@
             return type(o) === lc;
         };
     });
-    S.isArray = Array.isArray || S.isArray;
+    S.isArray = Array.isArray = Array.isArray || S.isArray;
 
     var EMPTY = '',
 
@@ -645,10 +644,7 @@
             return this;
         },
         proxy: function(func) {
-            var self = this;
-            return (function() {
-                return func.apply(self, arguments);
-            });
+            return func.bind(this);
         },
         Implements: Implements
     };

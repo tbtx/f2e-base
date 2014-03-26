@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-26 11:18:36
+ * 2014-03-26 12:34:34
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1524,16 +1524,15 @@ requireModule('promise/polyfill').polyfill();
          * 要支持object, array, 以及array like object
          * @param  {Array/Object}   object      the object to iter
          * @param  {Function}       fn          the iter process fn
-         * @param  {Boolean}        isIterKey   is iter object's key, default is val, only for object
          * @return {Boolean/Array}              the process result
          */
-        S[name] = function(object, fn, isIterKey) {
+        S[name] = function(object, fn, context) {
             if (!object) {
                 return object;
             }
 
             if (S.isArray(object)) {
-                return object[name](fn);
+                return object[name](fn, context);
             } else {
                 var keys = Object.keys(object),
                     values = keys.map(function(key) {
@@ -1543,7 +1542,7 @@ requireModule('promise/polyfill').polyfill();
 
                 var process = values[name](function(item, index) {
                     var key = keys[index];
-                    var ret = fn.call(object, item, key, object);
+                    var ret = fn.call(context, item, key, object);
 
                     if (!object.length) {
                         if (name == "filter" && ret) {
@@ -1618,7 +1617,7 @@ requireModule('promise/polyfill').polyfill();
             return type(o) === lc;
         };
     });
-    S.isArray = Array.isArray || S.isArray;
+    S.isArray = Array.isArray = Array.isArray || S.isArray;
 
     var EMPTY = '',
 
@@ -1903,10 +1902,7 @@ requireModule('promise/polyfill').polyfill();
             return this;
         },
         proxy: function(func) {
-            var self = this;
-            return (function() {
-                return func.apply(self, arguments);
-            });
+            return func.bind(this);
         },
         Implements: Implements
     };
@@ -4273,8 +4269,10 @@ requireModule('promise/polyfill').polyfill();
     });
 
     var wangwangTemplate = '<a target="_blank" href="http://www.taobao.com/webww/ww.php?ver=3&touid={{ nick }}&siteid=cntaobao&status={{ s }}&charset=utf-8"><img border="0" src="http://amos.alicdn.com/realonline.aw?v=2&uid={{ nick }}&site=cntaobao&s={{ s }}&charset=utf-8" alt="{{ prompt }}" /></a>';
-    S.ready(function(S) {
-        S.lightWangWang("[data-role=wangwang]");
+    S.ready(function(S, $) {
+        $(function() {
+            S.lightWangWang("[data-role=wangwang]");
+        });
     });
 
     S.mix({
