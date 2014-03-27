@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-26 12:34:34
+ * 2014-03-27 5:24:37
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1277,8 +1277,8 @@ requireModule('promise/polyfill').polyfill();
      */
     if (typeof Object.keys != "function") {
         var hasEnumBug = !({
-                toString: 1
-            }['propertyIsEnumerable']('toString')),
+            toString: 1
+        }['propertyIsEnumerable']('toString')),
             enumProperties = [
                 'constructor',
                 'hasOwnProperty',
@@ -1317,7 +1317,7 @@ requireModule('promise/polyfill').polyfill();
             var args = slice.call(arguments, 1),
                 self = this,
                 noop = function() {},
-                ret = function () {
+                ret = function() {
                     // 已经bind过，context还应该是this
                     return self.apply(this instanceof noop && context ? this : context, args.concat(slice.call(arguments)));
                 };
@@ -1455,7 +1455,7 @@ requireModule('promise/polyfill').polyfill();
             i = fromIndex;
             i = i >= 0 ? i : Math.max(0, length + i);
 
-            for ( ; i < length; i++) {
+            for (; i < length; i++) {
                 if (this[i] === searchElement) {
                     return i;
                 }
@@ -1473,7 +1473,7 @@ requireModule('promise/polyfill').polyfill();
             fromIndex = fromIndex * 1 || length - 1;
             i = Math.min(i, fromIndex);
 
-            for ( ; i > -1; i--) {
+            for (; i > -1; i--) {
                 if (this[i] === searchElement) {
                     return i;
                 }
@@ -1483,7 +1483,7 @@ requireModule('promise/polyfill').polyfill();
     }
 
     if (typeof AP.reduce != "function") {
-        AP.reduce = function (fn, initialValue) {
+        AP.reduce = function(fn, initialValue) {
             var previous = initialValue,
                 i = 0,
                 length = this.length;
@@ -1493,7 +1493,7 @@ requireModule('promise/polyfill').polyfill();
                 i = 1;
             }
 
-            for ( ; i < length; i++) {
+            for (; i < length; i++) {
                 previous = fn(previous, this[i], i, this);
             }
             return previous;
@@ -1510,7 +1510,7 @@ requireModule('promise/polyfill').polyfill();
                 previous = this[length - 1];
                 i--;
             }
-            for ( ; i > -1; i--) {
+            for (; i > -1; i--) {
                 previous = fn(previous, this[i], i, this);
             }
             return previous;
@@ -1693,7 +1693,7 @@ requireModule('promise/polyfill').polyfill();
                 o.alert ||
                 oType === 'string' ||
                 // https://github.com/ariya/phantomjs/issues/11478
-                (oType === 'function' && !( 'item' in o && lengthType === 'number'))) {
+                (oType === 'function' && !('item' in o && lengthType === 'number'))) {
                 return [o];
             }
             var ret = [];
@@ -1704,21 +1704,21 @@ requireModule('promise/polyfill').polyfill();
         },
 
         deepCopy = function(obj) {
-            if(!obj || 'object' !== typeof obj) {
+            if (!obj || 'object' !== typeof obj) {
                 return obj;
             }
             var o = obj.constructor === Array ? [] : {},
                 i;
 
-            for(i in obj){
-                if(obj.hasOwnProperty(i)){
+            for (i in obj) {
+                if (obj.hasOwnProperty(i)) {
                     o[i] = typeof obj[i] === "object" ? deepCopy(obj[i]) : obj[i];
                 }
             }
             return o;
         },
 
-         /*
+        /*
          * 返回m-n之间的随机数，并取整,
          * 包括m, 不包括n - floor, ceil相反
          * 也可以传入数组，随机返回数组某个元素
@@ -1739,7 +1739,7 @@ requireModule('promise/polyfill').polyfill();
                 n = temp;
             }
 
-            random = Math.floor(Math.random() * (n-m) + m);
+            random = Math.floor(Math.random() * (n - m) + m);
             if (array) {
                 return array[random];
             }
@@ -1824,6 +1824,9 @@ requireModule('promise/polyfill').polyfill();
 
     // oo实现
     var Class = function(parent, properties) {
+        if (!this instanceof Class) {
+            return new Class(parent, properties);
+        }
         if (!S.isFunction(parent)) {
             properties = parent;
             parent = null;
@@ -1869,16 +1872,17 @@ requireModule('promise/polyfill').polyfill();
     };
 
     // Shared empty constructor function to aid in prototype-chain creation.
+
     function Ctor() {}
     // See: http://jsperf.com/object-create-vs-new-ctor
     var createProto = Object.__proto__ ? function(proto) {
-        return {
-            __proto__: proto
+            return {
+                __proto__: proto
+            };
+        } : function(proto) {
+            Ctor.prototype = proto;
+            return new Ctor();
         };
-    } : function(proto) {
-        Ctor.prototype = proto;
-        return new Ctor();
-    };
 
     Class.Mutators = {
         extend: function(object) {
@@ -1906,18 +1910,20 @@ requireModule('promise/polyfill').polyfill();
         },
         Implements: Implements
     };
+
     function Implements(items) {
         if (!S.isArray(items)) {
             items = [items];
         }
         var proto = this.prototype || this,
             item = items.shift();
-        while(item) {
+        while (item) {
             mix(proto, item.prototype || item, ['prototype']);
             item = items.shift();
         }
         return this;
     }
+
     function classify(cls) {
         cls.Implements = Implements;
         return cls;
@@ -1953,9 +1959,11 @@ requireModule('promise/polyfill').polyfill();
     /**
      * util
      */
+
     function hasOwnProperty(o, p) {
         return OP.hasOwnProperty.call(o, p);
     }
+
     function isValidParamValue(val) {
         var t = typeof val;
         // If the type of val is null, undefined, number, string, boolean, return TRUE.
@@ -1974,7 +1982,7 @@ requireModule('promise/polyfill').polyfill();
             return S.isString(val) && val !== '';
         },
 
-        isEmptyObject: function (o) {
+        isEmptyObject: function(o) {
             for (var p in o) {
                 if (p !== undefined) {
                     return FALSE;
@@ -2022,7 +2030,7 @@ requireModule('promise/polyfill').polyfill();
          * @param  {Array}   data     传递的参数
          * @return {object}            timer，cancel and interval
          */
-        later: function (fn, when, periodic, context, data) {
+        later: function(fn, when, periodic, context, data) {
             when = when || 0;
             var m = fn,
                 d = makeArray(data),
@@ -2037,7 +2045,7 @@ requireModule('promise/polyfill').polyfill();
                 S.error('method undefined');
             }
 
-            f = function () {
+            f = function() {
                 m.apply(context, d);
             };
 
@@ -2046,7 +2054,7 @@ requireModule('promise/polyfill').polyfill();
             return {
                 id: r,
                 interval: periodic,
-                cancel: function () {
+                cancel: function() {
                     if (this.interval) {
                         clearInterval(r);
                     } else {
@@ -2085,10 +2093,11 @@ requireModule('promise/polyfill').polyfill();
             return String(str).replace(/[^\x00-\xff]/g, "aa").length;
         },
 
-        namespace: function () {
+        namespace: function() {
             var args = makeArray(arguments),
                 l = args.length,
-                o = this, i, j, p;
+                o = this,
+                i, j, p;
 
             for (i = 0; i < l; i++) {
                 p = (EMPTY + args[i]).split('.');
@@ -2157,7 +2166,7 @@ requireModule('promise/polyfill').polyfill();
             if (!S.isNotEmptyString(str)) {
                 return str;
             }
-            if ( !(isPlainObject(o) || S.isArray(o)) ) {
+            if (!(isPlainObject(o) || S.isArray(o))) {
                 return str;
             }
             return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
@@ -2168,13 +2177,14 @@ requireModule('promise/polyfill').polyfill();
             });
         },
 
-        param: function (o, sep, eq, serializeArray) {
+        param: function(o, sep, eq, serializeArray) {
             sep = sep || '&';
             eq = eq || '=';
             if (serializeArray === undefined) {
                 serializeArray = TRUE;
             }
-            var buf = [], key, i, v, len, val,
+            var buf = [],
+                key, i, v, len, val,
                 encode = encodeURIComponent;
             for (key in o) {
                 val = o[key];
@@ -2949,7 +2959,7 @@ requireModule('promise/polyfill').polyfill();
             }
 
             S.each(uris, function(uri) {
-                m = cachedMods[uri];
+                m = Module.get(uri);
 
                 if (m.status < STATUS.LOADING) {
                     // S.log(m.uri + " load");
@@ -2977,6 +2987,14 @@ requireModule('promise/polyfill').polyfill();
             if (mod.callback) {
                 mod.callback();
             }
+            if (mod.factory) {
+                var exports = S.map(mod.resolve(), function() {
+                    return mod.exports;
+                });
+                exports.unshift(S.$);
+                mod.export = mod.factory.apply(global, exports);
+                delete mod.factory;
+            }
 
             // Notify waiting modules to fire onload
             var waitings = mod._waitings;
@@ -2985,7 +3003,7 @@ requireModule('promise/polyfill').polyfill();
 
             for (uri in waitings) {
                 if (waitings.hasOwnProperty(uri)) {
-                    m = cachedMods[uri];
+                    m = Module.get(uri);
                     m._remain -= waitings[uri];
                     if (m._remain === 0) {
                         m.onload();
@@ -3064,6 +3082,39 @@ requireModule('promise/polyfill').polyfill();
         return uri;
     };
 
+    // Define a module
+    Module.define = function (id, deps, factory) {
+
+        var meta = {
+            uri: Module.resolve(id),
+            deps: deps,
+            factory: factory
+        };
+
+        Module.save(meta.uri, meta);
+    };
+
+    // Save meta data to cachedMods
+    Module.save = function(uri, meta) {
+        var mod = Module.get(uri);
+        // Do NOT override already saved modules
+        if (mod.status < STATUS.LOADED) {
+            // mod.id = meta.id || uri;
+            mod.dependencies = meta.deps || [];
+            mod.factory = meta.factory;
+            mod.status = STATUS.LOADING;
+
+            var uris = mod.resolve();
+            var m;
+            S.each(uris, function(uri) {
+                m = Module.get(uri);
+
+                if (m.status < STATUS.LOADING) {
+                    m.load();
+                }
+            });
+        }
+    };
     Module.get = function(uri, deps) {
         var id = uriToId[uri] || "";
         return cachedMods[uri] || (cachedMods[uri] = new Module(uri, deps || S.makeArray(data.deps[id])));
@@ -3103,6 +3154,7 @@ requireModule('promise/polyfill').polyfill();
     S.require = function(ids, callback) {
         return Module.require(ids, callback,  requirePrefix + cid());
     };
+    S.define = Module.define;
 
     Loader.config({
         baseUrl: S.staticUrl + "base/js/component/",

@@ -222,6 +222,11 @@ describe('lang', function() {
 				expect(S.lastIndexOf(str, "b")).toEqual(1);
 			});
 		});
+
+		describe('isArray', function() {
+			expect(Array.isArray([])).toBeTruthy();
+			expect(S.isArray([])).toBeTruthy();
+		});
 	});
 
 	describe("shim extend", function() {
@@ -252,6 +257,17 @@ describe('lang', function() {
 			c: "789"
 		});
 
+	});
+
+	xdescribe("object array", function() {
+		var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
+
+		describe("pluck", function() {
+			it("should map the property of an object array", function() {
+				var ret = S.pluck(stooges, 'name');
+				expect(ret).toEqual(["moe", "larry", "curly"]);
+			});
+		});
 	});
 
 	describe("mix", function() {

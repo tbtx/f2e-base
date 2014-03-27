@@ -390,7 +390,7 @@
             }
 
             S.each(uris, function(uri) {
-                m = cachedMods[uri];
+                m = Module.get(uri);
 
                 if (m.status < STATUS.LOADING) {
                     // S.log(m.uri + " load");
@@ -418,6 +418,14 @@
             if (mod.callback) {
                 mod.callback();
             }
+            if (mod.factory) {
+                var exports = S.map(mod.resolve(), function() {
+                    return mod.exports;
+                });
+                exports.unshift(S.$);
+                mod.export = mod.factory.apply(global, exports);
+                delete mod.factory;
+            }
 
             // Notify waiting modules to fire onload
             var waitings = mod._waitings;
@@ -426,7 +434,7 @@
 
             for (uri in waitings) {
                 if (waitings.hasOwnProperty(uri)) {
-                    m = cachedMods[uri];
+                    m = Module.get(uri);
                     m._remain -= waitings[uri];
                     if (m._remain === 0) {
                         m.onload();
@@ -505,6 +513,39 @@
         return uri;
     };
 
+    // Define a module
+    Module.define = function (id, deps, factory) {
+
+        var meta = {
+            uri: Module.resolve(id),
+            deps: deps,
+            factory: factory
+        };
+
+        Module.save(meta.uri, meta);
+    };
+
+    // Save meta data to cachedMods
+    Module.save = function(uri, meta) {
+        var mod = Module.get(uri);
+        // Do NOT override already saved modules
+        if (mod.status < STATUS.LOADED) {
+            // mod.id = meta.id || uri;
+            mod.dependencies = meta.deps || [];
+            mod.factory = meta.factory;
+            mod.status = STATUS.LOADING;
+
+            var uris = mod.resolve();
+            var m;
+            S.each(uris, function(uri) {
+                m = Module.get(uri);
+
+                if (m.status < STATUS.LOADING) {
+                    m.load();
+                }
+            });
+        }
+    };
     Module.get = function(uri, deps) {
         var id = uriToId[uri] || "";
         return cachedMods[uri] || (cachedMods[uri] = new Module(uri, deps || S.makeArray(data.deps[id])));
@@ -544,6 +585,7 @@
     S.require = function(ids, callback) {
         return Module.require(ids, callback,  requirePrefix + cid());
     };
+    S.define = Module.define;
 
     Loader.config({
         baseUrl: S.staticUrl + "base/js/component/",
