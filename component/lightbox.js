@@ -1,5 +1,6 @@
-(function(S) {
-    var $ = S.$;
+define("lightbox", ["overlay"], function() {
+    var S = tbtx,
+        $ = S.$;
 
     var Lightbox = S.createWidget({
         attrs: {
@@ -184,4 +185,4 @@
 
     S.Lightbox = Lightbox;
 
-})(tbtx);
+});

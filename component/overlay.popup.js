@@ -1,10 +1,11 @@
 /*
  * overlay.popup
- * 2014-03-28 10:20:58
+ * 2014-03-28 5:57:28
  */
-(function($, global) {
-    var S = global.tbtx,
-        Class = S.Class,
+define("overlay", function() {
+
+    var S = tbtx,
+        $ = S.$,
         Widget = S.Widget,
         VIEWPORT = S.VIEWPORT,
         DEFAULT_PARENT_NODE = Widget.DEFAULT_PARENT_NODE,
@@ -14,9 +15,7 @@
         doc = S.getDocument();
 
     // Mask为遮罩，Overlay是全屏遮罩
-    var Mask = new Class(Widget);
-
-    Mask.include({
+    var Mask = S.createWidget({
 
         attrs: {
             width: null,
@@ -173,7 +172,7 @@
 
     Mask.allMasks = [];
     Mask.blurMasks = [];
-    S.getDocument().on("click", function(e) {
+    doc.on("click", function(e) {
         hideBlurMasks(e);
     });
     // resize overlay
@@ -215,7 +214,7 @@
 
     S.Mask = Mask;
 
-    var Overlay = new Class(Mask, {
+    var Overlay = S.createWidget({
         attrs: {
             width: isIE6 ? doc.outerWidth(true) : "100%",
             height: isIE6 ? doc.outerHeight(true) : "100%",
@@ -239,14 +238,19 @@
             }
             return Overlay.superclass.show.call(this);
         }
-    });
+    }, Mask);
     S.Overlay = Overlay;
-})(jQuery, this);
+
+    return {
+        Overlay: Overlay,
+        Mask: Mask,
+    };
+});
 
 
-;(function($, global) {
-    var S = global.tbtx,
-        Class = S.Class,
+;define("popup", ["overlay"], function() {
+    var S = tbtx,
+        $ = S.$,
         Widget = S.Widget,
         Overlay = S.Overlay,
         Mask = S.Mask,
@@ -257,9 +261,7 @@
         isFunction = S.isFunction,
         isString = S.isString;
 
-    var Popup = new Class(Mask);
-
-    Popup.include({
+    var Popup = S.createWidget({
         attrs: {
             withOverlay: true,
             // 需要指定这两个参数，mask默认没有
@@ -409,4 +411,6 @@
     };
 
     S.Popup = Popup;
-})(jQuery, this);
+
+    return Popup;
+});

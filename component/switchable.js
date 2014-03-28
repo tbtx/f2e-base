@@ -1,5 +1,6 @@
-(function($, global) {
-    var S = global.tbtx;
+define("switchable", function() {
+    var S = tbtx,
+        $ = S.$;
 
     var Effects = (function() {
         var SCROLLX = "scrollx";
@@ -717,4 +718,4 @@
     }, Switchable);
 
     S.Tabs = S.createWidget({}, Switchable);
-})(jQuery, this);
+});

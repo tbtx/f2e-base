@@ -267,8 +267,8 @@ describe('lang', function() {
 				var ret = S.pluck(stooges, 'name');
 				expect(ret).toEqual(["moe", "larry", "curly"]);
 
-				ret = S.pluck(stooges, 'name.0');
-				expect(ret).toEqual(["m", "l", "c"]);
+				// ret = S.pluck(stooges, 'name.0');
+				// expect(ret).toEqual(["m", "l", "c"]);
 			});
 		});
 	});
@@ -339,6 +339,17 @@ describe('lang', function() {
 			getNull();
 			expect(getInstance()).toBe(getInstance());
 			expect(counter).toEqual(2);
+		});
+	});
+
+	describe("substitute", function() {
+		it("should replace the str with the data", function() {
+			var o = {
+				name: "alex",
+				age: 18
+			};
+			var t = "<a {{name}} {{age}}>";
+			expect(S.substitute(t, o)).toEqual("<a alex 18>");
 		});
 	});
 

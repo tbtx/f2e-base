@@ -1,6 +1,6 @@
-(function($, global) {
-    var S = global.tbtx,
-        Class = S.Class,
+define("popup", ["overlay"], function() {
+    var S = tbtx,
+        $ = S.$,
         Widget = S.Widget,
         Overlay = S.Overlay,
         Mask = S.Mask,
@@ -11,9 +11,7 @@
         isFunction = S.isFunction,
         isString = S.isString;
 
-    var Popup = new Class(Mask);
-
-    Popup.include({
+    var Popup = S.createWidget({
         attrs: {
             withOverlay: true,
             // 需要指定这两个参数，mask默认没有
@@ -163,4 +161,6 @@
     };
 
     S.Popup = Popup;
-})(jQuery, this);
+
+    return Popup;
+});

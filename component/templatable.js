@@ -1,4 +1,7 @@
-(function(S) {
+define("templatable", ["handlebars"], function(){
+    var S = tbtx,
+        $ = S.$;
+
     var compiledTemplates = {};
     // 提供 Template 模板支持，默认引擎是 Handlebars
     S.Templatable = {
@@ -144,4 +147,4 @@
         }
         return result;
     }
-})(tbtx);
+});

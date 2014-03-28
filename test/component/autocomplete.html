@@ -39,8 +39,8 @@
     <script src="../../jquery/jquery-1.8.3.min.js"></script>
     <script src="../../tbtx.js"></script>
     <script>
-    tbtx.require("autocomplete", function() {
-        ac = new tbtx.AutoComplete({
+    tbtx.require("autocomplete", function(AutoComplete) {
+        ac = new AutoComplete({
             trigger: '#test',
             // dataSource: ["abc", "abcd", "aaa"],
             dataSource: function(value) {

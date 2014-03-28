@@ -14,14 +14,7 @@
 
 
 <script>
-    tbtx.Loader.config({
-    });
-    tbtx.require(["drop"], function() {
-        // alert(tbtx.Popup);
-        // tbtx.log(tbtx.Overlay);
-        // tbtx.log(tbtx.Drop);
-        // alert(document.scripts.length);
-    });
+    var S = tbtx;
 
     // tbtx.require(["overlay", "popup", "validator"], function() {
     //     tbtx.log(arguments);
@@ -49,8 +42,15 @@
     //     }).render();
     // });
 
-    tbtx.require("test").done(function() {
+    S.require("test").done(function() {
+        S.log(arguments[0]);
+    });
+    var promise = tbtx.require("popup", function() {
+        S.log(arguments);
+    });
 
+    promise.done(function() {
+        S.log(arguments);
     });
 </script>
 

@@ -1,6 +1,7 @@
-(function($, global) {
+define("autocomplete", ["overlay", "templatable"], function() {
 
-var S = global.tbtx,
+var S = tbtx,
+    $ = S.$,
     Overlay = S.Mask;
 
 var Filter = (function() {
@@ -728,4 +729,6 @@ function highlightItem(classPrefix, matchKey) {
     return v;
 }
 
-})(jQuery, this);
+return AutoComplete;
+
+});

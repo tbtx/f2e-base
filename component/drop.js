@@ -1,6 +1,8 @@
-(function($, S) {
+define("drop", ["overlay"], function() {
+    var S = tbtx,
+        $ = S.$;
 
-    var Drop = new S.Class(S.Mask, {
+    var Drop = S.createWidget({
         attrs: {
             // 触发元素
             trigger: {
@@ -241,7 +243,7 @@
                 this.element[val ? "show" : "hide"]();
             }
         }
-    });
+    }, S.Mask);
     S.Drop = Drop;
     // 一个绑定事件的简单封装
     function bindEvent(type, element, fn, delegateNode, context) {
@@ -250,4 +252,4 @@
             fn.call(e.currentTarget, e);
         });
     }
-})(jQuery, tbtx);
+});

@@ -1,4 +1,7 @@
-(function($, S) {
+tbtx.define("tip", ["drop"], function() {
+    var S = tbtx,
+        $ = S.$;
+
     var Drop = S.Drop,
         Tpl = '<div class="ui-poptip">\n    <div class="ui-poptip-shadow">\n    <div class="ui-poptip-container">\n        <div class="ui-poptip-arrow">\n            <em></em>\n            <span></span>\n        </div>\n        <div class="ui-poptip-content" data-role="content">\n        </div>\n    </div>\n    </div>\n</div>\n';
 
@@ -157,4 +160,5 @@
 
     Tip.outerBoxClass = "arale-tip-1_2_1";
     S.Tip = Tip;
-})(jQuery, tbtx);
+    return Tip;
+});
