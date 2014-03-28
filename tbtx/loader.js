@@ -422,6 +422,7 @@
                 var exports = S.map(mod.resolve(), function() {
                     return mod.exports;
                 });
+                exports.unshift(S);
                 exports.unshift(S.$);
                 mod.export = mod.factory.apply(global, exports);
                 delete mod.factory;

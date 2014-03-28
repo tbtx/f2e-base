@@ -259,13 +259,16 @@ describe('lang', function() {
 
 	});
 
-	xdescribe("object array", function() {
+	describe("object array", function() {
 		var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
 
 		describe("pluck", function() {
 			it("should map the property of an object array", function() {
 				var ret = S.pluck(stooges, 'name');
 				expect(ret).toEqual(["moe", "larry", "curly"]);
+
+				ret = S.pluck(stooges, 'name.0');
+				expect(ret).toEqual(["m", "l", "c"]);
 			});
 		});
 	});

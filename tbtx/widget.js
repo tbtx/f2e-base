@@ -120,6 +120,7 @@
             var t, template = this.get("template");
             if (/^#/.test(template) && (t = document.getElementById(template.substring(1)))) {
                 template = t.innerHTML;
+                template = S.substitute(template, this.get("model"));
                 this.set("template", template);
             }
             this.element = $(template);

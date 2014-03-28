@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-27 5:24:37
+ * 2014-03-28 10:20:57
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1868,6 +1868,7 @@ requireModule('promise/polyfill').polyfill();
         mix(klass, Class.Mutators);
         klass.fn.proxy = klass.proxy;
 
+        klass.Implements(properties['Implements'] || []);
         return klass.include(properties);
     };
 
@@ -1989,6 +1990,16 @@ requireModule('promise/polyfill').polyfill();
                 }
             }
             return TRUE;
+        },
+
+        pluck: function(object, name) {
+            var names = name.split(".");
+            return S.map(object, function(v, k, object) {
+                for (var i = 0; i < names.length; i++) {
+                    v = v[names[i]];
+                }
+                return v;
+            });
         },
 
         isPlainObject: isPlainObject,
@@ -2991,6 +3002,7 @@ requireModule('promise/polyfill').polyfill();
                 var exports = S.map(mod.resolve(), function() {
                     return mod.exports;
                 });
+                exports.unshift(S);
                 exports.unshift(S.$);
                 mod.export = mod.factory.apply(global, exports);
                 delete mod.factory;
@@ -5072,6 +5084,7 @@ requireModule('promise/polyfill').polyfill();
             var t, template = this.get("template");
             if (/^#/.test(template) && (t = document.getElementById(template.substring(1)))) {
                 template = t.innerHTML;
+                template = S.substitute(template, this.get("model"));
                 this.set("template", template);
             }
             this.element = $(template);

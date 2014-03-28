@@ -610,6 +610,7 @@
         mix(klass, Class.Mutators);
         klass.fn.proxy = klass.proxy;
 
+        klass.Implements(properties['Implements'] || []);
         return klass.include(properties);
     };
 
@@ -731,6 +732,16 @@
                 }
             }
             return TRUE;
+        },
+
+        pluck: function(object, name) {
+            var names = name.split(".");
+            return S.map(object, function(v, k, object) {
+                for (var i = 0; i < names.length; i++) {
+                    v = v[names[i]];
+                }
+                return v;
+            });
         },
 
         isPlainObject: isPlainObject,
