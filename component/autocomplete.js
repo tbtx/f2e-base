@@ -2,7 +2,8 @@ define("autocomplete", ["overlay", "templatable"], function() {
 
 var S = tbtx,
     $ = S.$,
-    Overlay = S.Mask;
+    Overlay = S.Mask,
+    Templatable = S.Templatable;
 
 var Filter = (function() {
     var Filter = {
@@ -282,7 +283,7 @@ var KEY = {
 
 // 先Implements
 var AutoComplete = S.createWidget({}, Overlay);
-AutoComplete.Implements(S.Templatable);
+AutoComplete.Implements(Templatable);
 AutoComplete.include({
     attrs: {
         // 触发元素

@@ -242,3 +242,6 @@ define("overlay", function() {
         Mask: Mask,
     };
 });
+
+// 兼容之前页面直接引入js的情况
+tbtx.require("overlay");

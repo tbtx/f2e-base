@@ -125,6 +125,7 @@ function addBase(id, refUri) {
     // Relative
     else if (first === ".") {
         // ret = realpath((refUri ? dirname(refUri) : data.cwd) + id);
+        // 鉴于使用cdn。相对路径均相对于base
         ret = realpath(data.base + id);
     }
     // Root
@@ -731,7 +732,9 @@ Module.define = function(id, deps, factory) {
     }
 };
 
-Module.define.amd = {};
+Module.define.amd = {
+
+};
 
 /**
  * config.js - The configuration for the loader

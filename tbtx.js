@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-28 5:57:28
+ * 2014-03-30 9:57:19
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2705,6 +2705,7 @@ function addBase(id, refUri) {
     // Relative
     else if (first === ".") {
         // ret = realpath((refUri ? dirname(refUri) : data.cwd) + id);
+        // 鉴于使用cdn。相对路径均相对于base
         ret = realpath(data.base + id);
     }
     // Root
@@ -3311,7 +3312,9 @@ Module.define = function(id, deps, factory) {
     }
 };
 
-Module.define.amd = {};
+Module.define.amd = {
+
+};
 
 /**
  * config.js - The configuration for the loader
