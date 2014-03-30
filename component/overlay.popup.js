@@ -1,6 +1,6 @@
 /*
  * overlay.popup
- * 2014-03-30 9:57:19
+ * 2014-03-30 10:02:58
  */
 define("overlay", function() {
 
@@ -417,4 +417,4 @@ tbtx.require("overlay");
     return Popup;
 });
 // 兼容之前页面直接引入js的情况
-tbtx.require("Popup");
+tbtx.require("popup");
