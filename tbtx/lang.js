@@ -13,8 +13,8 @@
         slice = AP.slice,
         FALSE = false,
         TRUE = true,
-        shimType = "function",
-        spliter = " ";
+        shimType = 'function',
+        spliter = ' ';
 
     /**
      * Object.keys
@@ -293,11 +293,11 @@
                     var ret = fn.call(context, item, key, object);
 
                     if (!object.length) {
-                        if (name == "filter" && ret) {
+                        if (name === "filter" && ret) {
                             result = result || {};
                             result[key] = item;
                         }
-                        if (name == "map") {
+                        if (name === "map") {
                             result = result || {};
                             result[key] = ret;
                         }
@@ -318,7 +318,7 @@
                 i = 0,
                 length = object.length,
                 // do not use typeof obj == 'function': bug in phantomjs
-                isObj = length === undefined || type(object) == 'function';
+                isObj = length === undefined || type(object) === 'function';
 
             context = context || null;
 
@@ -361,7 +361,7 @@
     var class2type = {};
     "Boolean Number String Function Array Date RegExp Object".split(spliter).forEach(function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
-        S['is' + name] = function(o) {
+        S["is" + name] = function(o) {
             return type(o) === lc;
         };
     });
@@ -400,7 +400,7 @@
             // Must be an Object.
             // Because of IE, we also have to check the presence of the constructor property.
             // Make sure that Dom nodes and window objects don't pass through, as well
-            if (!obj || type(obj) !== "object" || obj.nodeType || obj.window == obj) {
+            if (!obj || type(obj) !== 'object' || obj.nodeType || obj.window == obj) {
                 return FALSE;
             }
 
@@ -408,7 +408,7 @@
 
             try {
                 // Not own constructor property must be Object
-                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, "constructor") && !hasOwnProperty(objConstructor.prototype, "isPrototypeOf")) {
+                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, 'constructor') && !hasOwnProperty(objConstructor.prototype, 'isPrototypeOf')) {
                     return FALSE;
                 }
             } catch (e) {
@@ -459,8 +459,8 @@
                 i;
 
             for (i in obj) {
-                if (obj.hasOwnProperty(i)) {
-                    o[i] = typeof obj[i] === "object" ? deepCopy(obj[i]) : obj[i];
+                if (hasOwnProperty(obj, i)) {
+                    o[i] = "object" === typeof obj[i] ? deepCopy(obj[i]) : obj[i];
                 }
             }
             return o;
@@ -563,11 +563,9 @@
             });
         };
 
-    (function() {
-        for (var k in htmlEntities) {
-            reverseEntities[htmlEntities[k]] = k;
-        }
-    })();
+    for (var k in htmlEntities) {
+        reverseEntities[htmlEntities[k]] = k;
+    }
 
 
     // oo实现
@@ -673,15 +671,12 @@
     };
 
     function Implements(items) {
-        if (!isArray(items)) {
-            items = [items];
-        }
-        var proto = this.prototype || this,
-            item = items.shift();
-        while (item) {
+        items = makeArray(items);
+        var proto = this.prototype || this;
+
+        items.forEach(function(item) {
             mix(proto, item.prototype || item, ['prototype']);
-            item = items.shift();
-        }
+        });
         return this;
     }
 
@@ -701,7 +696,7 @@
             source = des;
             des = this;
         }
-        if (typeof over != "boolean") {
+        if (typeof over !== "boolean") {
             over = TRUE;
         }
         blacklist = blacklist || [];

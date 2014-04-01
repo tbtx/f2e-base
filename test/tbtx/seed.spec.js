@@ -23,6 +23,7 @@ describe('seed', function() {
 	describe("uniqueCid", function() {
 		it("should get a unique client id", function() {
 			expect(S.uniqueCid() - S.uniqueCid()).toEqual(-1);
+			expect(S.uniqueCid()).not.toEqual(S.uniqueCid());
 		});
 	});
 

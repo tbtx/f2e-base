@@ -169,7 +169,7 @@
                     try {
                         v = urlDecode(v);
                     } catch (e) {
-                        S.error(e + 'urlDecode error : ' + v);
+                        S.log(e + 'urlDecode error : ' + v, "error");
                     }
                     // need to decode to get data structure in memory
                     self[key] = v;
@@ -261,9 +261,8 @@
             }
             return FALSE;
         },
-        parseUrl: function(url) {
-            return Uri.getComponents(url);
-        },
+        parseUrl: Uri.getComponents,
+
         getFragment: function(url) {
             return new Uri(url).getFragment();
         },

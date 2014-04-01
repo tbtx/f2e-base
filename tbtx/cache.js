@@ -43,7 +43,11 @@
      * @param  {any} value 存放值
      */
     S.data = function(key, value) {
-        return value === undefined ? dataCache.get(key) : dataCache.set(key, value);
+        if (value === undefined) {
+            return dataCache.get(key);
+        }
+        dataCache.set(key, value);
+        return this;
     };
     S.removeData = function(key) {
         dataCache.remove(key);

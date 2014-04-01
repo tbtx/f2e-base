@@ -1,12 +1,14 @@
 /*
  * tbtx-base-js
- * 2014-04-01 5:42:00
+ * 2014-04-01 11:27:50
  * 十一_tbtx
  * zenxds@gmail.com
  */
 (function(global, S) {
 
-    var cidCounter = 0;
+    var cidCounter = 0,
+        isSupportConsole = global['console'] && console.log,
+        noop = function() {};
 
     S = global[S] = global[S] || {};
 
@@ -19,15 +21,13 @@
          * @param  {string} src 消息来源，可选
          * @return {object}     返回tbtx以链式调用，如tbtx.log().log()
          */
-        log: function(msg, cat, src) {
+        log: isSupportConsole ? function(msg, cat, src) {
             if (src) {
                 msg = src + ': ' + msg;
             }
-            if (global['console'] !== undefined && console.log) {
-                console[cat && console[cat] ? cat : 'log'](msg);
-            }
+            console[cat && console[cat] ? cat : 'log'](msg);
             return this;
-        },
+        } : noop,
 
         /**
          * staticUrl 默认静态文件url前缀
@@ -45,7 +45,7 @@
         /**
          * 空函数，在需要使用空函数作为参数时使用
          */
-        noop: function() {},
+        noop: noop,
 
         // Config: {},
 
@@ -78,7 +78,6 @@
         for (var i in source) {
             des[i] = source[i];
         }
-        return des;
     }
 
 })(this, 'tbtx');
@@ -1246,7 +1245,11 @@ requireModule('promise/polyfill').polyfill();
      * @param  {any} value 存放值
      */
     S.data = function(key, value) {
-        return value === undefined ? dataCache.get(key) : dataCache.set(key, value);
+        if (value === undefined) {
+            return dataCache.get(key);
+        }
+        dataCache.set(key, value);
+        return this;
     };
     S.removeData = function(key) {
         dataCache.remove(key);
@@ -1272,8 +1275,8 @@ requireModule('promise/polyfill').polyfill();
         slice = AP.slice,
         FALSE = false,
         TRUE = true,
-        shimType = "function",
-        spliter = " ";
+        shimType = 'function',
+        spliter = ' ';
 
     /**
      * Object.keys
@@ -1552,11 +1555,11 @@ requireModule('promise/polyfill').polyfill();
                     var ret = fn.call(context, item, key, object);
 
                     if (!object.length) {
-                        if (name == "filter" && ret) {
+                        if (name === "filter" && ret) {
                             result = result || {};
                             result[key] = item;
                         }
-                        if (name == "map") {
+                        if (name === "map") {
                             result = result || {};
                             result[key] = ret;
                         }
@@ -1577,7 +1580,7 @@ requireModule('promise/polyfill').polyfill();
                 i = 0,
                 length = object.length,
                 // do not use typeof obj == 'function': bug in phantomjs
-                isObj = length === undefined || type(object) == 'function';
+                isObj = length === undefined || type(object) === 'function';
 
             context = context || null;
 
@@ -1620,7 +1623,7 @@ requireModule('promise/polyfill').polyfill();
     var class2type = {};
     "Boolean Number String Function Array Date RegExp Object".split(spliter).forEach(function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
-        S['is' + name] = function(o) {
+        S["is" + name] = function(o) {
             return type(o) === lc;
         };
     });
@@ -1659,7 +1662,7 @@ requireModule('promise/polyfill').polyfill();
             // Must be an Object.
             // Because of IE, we also have to check the presence of the constructor property.
             // Make sure that Dom nodes and window objects don't pass through, as well
-            if (!obj || type(obj) !== "object" || obj.nodeType || obj.window == obj) {
+            if (!obj || type(obj) !== 'object' || obj.nodeType || obj.window == obj) {
                 return FALSE;
             }
 
@@ -1667,7 +1670,7 @@ requireModule('promise/polyfill').polyfill();
 
             try {
                 // Not own constructor property must be Object
-                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, "constructor") && !hasOwnProperty(objConstructor.prototype, "isPrototypeOf")) {
+                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, 'constructor') && !hasOwnProperty(objConstructor.prototype, 'isPrototypeOf')) {
                     return FALSE;
                 }
             } catch (e) {
@@ -1718,8 +1721,8 @@ requireModule('promise/polyfill').polyfill();
                 i;
 
             for (i in obj) {
-                if (obj.hasOwnProperty(i)) {
-                    o[i] = typeof obj[i] === "object" ? deepCopy(obj[i]) : obj[i];
+                if (hasOwnProperty(obj, i)) {
+                    o[i] = "object" === typeof obj[i] ? deepCopy(obj[i]) : obj[i];
                 }
             }
             return o;
@@ -1822,11 +1825,9 @@ requireModule('promise/polyfill').polyfill();
             });
         };
 
-    (function() {
-        for (var k in htmlEntities) {
-            reverseEntities[htmlEntities[k]] = k;
-        }
-    })();
+    for (var k in htmlEntities) {
+        reverseEntities[htmlEntities[k]] = k;
+    }
 
 
     // oo实现
@@ -1932,15 +1933,12 @@ requireModule('promise/polyfill').polyfill();
     };
 
     function Implements(items) {
-        if (!isArray(items)) {
-            items = [items];
-        }
-        var proto = this.prototype || this,
-            item = items.shift();
-        while (item) {
+        items = makeArray(items);
+        var proto = this.prototype || this;
+
+        items.forEach(function(item) {
             mix(proto, item.prototype || item, ['prototype']);
-            item = items.shift();
-        }
+        });
         return this;
     }
 
@@ -1960,7 +1958,7 @@ requireModule('promise/polyfill').polyfill();
             source = des;
             des = this;
         }
-        if (typeof over != "boolean") {
+        if (typeof over !== "boolean") {
             over = TRUE;
         }
         blacklist = blacklist || [];
@@ -2475,7 +2473,7 @@ requireModule('promise/polyfill').polyfill();
                     try {
                         v = urlDecode(v);
                     } catch (e) {
-                        S.error(e + 'urlDecode error : ' + v);
+                        S.log(e + 'urlDecode error : ' + v, "error");
                     }
                     // need to decode to get data structure in memory
                     self[key] = v;
@@ -2567,9 +2565,8 @@ requireModule('promise/polyfill').polyfill();
             }
             return FALSE;
         },
-        parseUrl: function(url) {
-            return Uri.getComponents(url);
-        },
+        parseUrl: Uri.getComponents,
+
         getFragment: function(url) {
             return new Uri(url).getFragment();
         },

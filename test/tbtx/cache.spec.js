@@ -24,6 +24,8 @@ describe('cache', function() {
             });
             Cache.clear();
             expect(Cache.getAll()).toEqual({});
+
+            Cache.set("msg3", v).set("msg4", v);
         });
     });
 
@@ -34,6 +36,8 @@ describe('cache', function() {
             S.data('msg', v);
             expect(S.data('msg')).toEqual(v);
 
+            S.data('msg1', v).data("msg2", v);
+            S.removeData('msg1').removeData("msg2");
         });
 
         it("should get the value with name", function(){

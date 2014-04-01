@@ -72,6 +72,10 @@
 	switchable: 各种切换
 	autocomplete: 自动完成
 
+## 调整
+	
+	ES6 Promise实例 增加done,fail,always方法
+
 ## arale调整
 	Widget移除自动render跟data-api, parseElementFromTemplate增加id, 增加renderMethod和relatedNode来扩展插入方式
 	detector 增加mobile判断

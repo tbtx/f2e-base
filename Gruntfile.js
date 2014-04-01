@@ -8,6 +8,7 @@ module.exports = function(grunt) {
         jshint: {
             files: ['tbtx/*.js', 'component/overlay.js', 'component/popup.js', 'component/draggable.js'],
             options: {
+                // 基本均为第三方文件，部分稍作扩展
                 ignores: ['tbtx/json2.js', 'tbtx/detector.js', 'tbtx/promise.js', 'tbtx/pin.js', 'tbtx/aspect.js', 'tbtx/events.js', 'tbtx/attrs.js', 'tbtx/widget.js'],
                 browser: true,
                 sub: true,

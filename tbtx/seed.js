@@ -1,6 +1,8 @@
 (function(global, S) {
 
-    var cidCounter = 0;
+    var cidCounter = 0,
+        isSupportConsole = global['console'] && console.log,
+        noop = function() {};
 
     S = global[S] = global[S] || {};
 
@@ -13,15 +15,13 @@
          * @param  {string} src 消息来源，可选
          * @return {object}     返回tbtx以链式调用，如tbtx.log().log()
          */
-        log: function(msg, cat, src) {
+        log: isSupportConsole ? function(msg, cat, src) {
             if (src) {
                 msg = src + ': ' + msg;
             }
-            if (global['console'] !== undefined && console.log) {
-                console[cat && console[cat] ? cat : 'log'](msg);
-            }
+            console[cat && console[cat] ? cat : 'log'](msg);
             return this;
-        },
+        } : noop,
 
         /**
          * staticUrl 默认静态文件url前缀
@@ -39,7 +39,7 @@
         /**
          * 空函数，在需要使用空函数作为参数时使用
          */
-        noop: function() {},
+        noop: noop,
 
         // Config: {},
 
@@ -72,7 +72,6 @@
         for (var i in source) {
             des[i] = source[i];
         }
-        return des;
     }
 
 })(this, 'tbtx');
