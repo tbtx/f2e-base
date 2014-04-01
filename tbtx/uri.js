@@ -2,7 +2,7 @@
 
     var TRUE = true,
         FALSE = false,
-        Class = S.Class,
+        EMPTY = '',
         each = S.each,
         param = S.param,
         unparam = S.unparam;
@@ -56,7 +56,7 @@
                 if (key instanceof Query) {
                     key = key.get();
                 }
-                S.each(key, function (v, k) {
+                each(key, function (v, k) {
                     _queryMap[k] = v;
                 });
             }
@@ -160,7 +160,7 @@
 
             components = Uri.getComponents(uriStr);
 
-            S.each(components, function (v, key) {
+            each(components, function (v, key) {
                 if (key === 'query') {
                     // need encoded content
                     self.query = new Query(v);
@@ -246,7 +246,7 @@
 
         m = url.match(URI_RE) || [];
 
-        S.each(REG_INFO, function(index, key) {
+        each(REG_INFO, function(index, key) {
             ret[key] = m[index] || "";
         });
         return ret;
@@ -257,9 +257,7 @@
             var match;
             if (S.isNotEmptyString(val)) {
                 match = URI_RE.exec(val);
-                if (match && match[1]) {
-                    return TRUE;
-                }
+                return match && match[1];
             }
             return FALSE;
         },

@@ -127,10 +127,10 @@
         return (type == 'number' || type == 'string') ? new Date(date) : new Date();
     }
 
-    function padding2(str) {
-        str = String(str);
-        return str.length === 1 ? '0' + str : str;
-    }
+    // function padding2(str) {
+    //     str = String(str);
+    //     return str.length === 1 ? '0' + str : str;
+    // }
 
     S.mix({
         normalizeDate: normalizeDate,

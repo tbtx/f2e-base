@@ -3,7 +3,7 @@
     var global = S.global,
         $ = S.$,
         singleton = S.singleton,
-        throttle = S.throttle;
+        debounce = S.debounce;
 
     S.ready(function(S) {
         $ = S.$;
@@ -227,7 +227,7 @@
         var winWidth = $window.width();
         var winHeight = $window.height();
         var scrollTop = $window.scrollTop();
-        $window.on("resize", throttle(function() {
+        $window.on("resize", debounce(function() {
             // 干掉JSHint的检测
             var winNewWidth = $window.width();
             var winNewHeight = $window.height();
@@ -238,7 +238,7 @@
             }
             winWidth = winNewWidth;
             winHeight = winNewHeight;
-        }, 80)).on("scroll", throttle(function() {
+        }, 80)).on("scroll", debounce(function() {
             var scrollNewTop = $window.scrollTop();
             if (scrollTop !== scrollNewTop) {
                 S.trigger("window.scroll", scrollNewTop, scrollTop);
@@ -254,8 +254,8 @@
     });
 
     var wangwangTemplate = '<a target="_blank" href="http://www.taobao.com/webww/ww.php?ver=3&touid={{ nick }}&siteid=cntaobao&status={{ s }}&charset=utf-8"><img border="0" src="http://amos.alicdn.com/realonline.aw?v=2&uid={{ nick }}&site=cntaobao&s={{ s }}&charset=utf-8" alt="{{ prompt }}" /></a>';
-    S.ready(function(S, $) {
-        $(function() {
+    S.ready(function(S) {
+        S.$(function() {
             S.lightWangWang("[data-role=wangwang]");
         });
     });

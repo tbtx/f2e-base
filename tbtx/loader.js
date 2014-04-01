@@ -26,6 +26,8 @@ var dirname = function(path) {
 
 var DOT_RE = /\/\.\//g;
 var DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//;
+var DOUBLE_SLASH_RE = /([^:/])\/\//g;
+
 // Canonicalize a path
 // realpath("http://test.com/a//./b/../c") ==> "http://test.com/a/c"
 var realpath = function(path) {
@@ -36,6 +38,8 @@ var realpath = function(path) {
     while (path.match(DOUBLE_DOT_RE)) {
         path = path.replace(DOUBLE_DOT_RE, "/");
     }
+
+    path = path.replace(DOUBLE_SLASH_RE, "$1/");
 
     return path;
 };
@@ -150,13 +154,12 @@ function id2Uri(id, refUri) {
     var uri = addBase(id, refUri);
     uri = parseMap(uri);
 
-    return realpath(uri);
+    return uri;
 }
 
 var doc = document;
-var loc = location;
-var cwd = dirname(loc.href);
-var scripts = doc.getElementsByTagName("script");
+var cwd = dirname(location.href);
+var scripts = doc.scripts;
 
 var loaderScript = scripts[scripts.length - 1];
 
@@ -175,7 +178,7 @@ function getScriptAbsoluteSrc(node) {
  * ref: tests/research/load-js-css/test.html
  */
 
-var head = doc.getElementsByTagName("head")[0] || doc.documentElement;
+var head = doc.head || doc.getElementsByTagName("head")[0] || doc.documentElement;
 var baseElement = head.getElementsByTagName("base")[0];
 
 var IS_CSS_RE = /\.css(?:\?|$)/i;
@@ -537,10 +540,14 @@ Module.prototype = {
         // Exec factory
         var factory = mod.factory;
 
-        var exports = isFunction(factory) ?
+        var exports;
+        try {
+        exports = isFunction(factory) ?
           factory.apply(null, deps) :
           factory;
-
+        } catch(err) {
+            S.log(err);
+        }
         if (exports === undefined) {
             exports = mod.exports;
         }
@@ -611,27 +618,12 @@ Module.prototype = {
     }
 };
 
-// Save meta data to cachedMods
-Module.save = function(uri, meta) {
-    var mod = Module.get(uri);
-
-    // Do NOT override already saved modules
-    if (mod.status < STATUS.SAVED) {
-        mod.id = meta.id || uri;
-        mod.dependencies = meta.deps || [];
-        mod.factory = meta.factory;
-        mod.status = STATUS.SAVED;
-    }
-};
-
 Module.get = function(uri, deps) {
-    // S.log("uri:" + uri).log("id:" + id).log("deps: " + deps);
-    // S.log(S.makeArray(shim[id]));
     return cachedMods[uri] || (cachedMods[uri] = new Module(uri, deps));
 };
 // 不直接调用Module.require, 在其他地方使用并传入uri
 // Use function is equal to load a anonymous module
-Module.require = function (ids, uri) {
+Module.require = function (ids, uri, callback) {
     // 匿名模块uri根据preload，require等+cid进行区分
     // 需要uri来创建模块，注册依赖
     var mod = Module.get(uri, isArray(ids) ? ids : [ids]);
@@ -644,10 +636,14 @@ Module.require = function (ids, uri) {
             for (var i = 0, len = uris.length; i < len; i++) {
                 exports[i] = cachedMods[uris[i]].exports;
             }
-            // if (callback) {
-            //     callback.apply(global, exports);
-            // }
-            resolve.apply(promise, exports);
+            if (callback) {
+                try {
+                    callback.apply(global, exports);
+                } catch (err) {
+                    S.log(err);
+                }
+            }
+            resolve(exports);
             delete mod.callback;
         };
     });
@@ -702,9 +698,9 @@ Module.define = function(id, deps, factory) {
         }
     }
 
-    if (!isArray(deps) && isFunction(factory)) {
-        deps = [];
-    }
+    // if (!isArray(deps) && isFunction(factory)) {
+    //     deps = [];
+    // }
 
     var meta = {
         id: id,
@@ -732,9 +728,20 @@ Module.define = function(id, deps, factory) {
     }
 };
 
-Module.define.amd = {
+// Save meta data to cachedMods
+Module.save = function(uri, meta) {
+    var mod = Module.get(uri);
 
+    // Do NOT override already saved modules
+    if (mod.status < STATUS.SAVED) {
+        mod.id = meta.id || uri;
+        mod.dependencies = meta.deps || [];
+        mod.factory = meta.factory;
+        mod.status = STATUS.SAVED;
+    }
 };
+
+Module.define.amd = {};
 
 /**
  * config.js - The configuration for the loader
@@ -830,14 +837,10 @@ S.mix({
 });
 
 S.require = function(ids, callback) {
-    var promise = Module.require(ids, data.cwd + "_require_" + cid());
-    promise.then(callback);
-    return promise;
+    return Module.require(ids, data.cwd + "_require_" + cid(), callback);
 };
 S.define = Module.define;
 
-if (!global.define) {
-    global.define = Module.define;
-}
+global.define = global.define || Module.define;
 
 })(tbtx);

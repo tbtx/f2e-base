@@ -28,7 +28,7 @@
          * 会在后面根据实际的地址重写，这里作为备用
          * @type {String}
          */
-        staticUrl: "http://static.tianxia.taobao.com/tbtx/",
+        staticUrl: 'http://static.tianxia.taobao.com/tbtx/',
 
         /**
          * global对象，在浏览器环境中为window
@@ -41,20 +41,20 @@
          */
         noop: function() {},
 
-        Config: {},
+        // Config: {},
 
-        config: function(name, value) {
-            var Config = S.Config;
+        // config: function(name, value) {
+        //     var Config = S.Config;
 
-            if (typeof name === 'string') {
-                Config[name] = value;
-            } else {
-                // object
-                mix(Config, name);
-            }
+        //     if (typeof name === 'string') {
+        //         Config[name] = value;
+        //     } else {
+        //         // object
+        //         mix(Config, name);
+        //     }
 
-            return S;
-        },
+        //     return S;
+        // },
 
         /**
          * client unique id
@@ -64,14 +64,12 @@
             return cidCounter++;
         },
 
-        $: global.jQuery || global.Zepto
+        $: global.jQuery
 
     });
 
     function mix(des, source) {
-        var i;
-
-        for (i in source) {
+        for (var i in source) {
             des[i] = source[i];
         }
         return des;

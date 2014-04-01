@@ -152,7 +152,7 @@ define("popup", ["overlay"], function() {
             var dummy = this.overlay && this.overlay.destroy();
             return Popup.superclass.destroy.call(this);
         }
-    });
+    }, Mask);
 
 
 
@@ -164,5 +164,8 @@ define("popup", ["overlay"], function() {
 
     return Popup;
 });
-// 兼容之前页面直接引入js的情况
-tbtx.require("popup");
+
+if (!this.require) {
+    // 兼容之前页面直接引入js的情况
+    tbtx.require("popup");
+}

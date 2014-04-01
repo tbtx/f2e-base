@@ -2744,3 +2744,9 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 
   return __module0__;
 })();
+
+if (typeof define === "function" && define.amd) {
+  define("handlebars", [], function() {
+    return Handlebars;
+  });
+}

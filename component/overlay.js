@@ -1,4 +1,5 @@
-define("overlay", function() {
+// 兼容之前requirejs下引入的情况
+define("overlay", this.require ? ["tbtx"] : [], function() {
 
     var S = tbtx,
         $ = S.$,
@@ -244,4 +245,6 @@ define("overlay", function() {
 });
 
 // 兼容之前页面直接引入js的情况
-tbtx.require("overlay");
+if (!this.require) {
+    tbtx.require("overlay");
+}

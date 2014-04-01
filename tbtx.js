@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-03-30 10:02:57
+ * 2014-04-01 5:42:00
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -34,7 +34,7 @@
          * 会在后面根据实际的地址重写，这里作为备用
          * @type {String}
          */
-        staticUrl: "http://static.tianxia.taobao.com/tbtx/",
+        staticUrl: 'http://static.tianxia.taobao.com/tbtx/',
 
         /**
          * global对象，在浏览器环境中为window
@@ -47,20 +47,20 @@
          */
         noop: function() {},
 
-        Config: {},
+        // Config: {},
 
-        config: function(name, value) {
-            var Config = S.Config;
+        // config: function(name, value) {
+        //     var Config = S.Config;
 
-            if (typeof name === 'string') {
-                Config[name] = value;
-            } else {
-                // object
-                mix(Config, name);
-            }
+        //     if (typeof name === 'string') {
+        //         Config[name] = value;
+        //     } else {
+        //         // object
+        //         mix(Config, name);
+        //     }
 
-            return S;
-        },
+        //     return S;
+        // },
 
         /**
          * client unique id
@@ -70,14 +70,12 @@
             return cidCounter++;
         },
 
-        $: global.jQuery || global.Zepto
+        $: global.jQuery
 
     });
 
     function mix(des, source) {
-        var i;
-
-        for (i in source) {
+        for (var i in source) {
             des[i] = source[i];
         }
         return des;
@@ -1203,7 +1201,7 @@ requireModule('promise/polyfill').polyfill();
 }());
 
 
-;(function(S) {
+;(function(S, undefined) {
 
     function Cache(name) {
         this.name = name || "";
@@ -1215,6 +1213,7 @@ requireModule('promise/polyfill').polyfill();
 
         set: function(key, val) {
             this.cache[key] = val;
+            return this;
         },
 
         get: function(key) {
@@ -1228,11 +1227,13 @@ requireModule('promise/polyfill').polyfill();
 
         remove: function(key) {
             delete this.cache[key];
+            return this;
         },
 
         clear: function() {
             delete this.cache;
             this.cache = {};
+            return this;
         }
 
     };
@@ -1254,7 +1255,7 @@ requireModule('promise/polyfill').polyfill();
 
     S.Cache = Cache;
 
-})(tbtx);
+})(tbtx, undefined);
 
 ;(function(global, S, undefined) {
     // 语言扩展
@@ -1270,12 +1271,14 @@ requireModule('promise/polyfill').polyfill();
         toString = OP.toString,
         slice = AP.slice,
         FALSE = false,
-        TRUE = true;
+        TRUE = true,
+        shimType = "function",
+        spliter = " ";
 
     /**
      * Object.keys
      */
-    if (typeof Object.keys != "function") {
+    if (typeof Object.keys != shimType) {
         var hasEnumBug = !({
             toString: 1
         }['propertyIsEnumerable']('toString')),
@@ -1312,13 +1315,13 @@ requireModule('promise/polyfill').polyfill();
         return Object.keys(o);
     };
 
-    if (typeof FP.bind != "function") {
+    if (typeof FP.bind != shimType) {
         FP.bind = function(context) {
             var args = slice.call(arguments, 1),
                 self = this,
                 noop = function() {},
                 ret = function() {
-                    // 已经bind过，context还应该是this
+                    // 已经bind过context, context还应该是this
                     return self.apply(this instanceof noop && context ? this : context, args.concat(slice.call(arguments)));
                 };
 
@@ -1334,7 +1337,7 @@ requireModule('promise/polyfill').polyfill();
     /**
      * Date.now
      */
-    if (typeof Date.now != "function") {
+    if (typeof Date.now != shimType) {
         Date.now = function() {
             return +new Date();
         };
@@ -1380,36 +1383,38 @@ requireModule('promise/polyfill').polyfill();
      * Array.isArray
      */
 
-    if (typeof AP.forEach != "function") {
+    if (typeof AP.forEach != shimType) {
         AP.forEach = function(fn, context) {
-            var i,
-                length;
-            for (i = 0, length = this.length; i < length; i++) {
+            var i = 0,
+                length = this.length;
+
+            for (; i < length; i++) {
                 fn.call(context, this[i], i, this);
             }
         };
     }
 
-    if (typeof AP.map != "function") {
+    if (typeof AP.map != shimType) {
         AP.map = function(fn, context) {
             var ret = [],
-                i,
-                length;
+                i = 0,
+                length = this.length;
 
-            for (i = 0, length = this.length; i < length; i++) {
+            for (; i < length; i++) {
                 ret.push(fn.call(context, this[i], i, this));
             }
             return ret;
         };
     }
 
-    if (typeof AP.filter != "function") {
+    if (typeof AP.filter != shimType) {
         AP.filter = function(fn, context) {
             var ret = [],
-                i,
-                length,
+                i = 0,
+                length = this.length,
                 item;
-            for (i = 0, length = this.length; i < length; i++) {
+
+            for (; i < length; i++) {
                 item = this[i];
                 if (fn.call(context, item, i, this)) {
                     ret.push(item);
@@ -1419,11 +1424,12 @@ requireModule('promise/polyfill').polyfill();
         };
     }
 
-    if (typeof AP.some != "function") {
+    if (typeof AP.some != shimType) {
         AP.some = function(fn, context) {
-            var i,
+            var i = 0,
                 length = this.length;
-            for (i = 0; i < length; i++) {
+
+            for (; i < length; i++) {
                 if (fn.call(context, this[i], i, this)) {
                     return TRUE;
                 }
@@ -1432,11 +1438,12 @@ requireModule('promise/polyfill').polyfill();
         };
     }
 
-    if (typeof AP.every != "function") {
+    if (typeof AP.every != shimType) {
         AP.every = function(fn, context) {
-            var i,
+            var i = 0,
                 length = this.length;
-            for (i = 0; i < length; i++) {
+
+            for (; i < length; i++) {
                 if (!fn.call(context, this[i], i, this)) {
                     return FALSE;
                 }
@@ -1445,7 +1452,7 @@ requireModule('promise/polyfill').polyfill();
         };
     }
 
-    if (typeof AP.indexOf != "function") {
+    if (typeof AP.indexOf != shimType) {
         AP.indexOf = function(searchElement, fromIndex) {
             var ret = -1,
                 i,
@@ -1464,7 +1471,7 @@ requireModule('promise/polyfill').polyfill();
         };
     }
 
-    if (typeof AP.lastIndexOf != "function") {
+    if (typeof AP.lastIndexOf != shimType) {
         AP.lastIndexOf = function(searchElement, fromIndex) {
             var ret = -1,
                 length = this.length,
@@ -1482,13 +1489,13 @@ requireModule('promise/polyfill').polyfill();
         };
     }
 
-    if (typeof AP.reduce != "function") {
+    if (typeof AP.reduce != shimType) {
         AP.reduce = function(fn, initialValue) {
             var previous = initialValue,
                 i = 0,
                 length = this.length;
 
-            if (typeof initialValue === "undefined") {
+            if (initialValue === undefined) {
                 previous = this[0];
                 i = 1;
             }
@@ -1500,7 +1507,7 @@ requireModule('promise/polyfill').polyfill();
         };
     }
 
-    if (typeof AP.reduceRight != "function") {
+    if (typeof AP.reduceRight != shimType) {
         AP.reduceRight = function(fn, initialValue) {
             var length = this.length,
                 i = length - 1,
@@ -1517,7 +1524,7 @@ requireModule('promise/polyfill').polyfill();
         };
     }
 
-    "forEach map filter every some".split(" ").forEach(function(name) {
+    "forEach map filter every some".split(spliter).forEach(function(name) {
         /**
          * iter object and array
          * only use when you want to iter both array and object, if only array, please use [].map/filter..
@@ -1531,7 +1538,7 @@ requireModule('promise/polyfill').polyfill();
                 return object;
             }
 
-            if (S.isArray(object)) {
+            if (isArray(object)) {
                 return object[name](fn, context);
             } else {
                 var keys = Object.keys(object),
@@ -1576,7 +1583,8 @@ requireModule('promise/polyfill').polyfill();
 
             if (isObj) {
                 keys = Object.keys(object);
-                for (; i < keys.length; i++) {
+                length = keys.length;
+                for (; i < length; i++) {
                     key = keys[i];
                     // can not use hasOwnProperty
                     if (fn.call(context, object[key], key, object) === FALSE) {
@@ -1594,30 +1602,29 @@ requireModule('promise/polyfill').polyfill();
         return object;
     };
 
-    "reduce reduceRight".split(" ").forEach(function(name) {
+    "reduce reduceRight".split(spliter).forEach(function(name) {
         S[name] = function(array, fn, initialValue) {
-            if (typeof initialValue == "undefined") {
+            if (initialValue === undefined) {
                 return array[name](fn);
             }
             return array[name](fn, initialValue);
         };
     });
 
-    "indexOf lastIndexOf".split(" ").forEach(function(name) {
+    "indexOf lastIndexOf".split(spliter).forEach(function(name) {
         S[name] = function(array, searchElement, fromIndex) {
             return array[name](searchElement, fromIndex);
         };
     });
 
     var class2type = {};
-    "Boolean Number String Function Array Date RegExp Object".split(" ").forEach(function(name) {
-        var lc;
+    "Boolean Number String Function Array Date RegExp Object".split(spliter).forEach(function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
         S['is' + name] = function(o) {
             return type(o) === lc;
         };
     });
-    S.isArray = Array.isArray = Array.isArray || S.isArray;
+    var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray;
 
     var EMPTY = '',
 
@@ -1644,8 +1651,8 @@ requireModule('promise/polyfill').polyfill();
                 class2type[toString.call(obj)] || 'object';
         },
 
-        inArray = function(arr, item) {
-            return arr.indexOf(item) > -1;
+        inArray = function(array, item) {
+            return array.indexOf(item) > -1;
         },
 
         isPlainObject = function(obj) {
@@ -1679,7 +1686,7 @@ requireModule('promise/polyfill').polyfill();
             if (o === null || o === undefined) {
                 return [];
             }
-            if (S.isArray(o)) {
+            if (isArray(o)) {
                 return o;
             }
             var lengthType = typeof o.length,
@@ -1707,7 +1714,7 @@ requireModule('promise/polyfill').polyfill();
             if (!obj || 'object' !== typeof obj) {
                 return obj;
             }
-            var o = obj.constructor === Array ? [] : {},
+            var o = isArray(obj) ? [] : {},
                 i;
 
             for (i in obj) {
@@ -1727,7 +1734,7 @@ requireModule('promise/polyfill').polyfill();
             var array,
                 random,
                 temp;
-            if (S.isArray(m)) {
+            if (isArray(m)) {
                 array = m;
                 m = 0;
                 n = array.length;
@@ -1753,7 +1760,7 @@ requireModule('promise/polyfill').polyfill();
          * test code: https://gist.github.com/4507739
          */
         shuffle = function(array) {
-            if (!S.isArray(array)) {
+            if (!isArray(array)) {
                 return [];
             }
 
@@ -1868,7 +1875,7 @@ requireModule('promise/polyfill').polyfill();
         mix(klass, Class.Mutators);
         klass.fn.proxy = klass.proxy;
 
-        klass.Implements(properties['Implements'] || []);
+        // klass.Implements(makeArray(properties['Implements']));
         return klass.include(properties);
     };
 
@@ -1886,34 +1893,46 @@ requireModule('promise/polyfill').polyfill();
         };
 
     Class.Mutators = {
-        extend: function(object) {
-            var extended = object.extended;
+        extend: function(properties) {
+            // var extended = object.extended;
 
-            mix(this, object, ['extended']);
+            mix(this, properties);
 
-            if (extended) {
-                extended(this);
-            }
+            // if (extended) {
+            //     extended(this);
+            // }
             return this;
         },
-        include: function(object) {
-            var included = object.included;
+        include: function(properties) {
+            // var included = object.included;
+            var fn = this.prototype;
+            var Mutators = Class.Mutators;
 
-            mix(this.prototype, object, ['included']);
-
-            if (included) {
-                included(this);
+            var key, value;
+            for (key in properties) {
+                value = properties[key];
+                if (hasOwnProperty(Mutators, key)) {
+                    Mutators[key].call(this, value);
+                } else {
+                    fn[key] = value;
+                }
             }
+
+            // mix(this.prototype, properties);
+
+            // if (included) {
+            //     included(this);
+            // }
             return this;
         },
-        proxy: function(func) {
-            return func.bind(this);
+        proxy: function(fn) {
+            return fn.bind(this);
         },
         Implements: Implements
     };
 
     function Implements(items) {
-        if (!S.isArray(items)) {
+        if (!isArray(items)) {
             items = [items];
         }
         var proto = this.prototype || this,
@@ -2014,11 +2033,8 @@ requireModule('promise/polyfill').polyfill();
          * @return {Boolean}
          */
         isPending: function(val) {
-            if (!val) {
-                return FALSE;
-            }
             // dark type
-            if (val.resolve && val.promise) {
+            if (val && S.isFunction(val.state)) {
                 return val.state() === "pending";
             }
             return FALSE;
@@ -2053,7 +2069,7 @@ requireModule('promise/polyfill').polyfill();
             }
 
             if (!m) {
-                S.error('method undefined');
+                S.error('later: method undefined');
             }
 
             f = function() {
@@ -2077,21 +2093,17 @@ requireModule('promise/polyfill').polyfill();
 
         singleton: singleton,
 
-        unique: function(arr) {
-            var ret = [],
-                i,
-                hash = {};
+        unique: function(array) {
+            var hash = {};
 
-            for (i = 0; i < arr.length; i++) {
-                var item = arr[i];
+            return array.filter(function(item) {
                 var key = typeof(item) + item;
                 if (hash[key] !== 1) {
-                    ret.push(item);
                     hash[key] = 1;
+                    return TRUE;
                 }
-            }
-
-            return ret;
+                return FALSE;
+            });
         },
 
         /**
@@ -2153,13 +2165,33 @@ requireModule('promise/polyfill').polyfill();
             });
         },
 
+        debounce: function(fn, ms, context) {
+            ms = ms || 150;
+            if(ms === -1) {
+                return function() {
+                    fn.apply(context || this, arguments);
+                };
+            }
+            var timer = null;
+            var f = function() {
+                f.stop();
+                timer = S.later(fn, ms, 0, context || this, arguments);
+            };
+            f.stop = function() {
+                if(timer) {
+                    timer.cancel();
+                    timer = 0;
+                }
+            };
+            return f;
+        },
+
         /**
          * 函数柯里化
          * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
          */
         curry: function(fn) {
-            var slice = [].slice,
-                args = slice.call(arguments, 1);
+            var args = slice.call(arguments, 1);
 
             return function() {
                 var innerArgs = slice.call(arguments),
@@ -2177,7 +2209,7 @@ requireModule('promise/polyfill').polyfill();
             if (!S.isNotEmptyString(str)) {
                 return str;
             }
-            if (!(isPlainObject(o) || S.isArray(o))) {
+            if (!(isPlainObject(o) || isArray(o))) {
                 return str;
             }
             return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
@@ -2208,7 +2240,7 @@ requireModule('promise/polyfill').polyfill();
                         buf.push(eq, encode(val + EMPTY));
                     }
                     buf.push(sep);
-                } else if (S.isArray(val) && val.length) {
+                } else if (isArray(val) && val.length) {
                     // val is not empty array
                     for (i = 0, len = val.length; i < len; ++i) {
                         v = val[i];
@@ -2276,7 +2308,7 @@ requireModule('promise/polyfill').polyfill();
 
     var TRUE = true,
         FALSE = false,
-        Class = S.Class,
+        EMPTY = '',
         each = S.each,
         param = S.param,
         unparam = S.unparam;
@@ -2330,7 +2362,7 @@ requireModule('promise/polyfill').polyfill();
                 if (key instanceof Query) {
                     key = key.get();
                 }
-                S.each(key, function (v, k) {
+                each(key, function (v, k) {
                     _queryMap[k] = v;
                 });
             }
@@ -2434,7 +2466,7 @@ requireModule('promise/polyfill').polyfill();
 
             components = Uri.getComponents(uriStr);
 
-            S.each(components, function (v, key) {
+            each(components, function (v, key) {
                 if (key === 'query') {
                     // need encoded content
                     self.query = new Query(v);
@@ -2520,7 +2552,7 @@ requireModule('promise/polyfill').polyfill();
 
         m = url.match(URI_RE) || [];
 
-        S.each(REG_INFO, function(index, key) {
+        each(REG_INFO, function(index, key) {
             ret[key] = m[index] || "";
         });
         return ret;
@@ -2531,9 +2563,7 @@ requireModule('promise/polyfill').polyfill();
             var match;
             if (S.isNotEmptyString(val)) {
                 match = URI_RE.exec(val);
-                if (match && match[1]) {
-                    return TRUE;
-                }
+                return match && match[1];
             }
             return FALSE;
         },
@@ -2606,6 +2636,8 @@ var dirname = function(path) {
 
 var DOT_RE = /\/\.\//g;
 var DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//;
+var DOUBLE_SLASH_RE = /([^:/])\/\//g;
+
 // Canonicalize a path
 // realpath("http://test.com/a//./b/../c") ==> "http://test.com/a/c"
 var realpath = function(path) {
@@ -2616,6 +2648,8 @@ var realpath = function(path) {
     while (path.match(DOUBLE_DOT_RE)) {
         path = path.replace(DOUBLE_DOT_RE, "/");
     }
+
+    path = path.replace(DOUBLE_SLASH_RE, "$1/");
 
     return path;
 };
@@ -2730,13 +2764,12 @@ function id2Uri(id, refUri) {
     var uri = addBase(id, refUri);
     uri = parseMap(uri);
 
-    return realpath(uri);
+    return uri;
 }
 
 var doc = document;
-var loc = location;
-var cwd = dirname(loc.href);
-var scripts = doc.getElementsByTagName("script");
+var cwd = dirname(location.href);
+var scripts = doc.scripts;
 
 var loaderScript = scripts[scripts.length - 1];
 
@@ -2755,7 +2788,7 @@ function getScriptAbsoluteSrc(node) {
  * ref: tests/research/load-js-css/test.html
  */
 
-var head = doc.getElementsByTagName("head")[0] || doc.documentElement;
+var head = doc.head || doc.getElementsByTagName("head")[0] || doc.documentElement;
 var baseElement = head.getElementsByTagName("base")[0];
 
 var IS_CSS_RE = /\.css(?:\?|$)/i;
@@ -3117,10 +3150,14 @@ Module.prototype = {
         // Exec factory
         var factory = mod.factory;
 
-        var exports = isFunction(factory) ?
+        var exports;
+        try {
+        exports = isFunction(factory) ?
           factory.apply(null, deps) :
           factory;
-
+        } catch(err) {
+            S.log(err);
+        }
         if (exports === undefined) {
             exports = mod.exports;
         }
@@ -3191,27 +3228,12 @@ Module.prototype = {
     }
 };
 
-// Save meta data to cachedMods
-Module.save = function(uri, meta) {
-    var mod = Module.get(uri);
-
-    // Do NOT override already saved modules
-    if (mod.status < STATUS.SAVED) {
-        mod.id = meta.id || uri;
-        mod.dependencies = meta.deps || [];
-        mod.factory = meta.factory;
-        mod.status = STATUS.SAVED;
-    }
-};
-
 Module.get = function(uri, deps) {
-    // S.log("uri:" + uri).log("id:" + id).log("deps: " + deps);
-    // S.log(S.makeArray(shim[id]));
     return cachedMods[uri] || (cachedMods[uri] = new Module(uri, deps));
 };
 // 不直接调用Module.require, 在其他地方使用并传入uri
 // Use function is equal to load a anonymous module
-Module.require = function (ids, uri) {
+Module.require = function (ids, uri, callback) {
     // 匿名模块uri根据preload，require等+cid进行区分
     // 需要uri来创建模块，注册依赖
     var mod = Module.get(uri, isArray(ids) ? ids : [ids]);
@@ -3224,10 +3246,14 @@ Module.require = function (ids, uri) {
             for (var i = 0, len = uris.length; i < len; i++) {
                 exports[i] = cachedMods[uris[i]].exports;
             }
-            // if (callback) {
-            //     callback.apply(global, exports);
-            // }
-            resolve.apply(promise, exports);
+            if (callback) {
+                try {
+                    callback.apply(global, exports);
+                } catch (err) {
+                    S.log(err);
+                }
+            }
+            resolve(exports);
             delete mod.callback;
         };
     });
@@ -3282,9 +3308,9 @@ Module.define = function(id, deps, factory) {
         }
     }
 
-    if (!isArray(deps) && isFunction(factory)) {
-        deps = [];
-    }
+    // if (!isArray(deps) && isFunction(factory)) {
+    //     deps = [];
+    // }
 
     var meta = {
         id: id,
@@ -3312,9 +3338,20 @@ Module.define = function(id, deps, factory) {
     }
 };
 
-Module.define.amd = {
+// Save meta data to cachedMods
+Module.save = function(uri, meta) {
+    var mod = Module.get(uri);
 
+    // Do NOT override already saved modules
+    if (mod.status < STATUS.SAVED) {
+        mod.id = meta.id || uri;
+        mod.dependencies = meta.deps || [];
+        mod.factory = meta.factory;
+        mod.status = STATUS.SAVED;
+    }
 };
+
+Module.define.amd = {};
 
 /**
  * config.js - The configuration for the loader
@@ -3410,15 +3447,11 @@ S.mix({
 });
 
 S.require = function(ids, callback) {
-    var promise = Module.require(ids, data.cwd + "_require_" + cid());
-    promise.then(callback);
-    return promise;
+    return Module.require(ids, data.cwd + "_require_" + cid(), callback);
 };
 S.define = Module.define;
 
-if (!global.define) {
-    global.define = Module.define;
-}
+global.define = global.define || Module.define;
 
 })(tbtx);
 
@@ -3429,15 +3462,16 @@ if (!global.define) {
         if (!S.$) {
             S.require("jquery").then(function() {
                 S.$ = jQuery;
-                resolve(S, S.$);
+                resolve(S);
             });
         } else {
-            resolve(S, S.$);
+            resolve(S);
         }
     });
 
     S.ready = function(callback) {
-        return promise.then(callback);
+        promise.then(callback);
+        return promise;
     };
 
 })(tbtx);
@@ -3530,9 +3564,8 @@ if (!global.define) {
     }, [], false, true);
 
     S.ready(function(S) {
-        var $ = S.$;
         // fix placeholder
-        $(function() {
+        S.$(function($) {
             if (!support.placeholder && $("input[placeholder], textarea[placeholder]").length) {
 
                 // input, textarea { color: #000; }
@@ -3675,10 +3708,10 @@ if (!global.define) {
         return (type == 'number' || type == 'string') ? new Date(date) : new Date();
     }
 
-    function padding2(str) {
-        str = String(str);
-        return str.length === 1 ? '0' + str : str;
-    }
+    // function padding2(str) {
+    //     str = String(str);
+    //     return str.length === 1 ? '0' + str : str;
+    // }
 
     S.mix({
         normalizeDate: normalizeDate,
@@ -4299,7 +4332,7 @@ if (!global.define) {
     var global = S.global,
         $ = S.$,
         singleton = S.singleton,
-        throttle = S.throttle;
+        debounce = S.debounce;
 
     S.ready(function(S) {
         $ = S.$;
@@ -4523,7 +4556,7 @@ if (!global.define) {
         var winWidth = $window.width();
         var winHeight = $window.height();
         var scrollTop = $window.scrollTop();
-        $window.on("resize", throttle(function() {
+        $window.on("resize", debounce(function() {
             // 干掉JSHint的检测
             var winNewWidth = $window.width();
             var winNewHeight = $window.height();
@@ -4534,7 +4567,7 @@ if (!global.define) {
             }
             winWidth = winNewWidth;
             winHeight = winNewHeight;
-        }, 80)).on("scroll", throttle(function() {
+        }, 80)).on("scroll", debounce(function() {
             var scrollNewTop = $window.scrollTop();
             if (scrollTop !== scrollNewTop) {
                 S.trigger("window.scroll", scrollNewTop, scrollTop);
@@ -4550,8 +4583,8 @@ if (!global.define) {
     });
 
     var wangwangTemplate = '<a target="_blank" href="http://www.taobao.com/webww/ww.php?ver=3&touid={{ nick }}&siteid=cntaobao&status={{ s }}&charset=utf-8"><img border="0" src="http://amos.alicdn.com/realonline.aw?v=2&uid={{ nick }}&site=cntaobao&s={{ s }}&charset=utf-8" alt="{{ prompt }}" /></a>';
-    S.ready(function(S, $) {
-        $(function() {
+    S.ready(function(S) {
+        S.$(function() {
             S.lightWangWang("[data-role=wangwang]");
         });
     });

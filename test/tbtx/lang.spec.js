@@ -510,6 +510,25 @@ describe('lang', function() {
 			var b = new ClassB;
 			expect(b.constructor).toBe(ClassB);
 		});
+
+		it("include should exec Mutators", function() {
+			var Class = new S.Class;
+
+			Class.include({
+				Implements: [S.Events]
+			});
+
+			expect("on" in Class.fn).toBeTruthy();
+			expect("off" in Class.fn).toBeTruthy();
+
+			Class.include({
+				include: {
+					test: "test"
+				}
+			});
+
+			expect("test" in Class.fn).toBeTruthy();
+		});
 	});
 
 	describe('classify', function() {

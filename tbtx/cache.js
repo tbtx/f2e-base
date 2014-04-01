@@ -1,4 +1,4 @@
-(function(S) {
+(function(S, undefined) {
 
     function Cache(name) {
         this.name = name || "";
@@ -10,6 +10,7 @@
 
         set: function(key, val) {
             this.cache[key] = val;
+            return this;
         },
 
         get: function(key) {
@@ -23,11 +24,13 @@
 
         remove: function(key) {
             delete this.cache[key];
+            return this;
         },
 
         clear: function() {
             delete this.cache;
             this.cache = {};
+            return this;
         }
 
     };
@@ -49,4 +52,4 @@
 
     S.Cache = Cache;
 
-})(tbtx);
+})(tbtx, undefined);

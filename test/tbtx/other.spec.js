@@ -17,11 +17,11 @@ describe('other', function() {
     describe("S resize", function() {
         it("should throttle window resize", function() {
             S.on("window.resize", function() {
-                // S.log("resize").log(arguments);
+                S.log("resize").log(arguments);
             });
 
             S.on("window.scroll", function() {
-                // S.log(arguments);
+                S.log("scroll").log(arguments);
             });
         });
     });

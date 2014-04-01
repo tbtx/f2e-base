@@ -4,15 +4,16 @@
         if (!S.$) {
             S.require("jquery").then(function() {
                 S.$ = jQuery;
-                resolve(S, S.$);
+                resolve(S);
             });
         } else {
-            resolve(S, S.$);
+            resolve(S);
         }
     });
 
     S.ready = function(callback) {
-        return promise.then(callback);
+        promise.then(callback);
+        return promise;
     };
 
 })(tbtx);

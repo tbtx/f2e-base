@@ -7,9 +7,8 @@
     }, [], false, true);
 
     S.ready(function(S) {
-        var $ = S.$;
         // fix placeholder
-        $(function() {
+        S.$(function($) {
             if (!support.placeholder && $("input[placeholder], textarea[placeholder]").length) {
 
                 // input, textarea { color: #000; }

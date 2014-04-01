@@ -12,12 +12,14 @@
         toString = OP.toString,
         slice = AP.slice,
         FALSE = false,
-        TRUE = true;
+        TRUE = true,
+        shimType = "function",
+        spliter = " ";
 
     /**
      * Object.keys
      */
-    if (typeof Object.keys != "function") {
+    if (typeof Object.keys != shimType) {
         var hasEnumBug = !({
             toString: 1
         }['propertyIsEnumerable']('toString')),
@@ -54,13 +56,13 @@
         return Object.keys(o);
     };
 
-    if (typeof FP.bind != "function") {
+    if (typeof FP.bind != shimType) {
         FP.bind = function(context) {
             var args = slice.call(arguments, 1),
                 self = this,
                 noop = function() {},
                 ret = function() {
-                    // 已经bind过，context还应该是this
+                    // 已经bind过context, context还应该是this
                     return self.apply(this instanceof noop && context ? this : context, args.concat(slice.call(arguments)));
                 };
 
@@ -76,7 +78,7 @@
     /**
      * Date.now
      */
-    if (typeof Date.now != "function") {
+    if (typeof Date.now != shimType) {
         Date.now = function() {
             return +new Date();
         };
@@ -122,36 +124,38 @@
      * Array.isArray
      */
 
-    if (typeof AP.forEach != "function") {
+    if (typeof AP.forEach != shimType) {
         AP.forEach = function(fn, context) {
-            var i,
-                length;
-            for (i = 0, length = this.length; i < length; i++) {
+            var i = 0,
+                length = this.length;
+
+            for (; i < length; i++) {
                 fn.call(context, this[i], i, this);
             }
         };
     }
 
-    if (typeof AP.map != "function") {
+    if (typeof AP.map != shimType) {
         AP.map = function(fn, context) {
             var ret = [],
-                i,
-                length;
+                i = 0,
+                length = this.length;
 
-            for (i = 0, length = this.length; i < length; i++) {
+            for (; i < length; i++) {
                 ret.push(fn.call(context, this[i], i, this));
             }
             return ret;
         };
     }
 
-    if (typeof AP.filter != "function") {
+    if (typeof AP.filter != shimType) {
         AP.filter = function(fn, context) {
             var ret = [],
-                i,
-                length,
+                i = 0,
+                length = this.length,
                 item;
-            for (i = 0, length = this.length; i < length; i++) {
+
+            for (; i < length; i++) {
                 item = this[i];
                 if (fn.call(context, item, i, this)) {
                     ret.push(item);
@@ -161,11 +165,12 @@
         };
     }
 
-    if (typeof AP.some != "function") {
+    if (typeof AP.some != shimType) {
         AP.some = function(fn, context) {
-            var i,
+            var i = 0,
                 length = this.length;
-            for (i = 0; i < length; i++) {
+
+            for (; i < length; i++) {
                 if (fn.call(context, this[i], i, this)) {
                     return TRUE;
                 }
@@ -174,11 +179,12 @@
         };
     }
 
-    if (typeof AP.every != "function") {
+    if (typeof AP.every != shimType) {
         AP.every = function(fn, context) {
-            var i,
+            var i = 0,
                 length = this.length;
-            for (i = 0; i < length; i++) {
+
+            for (; i < length; i++) {
                 if (!fn.call(context, this[i], i, this)) {
                     return FALSE;
                 }
@@ -187,7 +193,7 @@
         };
     }
 
-    if (typeof AP.indexOf != "function") {
+    if (typeof AP.indexOf != shimType) {
         AP.indexOf = function(searchElement, fromIndex) {
             var ret = -1,
                 i,
@@ -206,7 +212,7 @@
         };
     }
 
-    if (typeof AP.lastIndexOf != "function") {
+    if (typeof AP.lastIndexOf != shimType) {
         AP.lastIndexOf = function(searchElement, fromIndex) {
             var ret = -1,
                 length = this.length,
@@ -224,13 +230,13 @@
         };
     }
 
-    if (typeof AP.reduce != "function") {
+    if (typeof AP.reduce != shimType) {
         AP.reduce = function(fn, initialValue) {
             var previous = initialValue,
                 i = 0,
                 length = this.length;
 
-            if (typeof initialValue === "undefined") {
+            if (initialValue === undefined) {
                 previous = this[0];
                 i = 1;
             }
@@ -242,7 +248,7 @@
         };
     }
 
-    if (typeof AP.reduceRight != "function") {
+    if (typeof AP.reduceRight != shimType) {
         AP.reduceRight = function(fn, initialValue) {
             var length = this.length,
                 i = length - 1,
@@ -259,7 +265,7 @@
         };
     }
 
-    "forEach map filter every some".split(" ").forEach(function(name) {
+    "forEach map filter every some".split(spliter).forEach(function(name) {
         /**
          * iter object and array
          * only use when you want to iter both array and object, if only array, please use [].map/filter..
@@ -273,7 +279,7 @@
                 return object;
             }
 
-            if (S.isArray(object)) {
+            if (isArray(object)) {
                 return object[name](fn, context);
             } else {
                 var keys = Object.keys(object),
@@ -318,7 +324,8 @@
 
             if (isObj) {
                 keys = Object.keys(object);
-                for (; i < keys.length; i++) {
+                length = keys.length;
+                for (; i < length; i++) {
                     key = keys[i];
                     // can not use hasOwnProperty
                     if (fn.call(context, object[key], key, object) === FALSE) {
@@ -336,30 +343,29 @@
         return object;
     };
 
-    "reduce reduceRight".split(" ").forEach(function(name) {
+    "reduce reduceRight".split(spliter).forEach(function(name) {
         S[name] = function(array, fn, initialValue) {
-            if (typeof initialValue == "undefined") {
+            if (initialValue === undefined) {
                 return array[name](fn);
             }
             return array[name](fn, initialValue);
         };
     });
 
-    "indexOf lastIndexOf".split(" ").forEach(function(name) {
+    "indexOf lastIndexOf".split(spliter).forEach(function(name) {
         S[name] = function(array, searchElement, fromIndex) {
             return array[name](searchElement, fromIndex);
         };
     });
 
     var class2type = {};
-    "Boolean Number String Function Array Date RegExp Object".split(" ").forEach(function(name) {
-        var lc;
+    "Boolean Number String Function Array Date RegExp Object".split(spliter).forEach(function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
         S['is' + name] = function(o) {
             return type(o) === lc;
         };
     });
-    S.isArray = Array.isArray = Array.isArray || S.isArray;
+    var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray;
 
     var EMPTY = '',
 
@@ -386,8 +392,8 @@
                 class2type[toString.call(obj)] || 'object';
         },
 
-        inArray = function(arr, item) {
-            return arr.indexOf(item) > -1;
+        inArray = function(array, item) {
+            return array.indexOf(item) > -1;
         },
 
         isPlainObject = function(obj) {
@@ -421,7 +427,7 @@
             if (o === null || o === undefined) {
                 return [];
             }
-            if (S.isArray(o)) {
+            if (isArray(o)) {
                 return o;
             }
             var lengthType = typeof o.length,
@@ -449,7 +455,7 @@
             if (!obj || 'object' !== typeof obj) {
                 return obj;
             }
-            var o = obj.constructor === Array ? [] : {},
+            var o = isArray(obj) ? [] : {},
                 i;
 
             for (i in obj) {
@@ -469,7 +475,7 @@
             var array,
                 random,
                 temp;
-            if (S.isArray(m)) {
+            if (isArray(m)) {
                 array = m;
                 m = 0;
                 n = array.length;
@@ -495,7 +501,7 @@
          * test code: https://gist.github.com/4507739
          */
         shuffle = function(array) {
-            if (!S.isArray(array)) {
+            if (!isArray(array)) {
                 return [];
             }
 
@@ -610,7 +616,7 @@
         mix(klass, Class.Mutators);
         klass.fn.proxy = klass.proxy;
 
-        klass.Implements(properties['Implements'] || []);
+        // klass.Implements(makeArray(properties['Implements']));
         return klass.include(properties);
     };
 
@@ -628,34 +634,46 @@
         };
 
     Class.Mutators = {
-        extend: function(object) {
-            var extended = object.extended;
+        extend: function(properties) {
+            // var extended = object.extended;
 
-            mix(this, object, ['extended']);
+            mix(this, properties);
 
-            if (extended) {
-                extended(this);
-            }
+            // if (extended) {
+            //     extended(this);
+            // }
             return this;
         },
-        include: function(object) {
-            var included = object.included;
+        include: function(properties) {
+            // var included = object.included;
+            var fn = this.prototype;
+            var Mutators = Class.Mutators;
 
-            mix(this.prototype, object, ['included']);
-
-            if (included) {
-                included(this);
+            var key, value;
+            for (key in properties) {
+                value = properties[key];
+                if (hasOwnProperty(Mutators, key)) {
+                    Mutators[key].call(this, value);
+                } else {
+                    fn[key] = value;
+                }
             }
+
+            // mix(this.prototype, properties);
+
+            // if (included) {
+            //     included(this);
+            // }
             return this;
         },
-        proxy: function(func) {
-            return func.bind(this);
+        proxy: function(fn) {
+            return fn.bind(this);
         },
         Implements: Implements
     };
 
     function Implements(items) {
-        if (!S.isArray(items)) {
+        if (!isArray(items)) {
             items = [items];
         }
         var proto = this.prototype || this,
@@ -756,11 +774,8 @@
          * @return {Boolean}
          */
         isPending: function(val) {
-            if (!val) {
-                return FALSE;
-            }
             // dark type
-            if (val.resolve && val.promise) {
+            if (val && S.isFunction(val.state)) {
                 return val.state() === "pending";
             }
             return FALSE;
@@ -795,7 +810,7 @@
             }
 
             if (!m) {
-                S.error('method undefined');
+                S.error('later: method undefined');
             }
 
             f = function() {
@@ -819,21 +834,17 @@
 
         singleton: singleton,
 
-        unique: function(arr) {
-            var ret = [],
-                i,
-                hash = {};
+        unique: function(array) {
+            var hash = {};
 
-            for (i = 0; i < arr.length; i++) {
-                var item = arr[i];
+            return array.filter(function(item) {
                 var key = typeof(item) + item;
                 if (hash[key] !== 1) {
-                    ret.push(item);
                     hash[key] = 1;
+                    return TRUE;
                 }
-            }
-
-            return ret;
+                return FALSE;
+            });
         },
 
         /**
@@ -895,13 +906,33 @@
             });
         },
 
+        debounce: function(fn, ms, context) {
+            ms = ms || 150;
+            if(ms === -1) {
+                return function() {
+                    fn.apply(context || this, arguments);
+                };
+            }
+            var timer = null;
+            var f = function() {
+                f.stop();
+                timer = S.later(fn, ms, 0, context || this, arguments);
+            };
+            f.stop = function() {
+                if(timer) {
+                    timer.cancel();
+                    timer = 0;
+                }
+            };
+            return f;
+        },
+
         /**
          * 函数柯里化
          * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
          */
         curry: function(fn) {
-            var slice = [].slice,
-                args = slice.call(arguments, 1);
+            var args = slice.call(arguments, 1);
 
             return function() {
                 var innerArgs = slice.call(arguments),
@@ -919,7 +950,7 @@
             if (!S.isNotEmptyString(str)) {
                 return str;
             }
-            if (!(isPlainObject(o) || S.isArray(o))) {
+            if (!(isPlainObject(o) || isArray(o))) {
                 return str;
             }
             return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
@@ -950,7 +981,7 @@
                         buf.push(eq, encode(val + EMPTY));
                     }
                     buf.push(sep);
-                } else if (S.isArray(val) && val.length) {
+                } else if (isArray(val) && val.length) {
                     // val is not empty array
                     for (i = 0, len = val.length; i < len; ++i) {
                         v = val[i];

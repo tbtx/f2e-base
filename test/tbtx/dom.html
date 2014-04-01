@@ -65,6 +65,11 @@
         tbtx.on("window.scroll", function() {
             tbtx.log(tbtx.isInView("#demo-2", 100));
         });
+
+        tbtx.require(["test2", "handlebars", "templatable"], function() {
+            tbtx.log(arguments).log(Handlebars);
+        });
+
     </script>
 </body>
 </html>

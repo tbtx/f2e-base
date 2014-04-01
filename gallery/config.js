@@ -19,7 +19,8 @@
             "jquery": "base/js/jquery/jquery-1.8.3.min",
             "tbtx": "base/js/tbtx",
             // component
-            "popup": "base/js/component/overlay.popup",
+            "overlay": "base/js/component/overlay",
+            "popup": "base/js/component/popup",
             "slide": "base/js/component/slide",
             "soltMachine": "base/js/component/soltMachine",
             "validator": "base/js/component/validator",
@@ -56,10 +57,10 @@
             },
 
             // tbtx component
-            "popup": {
-                deps: ["tbtx"],
-                exports: "tbtx.Popup"
-            },
+            // "popup": {
+            //     deps: ["tbtx"],
+            //     exports: "tbtx.Popup"
+            // },
             "validator": {
                 deps: ["tbtx"],
                 exports: "tbtx.Validator"

@@ -1,8 +1,9 @@
 /*
  * overlay.popup
- * 2014-03-30 10:02:58
+ * 2014-04-01 5:42:00
  */
-define("overlay", function() {
+// 兼容之前requirejs下引入的情况
+define("overlay", this.require ? ["tbtx"] : [], function() {
 
     var S = tbtx,
         $ = S.$,
@@ -248,7 +249,9 @@ define("overlay", function() {
 });
 
 // 兼容之前页面直接引入js的情况
-tbtx.require("overlay");
+if (!this.require) {
+    tbtx.require("overlay");
+}
 
 ;define("popup", ["overlay"], function() {
     var S = tbtx,
@@ -404,7 +407,7 @@ tbtx.require("overlay");
             var dummy = this.overlay && this.overlay.destroy();
             return Popup.superclass.destroy.call(this);
         }
-    });
+    }, Mask);
 
 
 
@@ -416,5 +419,8 @@ tbtx.require("overlay");
 
     return Popup;
 });
-// 兼容之前页面直接引入js的情况
-tbtx.require("popup");
+
+if (!this.require) {
+    // 兼容之前页面直接引入js的情况
+    tbtx.require("popup");
+}
