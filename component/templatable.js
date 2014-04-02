@@ -1,4 +1,4 @@
-define("templatable", ["handlebars"], function(){
+tbtx.define("templatable", ["handlebars"], function(){
     var S = tbtx,
         $ = S.$;
 

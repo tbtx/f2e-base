@@ -1,4 +1,4 @@
-define("drop", ["overlay"], function() {
+tbtx.define("drop", ["overlay"], function() {
     var S = tbtx,
         $ = S.$;
 

@@ -57,10 +57,14 @@
             },
 
             // tbtx component
-            // "popup": {
-            //     deps: ["tbtx"],
-            //     exports: "tbtx.Popup"
-            // },
+            "popup": {
+                deps: ["overlay"],
+                exports: "tbtx.Popup"
+            },
+            "overlay": {
+                deps: ["tbtx"],
+                exports: "tbtx.Overlay"
+            },
             "validator": {
                 deps: ["tbtx"],
                 exports: "tbtx.Validator"

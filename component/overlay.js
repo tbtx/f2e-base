@@ -1,5 +1,6 @@
-// 兼容之前requirejs下引入的情况
-define("overlay", this.require ? ["tbtx"] : [], function() {
+(function(S) {
+
+var factory = function() {
 
     var S = tbtx,
         $ = S.$,
@@ -242,9 +243,10 @@ define("overlay", this.require ? ["tbtx"] : [], function() {
         Overlay: Overlay,
         Mask: Mask,
     };
-});
+};
 
+S.define("overlay", factory);
 // 兼容之前页面直接引入js的情况
-if (!this.require) {
-    tbtx.require("overlay");
-}
+S.require("overlay");
+
+})(tbtx);

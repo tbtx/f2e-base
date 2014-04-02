@@ -1,9 +1,10 @@
 /*
  * overlay.popup
- * 2014-04-02 2:28:36
+ * 2014-04-02 6:28:17
  */
-// 兼容之前requirejs下引入的情况
-define("overlay", this.require ? ["tbtx"] : [], function() {
+(function(S) {
+
+var factory = function() {
 
     var S = tbtx,
         $ = S.$,
@@ -246,14 +247,17 @@ define("overlay", this.require ? ["tbtx"] : [], function() {
         Overlay: Overlay,
         Mask: Mask,
     };
-});
+};
 
+S.define("overlay", factory);
 // 兼容之前页面直接引入js的情况
-if (!this.require) {
-    tbtx.require("overlay");
-}
+S.require("overlay");
 
-;define("popup", ["overlay"], function() {
+})(tbtx);
+
+;(function(S) {
+
+var factory = function() {
     var S = tbtx,
         $ = S.$,
         Widget = S.Widget,
@@ -418,9 +422,9 @@ if (!this.require) {
     S.Popup = Popup;
 
     return Popup;
-});
+};
 
-if (!this.require) {
-    // 兼容之前页面直接引入js的情况
-    tbtx.require("popup");
-}
+S.define("popup", ["overlay"], factory);
+S.require("popup");
+
+})(tbtx);

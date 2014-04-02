@@ -1,4 +1,4 @@
-define("autocomplete", ["overlay", "templatable"], function() {
+tbtx.define("autocomplete", ["overlay", "templatable"], function() {
 
 var S = tbtx,
     $ = S.$,

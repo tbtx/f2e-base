@@ -161,7 +161,20 @@ var doc = document;
 var cwd = dirname(location.href);
 var scripts = doc.scripts;
 
-var loaderScript = scripts[scripts.length - 1];
+var loaderScript = (function() {
+    var node,
+        src;
+
+    for (var i = scripts.length - 1; i >= 0; i--) {
+        node = scripts[i];
+        src = getScriptAbsoluteSrc(node);
+        if (src && /tbtx\.(min\.)?js/.test(src)) {
+            return node;
+        }
+    }
+    return scripts[scripts.length - 1];
+})();
+
 
 // When `sea.js` is inline, set loaderDir to current working directory
 var loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
@@ -326,12 +339,10 @@ function normalizeUrl(url) {
     return url;
 }
 
-function loadCss(url, callback, charset) {
-    url = normalizeUrl(url);
-    return request(url, callback, charset);
+var loaderSrc = getScriptAbsoluteSrc(loaderScript);
+if (loaderSrc) {
+    S.staticUrl = realpath(loaderSrc + "/../../../");
 }
-
-S.staticUrl = realpath(getScriptAbsoluteSrc(loaderScript) + "/../../../");
 
 S.loadCss = S.loadScript = function(url, callback, charset) {
     // url传入数组，按照数组中脚本的顺序进行加载
@@ -401,7 +412,7 @@ function getCurrentScriptSrc() {
     //     return interactiveScript;
     // }
 
-    var scripts = head.getElementsByTagName("script"),
+    var scripts = doc.scripts,
         script;
 
     for (var i = scripts.length - 1; i >= 0; i--) {
@@ -412,6 +423,9 @@ function getCurrentScriptSrc() {
             return getScriptAbsoluteSrc(script);
         }
     }
+
+    // safari
+    return scripts[scripts.length - 1].src;
 }
 S.getCurrentScriptSrc = getCurrentScriptSrc;
 
@@ -579,7 +593,7 @@ Module.prototype = {
           factory.apply(null, deps) :
           factory;
         } catch(err) {
-            S.log(err);
+            S.log("factory error:").log(err);
         }
         if (exports === undefined) {
             exports = mod.exports;
@@ -646,7 +660,9 @@ Module.prototype = {
             // Call callbacks
             var m, mods = callbackList[requestUri];
             delete callbackList[requestUri];
-            while ((m = mods.shift())) m.load();
+            while ((m = mods.shift())) {
+                m.load();
+            }
         }
     }
 };
@@ -673,7 +689,7 @@ Module.require = function (ids, uri, callback) {
                 try {
                     callback.apply(global, exports);
                 } catch (err) {
-                    S.log(err);
+                    S.log("require callback error:").log(err);
                 }
             }
             resolve();
@@ -871,6 +887,6 @@ S.require = function(ids, callback) {
 };
 S.define = Module.define;
 
-global.define = global.define || Module.define;
+// global.define = global.define || Module.define;
 
 })(tbtx);

@@ -1,4 +1,4 @@
-define("lightbox", ["overlay"], function() {
+tbtx.define("lightbox", ["overlay"], function() {
     var S = tbtx,
         $ = S.$;
 

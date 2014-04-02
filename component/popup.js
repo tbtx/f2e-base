@@ -1,4 +1,6 @@
-define("popup", ["overlay"], function() {
+(function(S) {
+
+var factory = function() {
     var S = tbtx,
         $ = S.$,
         Widget = S.Widget,
@@ -163,9 +165,9 @@ define("popup", ["overlay"], function() {
     S.Popup = Popup;
 
     return Popup;
-});
+};
 
-if (!this.require) {
-    // 兼容之前页面直接引入js的情况
-    tbtx.require("popup");
-}
+S.define("popup", ["overlay"], factory);
+S.require("popup");
+
+})(tbtx);

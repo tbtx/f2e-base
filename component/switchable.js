@@ -1,4 +1,4 @@
-define("switchable", function() {
+tbtx.define("switchable", function() {
     var S = tbtx,
         $ = S.$;
 
