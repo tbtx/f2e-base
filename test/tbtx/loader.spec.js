@@ -26,4 +26,8 @@ describe('loader', function() {
             });
         });
     });
+
+    xdescribe("getCurrentScript", function() {
+        expect(S.getCurrentScriptSrc()).toEqual("file:///E:/tbcdn/base/js/test/tbtx/loader.spec.js");
+    });
 });

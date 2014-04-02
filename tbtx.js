@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-04-01 11:27:50
+ * 2014-04-02 2:28:36
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2792,8 +2792,8 @@ var IS_CSS_RE = /\.css(?:\?|$)/i;
 var READY_STATE_RE = /^(?:loaded|complete|undefined)$/;
 
 // 当前正在加载的script
-var currentlyAddingScript;
-var interactiveScript;
+// var currentlyAddingScript;
+// var interactiveScript;
 
 // `onload` event is not supported in WebKit < 535.23 and Firefox < 9.0
 // ref:
@@ -2839,7 +2839,7 @@ function request(url, callback, charset) {
     // For some cache cases in IE 6-8, the script executes IMMEDIATELY after
     // the end of the insert execution, so use `currentlyAddingScript` to
     // hold current node, for deriving url in `define` call
-    currentlyAddingScript = node;
+    // currentlyAddingScript = node;
 
     // ref: #185 & http://dev.jquery.com/ticket/2709
     if (baseElement) {
@@ -2848,7 +2848,7 @@ function request(url, callback, charset) {
         head.appendChild(node);
     }
 
-    currentlyAddingScript = null;
+    // currentlyAddingScript = null;
     return promise;
 }
 
@@ -2920,31 +2920,6 @@ function pollCss(node, callback) {
     }, 20);
 }
 
-function getCurrentScript() {
-    if (currentlyAddingScript) {
-        return currentlyAddingScript;
-    }
-
-    // For IE6-9 browsers, the script onload event may not fire right
-    // after the script is evaluated. Kris Zyp found that it
-    // could query the script nodes and the one that is in "interactive"
-    // mode indicates the current script
-    // ref: http://goo.gl/JHfFW
-    if (interactiveScript && interactiveScript.readyState === "interactive") {
-        return interactiveScript;
-    }
-
-    var scripts = head.getElementsByTagName("script");
-
-    for (var i = scripts.length - 1; i >= 0; i--) {
-        var script = scripts[i];
-        if (script.readyState === "interactive") {
-            interactiveScript = script;
-            return interactiveScript;
-        }
-    }
-}
-
 var SCHEME_RE = /^(http|file)/i;
 /**
  * 请求的相对url转为绝对
@@ -2967,7 +2942,7 @@ S.staticUrl = realpath(getScriptAbsoluteSrc(loaderScript) + "/../../../");
 
 S.loadCss = S.loadScript = function(url, callback, charset) {
     // url传入数组，按照数组中脚本的顺序进行加载
-    if (S.isArray(url)) {
+    if (isArray(url)) {
         var chain,
             length = url.length;
 
@@ -2988,6 +2963,64 @@ S.loadCss = S.loadScript = function(url, callback, charset) {
     }
     return request(normalizeUrl(url), callback, charset);
 };
+
+function getCurrentScriptSrc() {
+    if(doc.currentScript){
+        return doc.currentScript.src;
+    }
+
+    var stack;
+    try {
+        a.b.c(); //强制报错,以便捕获e.stack
+    } catch (e) { //safari的错误对象只有line,sourceId,sourceURL
+        stack = e.stack;
+        if (!stack && window.opera) {
+            //opera 9没有e.stack,但有e.Backtrace,但不能直接取得,需要对e对象转字符串进行抽取
+            stack = (String(e).match(/of linked script \S+/g) || []).join(" ");
+        }
+    }
+    if (stack) {
+        /**e.stack最后一行在所有支持的浏览器大致如下:
+         *chrome23:
+         * at http://113.93.50.63/data.js:4:1
+         *firefox17:
+         *@http://113.93.50.63/query.js:4
+         *opera12:http://www.oldapps.com/opera.php?system=Windows_XP
+         *@http://113.93.50.63/data.js:4
+         *IE10:
+         *  at Global code (http://113.93.50.63/data.js:4:1)
+         *  //firefox4+ 可以用document.currentScript
+         */
+        stack = stack.split(/[@ ]/g).pop(); //取得最后一行,最后一个空格或@之后的部分
+        stack = stack[0] === "(" ? stack.slice(1, -1) : stack.replace(/\s/, ""); //去掉换行符
+        return stack.replace(/(:\d+)?:\d+$/i, ""); //去掉行号与或许存在的出错字符起始位置
+    }
+    // if (currentlyAddingScript) {
+    //     return currentlyAddingScript;
+    // }
+
+    // For IE6-9 browsers, the script onload event may not fire right
+    // after the script is evaluated. Kris Zyp found that it
+    // could query the script nodes and the one that is in "interactive"
+    // mode indicates the current script
+    // ref: http://goo.gl/JHfFW
+    // if (interactiveScript && interactiveScript.readyState === "interactive") {
+    //     return interactiveScript;
+    // }
+
+    var scripts = head.getElementsByTagName("script"),
+        script;
+
+    for (var i = scripts.length - 1; i >= 0; i--) {
+        script = scripts[i];
+        if (script.readyState === "interactive") {
+            // interactiveScript = script;
+            // return interactiveScript;
+            return getScriptAbsoluteSrc(script);
+        }
+    }
+}
+S.getCurrentScriptSrc = getCurrentScriptSrc;
 
 /**
  * module.js - The core of module loader
@@ -3250,7 +3283,7 @@ Module.require = function (ids, uri, callback) {
                     S.log(err);
                 }
             }
-            resolve(exports);
+            resolve();
             delete mod.callback;
         };
     });
@@ -3305,9 +3338,9 @@ Module.define = function(id, deps, factory) {
         }
     }
 
-    // if (!isArray(deps) && isFunction(factory)) {
-    //     deps = [];
-    // }
+    if (!isArray(deps)) {
+        deps = [];
+    }
 
     var meta = {
         id: id,
@@ -3317,12 +3350,9 @@ Module.define = function(id, deps, factory) {
     };
 
     // Try to derive uri in IE6-9 for anonymous modules
-    if (!meta.uri && doc.attachEvent) {
-        var script = getCurrentScript();
-
-        if (script) {
-            meta.uri = script.src;
-        }
+    // && doc.attachEvent
+    if (!meta.uri) {
+        meta.uri = getCurrentScriptSrc();
 
         // NOTE: If the id-deriving methods above is failed, then falls back
         // to use onload event to get the uri

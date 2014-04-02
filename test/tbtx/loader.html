@@ -42,15 +42,17 @@
     //     }).render();
     // });
 
-    S.require("test").done(function() {
-        S.log(arguments[0]);
-    });
-    var promise = tbtx.require("popup", function() {
-        S.log(arguments);
-    });
+    // S.require("test").done(function() {
+    //     S.log(arguments[0]);
+    // });
 
-    promise.done(function() {
-        S.log(arguments);
+    // promise.done(function() {
+    //     S.log(arguments);
+    // });
+
+
+    S.require(['test3'], function(main) {
+        main.hello();
     });
 </script>
 
