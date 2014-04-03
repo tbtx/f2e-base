@@ -313,10 +313,7 @@
         return cachedInstances[cid];
     };
 
-    var cidCounter = 0;
-    function uniqueCid() {
-        return "widget-" + cidCounter++;
-    }
+    var uniqueCid = S.generateCid("widget-");
 
     var isString = S.isString,
         isFunction = S.isFunction,

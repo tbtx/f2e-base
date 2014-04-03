@@ -1,8 +1,18 @@
 (function(global, S) {
 
-    var cidCounter = 0,
-        isSupportConsole = global['console'] && console.log,
-        noop = function() {};
+    var isSupportConsole = global['console'] && console.log,
+        noop = function() {},
+
+        // 生成 cid生成器
+        generateCid = function(prefix) {
+            var counter = 0;
+            prefix = prefix && String(prefix);
+            return function() {
+                var ret = prefix ? prefix + counter : counter;
+                counter++;
+                return ret;
+            };
+        };
 
     S = global[S] = global[S] || {};
 
@@ -60,9 +70,9 @@
          * client unique id
          * @return {number} cid
          */
-        uniqueCid: function() {
-            return cidCounter++;
-        },
+        uniqueCid: generateCid(),
+
+        generateCid: generateCid,
 
         $: global.jQuery
 

@@ -1,14 +1,24 @@
 /*
  * tbtx-base-js
- * 2014-04-02 6:28:17
+ * 2014-04-03 10:25:19
  * 十一_tbtx
  * zenxds@gmail.com
  */
 (function(global, S) {
 
-    var cidCounter = 0,
-        isSupportConsole = global['console'] && console.log,
-        noop = function() {};
+    var isSupportConsole = global['console'] && console.log,
+        noop = function() {},
+
+        // 生成 cid生成器
+        generateCid = function(prefix) {
+            var counter = 0;
+            prefix = prefix && String(prefix);
+            return function() {
+                var ret = prefix ? prefix + counter : counter;
+                counter++;
+                return ret;
+            };
+        };
 
     S = global[S] = global[S] || {};
 
@@ -66,9 +76,9 @@
          * client unique id
          * @return {number} cid
          */
-        uniqueCid: function() {
-            return cidCounter++;
-        },
+        uniqueCid: generateCid(),
+
+        generateCid: generateCid,
 
         $: global.jQuery
 
@@ -2615,13 +2625,9 @@ var noop = S.noop,
     global = S.global;
 
 var Loader = S.Loader = {};
-
 var data = Loader.data = {};
 
-var cidCounter = 0;
-function cid() {
-    return cidCounter++;
-}
+var cid = S.generateCid();
 
 var DIRNAME_RE = /[^?#]*\//;
 // Extract the directory portion of a path
@@ -2735,9 +2741,8 @@ function addBase(id, refUri) {
     }
     // Relative
     else if (first === ".") {
-        // ret = realpath((refUri ? dirname(refUri) : data.cwd) + id);
-        // 鉴于使用cdn。相对路径均相对于base
-        ret = realpath(data.base + id);
+        ret = realpath((refUri ? dirname(refUri) : data.cwd) + id);
+        // ret = realpath(data.base + id);
     }
     // Root
     else if (first === "/") {
@@ -2766,25 +2771,30 @@ function id2Uri(id, refUri) {
 
 var doc = document;
 var cwd = dirname(location.href);
-var scripts = doc.scripts;
 
-var loaderScript = (function() {
-    var node,
-        src;
+// tbtx.js 的完整路径
+var loaderScriptSrc = (function() {
+    var scripts = doc.scripts,
+        node,
+        src,
+        length = scripts.length,
+        i = length - 1,
+        pattern = /tbtx\.(min\.)?js/;
 
-    for (var i = scripts.length - 1; i >= 0; i--) {
+    for (; i >= 0; i--) {
         node = scripts[i];
         src = getScriptAbsoluteSrc(node);
-        if (src && /tbtx\.(min\.)?js/.test(src)) {
-            return node;
+        if (src && pattern.test(src)) {
+            return src;
         }
     }
-    return scripts[scripts.length - 1];
+    return getScriptAbsoluteSrc(scripts[length - 1]);
 })();
 
+var loaderDir = dirname(loaderScriptSrc);
 
-// When `sea.js` is inline, set loaderDir to current working directory
-var loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
+var staticUrl = S.staticUrl = realpath(loaderDir + "../../");
+
 
 function getScriptAbsoluteSrc(node) {
     return node.hasAttribute ? // non-IE6/7
@@ -2941,14 +2951,9 @@ var SCHEME_RE = /^(http|file)/i;
  */
 function normalizeUrl(url) {
     if (!SCHEME_RE.test(url)) {
-        url = S.staticUrl + url;
+        url = staticUrl + url;
     }
     return url;
-}
-
-var loaderSrc = getScriptAbsoluteSrc(loaderScript);
-if (loaderSrc) {
-    S.staticUrl = realpath(loaderSrc + "/../../../");
 }
 
 S.loadCss = S.loadScript = function(url, callback, charset) {
@@ -3020,9 +3025,10 @@ function getCurrentScriptSrc() {
     // }
 
     var scripts = doc.scripts,
-        script;
+        script,
+        length = scripts.length;
 
-    for (var i = scripts.length - 1; i >= 0; i--) {
+    for (var i = length - 1; i >= 0; i--) {
         script = scripts[i];
         if (script.readyState === "interactive") {
             // interactiveScript = script;
@@ -3032,7 +3038,7 @@ function getCurrentScriptSrc() {
     }
 
     // safari
-    return scripts[scripts.length - 1].src;
+    return scripts[length - 1].src;
 }
 S.getCurrentScriptSrc = getCurrentScriptSrc;
 
@@ -3108,7 +3114,8 @@ Module.prototype = {
         for (var i = 0; i < len; i++) {
             m = Module.get(uris[i]);
 
-            if (m.status < STATUS.LOADED) {
+            // AMD依赖的模块需要执行完成
+            if (m.status < STATUS.EXECUTED) {
                 // Maybe duplicate
                 m._waitings[mod.uri] = (m._waitings[mod.uri] || 0) + 1;
             }
@@ -3147,11 +3154,12 @@ Module.prototype = {
     onload: function() {
         var mod = this;
         mod.status = STATUS.LOADED;
-        mod.exec();
         if (mod.callback) {
             mod.callback();
         }
 
+
+        mod.exec();
         // Notify waiting modules to fire onload
         var waitings = mod._waitings;
         var uri, m;
@@ -3200,15 +3208,15 @@ Module.prototype = {
           factory.apply(null, deps) :
           factory;
         } catch(err) {
-            S.log("factory error:").log(err);
+            S.log("factory error:").log(err, "error");
         }
-        if (exports === undefined) {
-            exports = mod.exports;
-        }
+        // if (exports === undefined) {
+        //     exports = mod.exports;
+        // }
 
-        if (exports === null && !IS_CSS_RE.test(uri)) {
+        // if (exports === null && !IS_CSS_RE.test(uri)) {
             // emit("error", mod)
-        }
+        // }
 
         // Reduce memory leak
         delete mod.factory;
@@ -3296,7 +3304,7 @@ Module.require = function (ids, uri, callback) {
                 try {
                     callback.apply(global, exports);
                 } catch (err) {
-                    S.log("require callback error:").log(err);
+                    S.log("require callback error:").log(err, "error");
                 }
             }
             resolve();
@@ -3457,7 +3465,8 @@ Loader.config = function(configData) {
 };
 
 Loader.config({
-    base: S.staticUrl + "base/js/component/",
+    base: loaderDir + "component/",
+    cwd: loaderDir + "component/",
 
     alias: {
         "jquery": "jquery/jquery-1.8.3.min.js",
@@ -3494,7 +3503,7 @@ S.require = function(ids, callback) {
 };
 S.define = Module.define;
 
-// global.define = global.define || Module.define;
+global.define = global.define || Module.define;
 
 })(tbtx);
 
@@ -5570,10 +5579,7 @@ S.define = Module.define;
         return cachedInstances[cid];
     };
 
-    var cidCounter = 0;
-    function uniqueCid() {
-        return "widget-" + cidCounter++;
-    }
+    var uniqueCid = S.generateCid("widget-");
 
     var isString = S.isString,
         isFunction = S.isFunction,
