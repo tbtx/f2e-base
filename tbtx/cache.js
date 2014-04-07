@@ -1,8 +1,10 @@
 (function(S, undefined) {
 
+    var cid = S.generateCid('cache-');
+
     function Cache(name) {
-        this.name = name || "";
-        this.cid = S.uniqueCid();
+        this.name = name;
+        this.cid = cid();
         this.cache = {};
     }
 
@@ -35,7 +37,7 @@
 
     };
 
-    var dataCache = new Cache("data");
+    var dataCache = new Cache('data');
 
     /**
      * 存取数据

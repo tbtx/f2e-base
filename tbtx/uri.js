@@ -30,7 +30,7 @@
             if (key) {
                 return _queryMap[key];
             } else {
-                return _queryMap;
+                return S.deepCopy(_queryMap);
             }
         },
 
@@ -112,7 +112,7 @@
          * whether append [] to key name when value 's type is array
          */
         toString: function (serializeArray) {
-            return S.param(this._queryMap, undefined, undefined, serializeArray);
+            return param(this._queryMap, undefined, undefined, serializeArray);
         }
 
     };
@@ -169,7 +169,7 @@
                     try {
                         v = urlDecode(v);
                     } catch (e) {
-                        S.log(e + 'urlDecode error : ' + v, "error");
+                        S.log(e + 'urlDecode error : ' + v, "error", "Uri");
                     }
                     // need to decode to get data structure in memory
                     self[key] = v;

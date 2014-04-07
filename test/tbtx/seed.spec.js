@@ -32,4 +32,15 @@ describe('seed', function() {
 			expect(S.$).toEqual(jQuery);
 		});
 	});
+
+	describe("generateCid", function() {
+		it("should generate a cid generator", function() {
+			var cid1 = S.generateCid();
+
+			expect(cid1()).toEqual(0);
+
+			var cid2 = S.generateCid("widget-");
+			expect(cid2()).toEqual("widget-0");
+		});
+	});
 });

@@ -44,7 +44,7 @@
                 for (i = enumProperties.length - 1; i >= 0; i--) {
                     p = enumProperties[i];
                     if (hasOwnProperty(o, p)) {
-                        result.push(p);
+                        ret.push(p);
                     }
                 }
             }
@@ -52,9 +52,7 @@
             return ret;
         };
     }
-    S.keys = function(o) {
-        return Object.keys(o);
-    };
+    S.keys = Object.keys;
 
     if (typeof FP.bind != shimType) {
         FP.bind = function(context) {
@@ -310,6 +308,7 @@
     });
 
     // return false终止循环
+    // 原生every必须return true or false
     var each = S.each = function(object, fn, context) {
         if (object) {
             var key,
@@ -318,7 +317,7 @@
                 i = 0,
                 length = object.length,
                 // do not use typeof obj == 'function': bug in phantomjs
-                isObj = length === undefined || type(object) === 'function';
+                isObj = length === undefined || isFunction(object);
 
             context = context || null;
 
@@ -365,9 +364,12 @@
             return type(o) === lc;
         };
     });
-    var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray;
+    var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
+        isFunction = S.isFunction,
+        isObject = S.isObject,
+        isString = S.isString;
 
-    var EMPTY = '',
+    var EMPTY = "",
 
         /**
          * 单例模式
@@ -389,18 +391,22 @@
         type = function(obj) {
             return obj === null ?
                 String(obj) :
-                class2type[toString.call(obj)] || 'object';
+                class2type[toString.call(obj)] || "object";
         },
 
         inArray = function(array, item) {
             return array.indexOf(item) > -1;
         },
 
+        isWindow = function(obj) {
+            return obj != null && obj == obj.window;
+        },
+
         isPlainObject = function(obj) {
             // Must be an Object.
             // Because of IE, we also have to check the presence of the constructor property.
             // Make sure that Dom nodes and window objects don't pass through, as well
-            if (!obj || type(obj) !== 'object' || obj.nodeType || obj.window == obj) {
+            if (!obj || !isObject(obj) || obj.nodeType || isWindow(obj)) {
                 return FALSE;
             }
 
@@ -408,7 +414,7 @@
 
             try {
                 // Not own constructor property must be Object
-                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, 'constructor') && !hasOwnProperty(objConstructor.prototype, 'isPrototypeOf')) {
+                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, "constructor") && !hasOwnProperty(objConstructor.prototype, "isPrototypeOf")) {
                     return FALSE;
                 }
             } catch (e) {
@@ -424,27 +430,20 @@
         },
 
         makeArray = function(o) {
-            if (o === null || o === undefined) {
-                return [];
+            var ret = [];
+
+            if (o == null) {
+                return ret;
             }
             if (isArray(o)) {
                 return o;
             }
             var lengthType = typeof o.length,
                 oType = typeof o;
-            // The strings and functions also have 'length'
-            if (lengthType !== 'number' ||
-                // form.elements in ie78 has nodeName 'form'
-                // then caution select
-                // o.nodeName
-                // window
-                o.alert ||
-                oType === 'string' ||
-                // https://github.com/ariya/phantomjs/issues/11478
-                (oType === 'function' && !('item' in o && lengthType === 'number'))) {
-                return [o];
+            
+            if(lengthType !== "number" || typeof o.nodeName === "string" || o != null && o == o.window || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
+                return[o];
             }
-            var ret = [];
             for (var i = 0, l = o.length; i < l; i++) {
                 ret[i] = o[i];
             }
@@ -452,18 +451,18 @@
         },
 
         deepCopy = function(obj) {
-            if (!obj || 'object' !== typeof obj) {
+            if (!obj || !isCopyType(obj)) {
                 return obj;
             }
-            var o = isArray(obj) ? [] : {},
+            var ret = isArray(obj) ? [] : {},
                 i;
 
             for (i in obj) {
                 if (hasOwnProperty(obj, i)) {
-                    o[i] = "object" === typeof obj[i] ? deepCopy(obj[i]) : obj[i];
+                    ret[i] = isCopyType(obj) ? deepCopy(obj[i]) : obj[i];
                 }
             }
-            return o;
+            return ret;
         },
 
         /*
@@ -473,8 +472,8 @@
          */
         choice = function(m, n) {
             var array,
-                random,
-                temp;
+                random;
+
             if (isArray(m)) {
                 array = m;
                 m = 0;
@@ -482,16 +481,12 @@
             }
 
             if (m > n) {
-                temp = m;
-                m = n;
-                n = temp;
+                m = [n, n = m][0];
             }
 
             random = Math.floor(Math.random() * (n - m) + m);
-            if (array) {
-                return array[random];
-            }
-            return random;
+
+            return array ? array[random] : random;
         },
 
         /*
@@ -506,20 +501,19 @@
             }
 
             var length = array.length,
-                temp,
                 i = length,
                 j;
 
             if (length === 0) {
                 return [];
             }
+            // 不修改原数组
+            array = S.deepCopy(array);
 
-            while (i > 1) {
-                i = i - 1;
-                j = choice(0, i);
-                temp = array[i];
-                array[i] = array[j];
-                array[j] = temp;
+            while (--i) {
+                j = choice(0, i + 1);
+
+                array[i] = [array[j], array[j] = array[i]][0];
             }
             return array;
         },
@@ -566,7 +560,6 @@
     for (var k in htmlEntities) {
         reverseEntities[htmlEntities[k]] = k;
     }
-
 
     // oo实现
     var Class = function(parent, properties) {
@@ -723,7 +716,10 @@
     function isValidParamValue(val) {
         var t = typeof val;
         // If the type of val is null, undefined, number, string, boolean, return TRUE.
-        return val === null || (t !== 'object' && t !== 'function');
+        return val === null || (t !== "object" && t !== "function");
+    }
+    function isCopyType(val) {
+        return "object" === typeof val;
     }
 
     // S
@@ -735,16 +731,17 @@
         classify: classify,
 
         isNotEmptyString: function(val) {
-            return S.isString(val) && val !== '';
+            return isString(val) && val !== EMPTY;
         },
 
         isEmptyObject: function(o) {
-            for (var p in o) {
-                if (p !== undefined) {
-                    return FALSE;
-                }
-            }
-            return TRUE;
+            return S.keys(o).length == 0;
+            // for (var p in o) {
+            //     if (p !== undefined) {
+            //         return FALSE;
+            //     }
+            // }
+            // return TRUE;
         },
 
         pluck: function(object, name) {
@@ -756,11 +753,17 @@
                 return v;
             });
         },
-
+        isWindow: isWindow,
         isPlainObject: isPlainObject,
         inArray: inArray,
         type: type,
         makeArray: makeArray,
+
+        makeResult: function(val) {
+            var args = slice.call(arguments, 1);
+            return isFunction(val) ? val.apply(null, args) : val;
+        },
+
         deepCopy: deepCopy,
 
         /**
@@ -770,7 +773,7 @@
          */
         isPending: function(val) {
             // dark type
-            if (val && S.isFunction(val.state)) {
+            if (val && isFunction(val.state)) {
                 return val.state() === "pending";
             }
             return FALSE;
@@ -805,7 +808,7 @@
             }
 
             if (!m) {
-                S.error('later: method undefined');
+                S.log('method undefined', 'error', 'later');
             }
 
             f = function() {
@@ -882,36 +885,39 @@
          * 在underscore里面有实现，这个版本借鉴的是kissy
          */
         throttle: function(fn, ms, context) {
-            ms = ms || 100; // 150 -> 100
+            context = context || this;
+            ms = ms || 150;
 
             if (ms === -1) {
-                return (function() {
-                    fn.apply(context || this, arguments);
-                });
+                return function() {
+                    fn.apply(context, arguments);
+                };
             }
 
             var last = S.Now();
 
-            return (function() {
+            return function() {
                 var now = S.Now();
                 if (now - last > ms) {
                     last = now;
-                    fn.apply(context || this, arguments);
+                    fn.apply(context, arguments);
                 }
-            });
+            };
         },
 
         debounce: function(fn, ms, context) {
+            context = context || this;
             ms = ms || 150;
+
             if(ms === -1) {
                 return function() {
-                    fn.apply(context || this, arguments);
+                    fn.apply(context, arguments);
                 };
             }
             var timer = null;
             var f = function() {
                 f.stop();
-                timer = S.later(fn, ms, 0, context || this, arguments);
+                timer = S.later(fn, ms, 0, context, arguments);
             };
             f.stop = function() {
                 if(timer) {
@@ -926,13 +932,11 @@
          * 函数柯里化
          * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
          */
-        curry: function(fn) {
+        curry: function(fn, context) {
             var args = slice.call(arguments, 1);
 
             return function() {
-                var innerArgs = slice.call(arguments),
-                    retArgs = args.concat(innerArgs);
-                return fn.apply(null, retArgs);
+                return fn.apply(context, args.concat(slice.call(arguments)));
             };
         },
 
@@ -1026,7 +1030,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
+                        S.log(e + 'decodeURIComponent error : ' + val, 'error', 'unparam');
                     }
                 }
                 ret[key] = val;

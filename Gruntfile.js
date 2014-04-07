@@ -13,7 +13,8 @@ module.exports = function(grunt) {
                 browser: true,
                 sub: true,
                 proto: true,
-                debug: true
+                debug: true,
+                "-W041": false
             }
         },
 

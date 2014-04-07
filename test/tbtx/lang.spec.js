@@ -638,13 +638,49 @@ describe('lang', function() {
 		});
 	});
 
-	describe('choice', function() {
+	describe('choice and shuffle', function() {
 		it("should get a number between m and n", function() {
 			expect(S.choice(1, 5)).toBeBetween(1, 5);
+			expect(S.choice(5, 1)).toBeBetween(1, 5);
+
+			var ret = {
+				1: 0,
+				2: 0,
+				3: 0,
+				4: 0
+			};
+			for (var i = 1000 - 1; i >= 0; i--) {
+				ret[S.choice(1, 5)] += 1;
+			}
+			S.log(ret);
 		});
 
 		it("should get a number in the array", function() {
 			expect(S.choice([1, 2, 3])).toBeBetween(1, 4);
+		});
+
+		it("should shuffle an array", function() {
+			var ret = {},
+				key,
+				array = [1, 2, 3];
+			for (var i = 6000 - 1; i >= 0; i--) {
+				key = S.shuffle(array).toString();
+				ret[key] = ret[key] || 0;
+				ret[key]++;
+			}
+
+			S.log(ret);
+		});
+	});
+
+	describe("makeResult", function() {
+		it("should get the result val of val or a function", function() {
+			expect(S.makeResult(function(a, b, c){
+				return a + b + c;
+			}, 1, 2, 3)).toEqual(6);
+
+			expect(S.makeResult(10)).toEqual(10);
+
 		});
 	});
 

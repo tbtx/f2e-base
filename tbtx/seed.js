@@ -1,16 +1,20 @@
 (function(global, S) {
 
-    var isSupportConsole = global['console'] && console.log,
+    var isSupportConsole = global.console && console.log,
+
         noop = function() {},
 
-        // 生成 cid生成器
+        /**
+         * 生成 cid生成器
+         * generate a cid generator
+         * @param  {String} prefix the cid prefix, such as widget-, then output widget-0, widget-1..
+         */
         generateCid = function(prefix) {
             var counter = 0;
-            prefix = prefix && String(prefix);
-            return function() {
-                var ret = prefix ? prefix + counter : counter;
-                counter++;
-                return ret;
+            return prefix ? function() {
+                return prefix + counter++;
+            } : function() {
+                return counter++;
             };
         };
 
@@ -20,16 +24,16 @@
 
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
-         * @param  {string} msg 消息
-         * @param  {string} cat 类型，如error/info等，可选
-         * @param  {string} src 消息来源，可选
-         * @return {object}     返回tbtx以链式调用，如tbtx.log().log()
+         * @param  {String} msg 消息
+         * @param  {String} cat 类型，如error/info等，可选
+         * @param  {String} src 消息来源，可选
+         * @return {Object}     返回tbtx以链式调用，如tbtx.log().log()
          */
         log: isSupportConsole ? function(msg, cat, src) {
             if (src) {
                 msg = src + ': ' + msg;
             }
-            console[cat && console[cat] ? cat : 'log'](msg);
+            console[cat && console[cat] ? cat : "log"](msg);
             return this;
         } : noop,
 
@@ -38,11 +42,11 @@
          * 会在后面根据实际的地址重写，这里作为备用
          * @type {String}
          */
-        staticUrl: 'http://static.tianxia.taobao.com/tbtx/',
+        staticUrl: "http://static.tianxia.taobao.com/tbtx/",
 
         /**
          * global对象，在浏览器环境中为window
-         * @type {object}
+         * @type {Object}
          */
         global: global,
 

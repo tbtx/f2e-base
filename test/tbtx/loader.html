@@ -49,10 +49,10 @@
     // promise.done(function() {
     //     S.log(arguments);
     // });
-
-
+    var expect = [];
     S.require(['test3'], function(main) {
         main.hello();
+        alert(expect);
     });
 
     tbtx.require("tip").done(function() {

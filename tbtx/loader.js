@@ -7,17 +7,16 @@ var noop = S.noop,
     isObject = S.isObject,
     global = S.global;
 
-var Loader = S.Loader = {};
-var data = Loader.data = {};
-
-var cid = S.generateCid();
+var Loader = S.Loader = {},
+    data = Loader.data = {},
+    cid = S.generateCid();
 
 var DIRNAME_RE = /[^?#]*\//;
 // Extract the directory portion of a path
 // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
 // ref: http://jsperf.com/regex-vs-split/2
 var dirname = function(path) {
-  return path.match(DIRNAME_RE)[0];
+    return path.match(DIRNAME_RE)[0];
 };
 
 var DOT_RE = /\/\.\//g;
@@ -125,7 +124,6 @@ function addBase(id, refUri) {
     // Relative
     else if (first === ".") {
         ret = realpath((refUri ? dirname(refUri) : data.cwd) + id);
-        // ret = realpath(data.base + id);
     }
     // Root
     else if (first === "/") {
@@ -137,15 +135,21 @@ function addBase(id, refUri) {
         ret = data.base + id;
     }
 
+    if (ret.indexOf("//") === 0) {
+        ret = location.protocol + ret;
+    }
+
     return ret;
 }
 
 function id2Uri(id, refUri) {
     if (!id) return "";
+
     id = parseAlias(id);
     id = parsePaths(id);
     id = parseVars(id);
     id = normalize(id);
+
     var uri = addBase(id, refUri);
     uri = parseMap(uri);
 
@@ -171,7 +175,8 @@ var loaderScriptSrc = (function() {
             return src;
         }
     }
-    return getScriptAbsoluteSrc(scripts[length - 1]);
+
+    // return getScriptAbsoluteSrc(scripts[length - 1]);
 })();
 
 var loaderDir = dirname(loaderScriptSrc);
@@ -194,21 +199,18 @@ function getScriptAbsoluteSrc(node) {
 var head = doc.head || doc.getElementsByTagName("head")[0] || doc.documentElement;
 var baseElement = head.getElementsByTagName("base")[0];
 
-var IS_CSS_RE = /\.css(?:\?|$)/i;
-var READY_STATE_RE = /^(?:loaded|complete|undefined)$/;
+var currentlyAddingScript;
+var interactiveScript;
 
-// 当前正在加载的script
-// var currentlyAddingScript;
-// var interactiveScript;
+var IS_CSS_RE = /\.css(?:\?|$)/i;
 
 // `onload` event is not supported in WebKit < 535.23 and Firefox < 9.0
 // ref:
 //  - https://bugs.webkit.org/show_activity.cgi?id=38995
 //  - https://bugzilla.mozilla.org/show_bug.cgi?id=185236
 //  - https://developer.mozilla.org/en/HTML/Element/link#Stylesheet_load_events
-var isOldWebKit = (navigator.userAgent
-    .replace(/.*AppleWebKit\/(\d+)\..*/, "$1")) * 1 < 536;
-
+var isOldWebKit = +navigator.userAgent
+  .replace(/.*(?:AppleWebKit|AndroidWebKit)\/(\d+).*/, "$1") < 536;
 
 var promiseMap = {};
 function request(url, callback, charset) {
@@ -245,7 +247,7 @@ function request(url, callback, charset) {
     // For some cache cases in IE 6-8, the script executes IMMEDIATELY after
     // the end of the insert execution, so use `currentlyAddingScript` to
     // hold current node, for deriving url in `define` call
-    // currentlyAddingScript = node;
+    currentlyAddingScript = node;
 
     // ref: #185 & http://dev.jquery.com/ticket/2709
     if (baseElement) {
@@ -254,40 +256,45 @@ function request(url, callback, charset) {
         head.appendChild(node);
     }
 
-    // currentlyAddingScript = null;
+    currentlyAddingScript = null;
     return promise;
 }
 
 function addOnload(node, callback, isCSS) {
-    // 不支持 onload事件
-    var missingOnload = isCSS && (isOldWebKit || !("onload" in node));
+    var supportOnload = "onload" in node;
 
     // for Old WebKit and Old Firefox
-    if (missingOnload) {
+    if (isCSS && (isOldWebKit || !supportOnload)) {
         setTimeout(function() {
             pollCss(node, callback);
         }, 1); // Begin after node insertion
         return;
     }
 
-    // 支持onload事件
-    node.onload = node.onerror = node.onreadystatechange = function() {
-        if (READY_STATE_RE.test(node.readyState)) {
+    var onload = function() {
+        // Ensure only run once and handle memory leak in IE
+        node.onload = node.onerror = node.onreadystatechange = null;
 
-            // Ensure only run once and handle memory leak in IE
-            node.onload = node.onerror = node.onreadystatechange = null;
+        head.removeChild(node);
 
-            // Remove the script to reduce memory leak
-            if (!isCSS && !data.debug) {
-                head.removeChild(node);
-            }
-
-            // Dereference the node
-            node = null;
-
-            callback();
-        }
+        // Dereference the node
+        node = null;
+        callback();
     };
+
+    if (supportOnload) {
+        node.onload = onload;
+        node.onerror = function(error) {
+            S.log("loadScript error", "error");
+            onload();
+        };
+    } else {
+        node.onreadystatechange = function() {
+            if (/loaded|complete/.test(node.readyState)) {
+                onload();
+            }
+        };
+    }
 }
 
 function pollCss(node, callback) {
@@ -363,67 +370,34 @@ S.loadCss = S.loadScript = function(url, callback, charset) {
     return request(normalizeUrl(url), callback, charset);
 };
 
-function getCurrentScriptSrc() {
+function getCurrentScript() {
     if(doc.currentScript){
-        return doc.currentScript.src;
+        return doc.currentScript;
     }
 
-    var stack;
-    try {
-        a.b.c(); //强制报错,以便捕获e.stack
-    } catch (e) { //safari的错误对象只有line,sourceId,sourceURL
-        stack = e.stack;
-        if (!stack && window.opera) {
-            //opera 9没有e.stack,但有e.Backtrace,但不能直接取得,需要对e对象转字符串进行抽取
-            stack = (String(e).match(/of linked script \S+/g) || []).join(" ");
-        }
+    if (currentlyAddingScript) {
+        return currentlyAddingScript;
     }
-    if (stack) {
-        /**e.stack最后一行在所有支持的浏览器大致如下:
-         *chrome23:
-         * at http://113.93.50.63/data.js:4:1
-         *firefox17:
-         *@http://113.93.50.63/query.js:4
-         *opera12:http://www.oldapps.com/opera.php?system=Windows_XP
-         *@http://113.93.50.63/data.js:4
-         *IE10:
-         *  at Global code (http://113.93.50.63/data.js:4:1)
-         *  //firefox4+ 可以用document.currentScript
-         */
-        stack = stack.split(/[@ ]/g).pop(); //取得最后一行,最后一个空格或@之后的部分
-        stack = stack[0] === "(" ? stack.slice(1, -1) : stack.replace(/\s/, ""); //去掉换行符
-        return stack.replace(/(:\d+)?:\d+$/i, ""); //去掉行号与或许存在的出错字符起始位置
-    }
-    // if (currentlyAddingScript) {
-    //     return currentlyAddingScript;
-    // }
 
     // For IE6-9 browsers, the script onload event may not fire right
     // after the script is evaluated. Kris Zyp found that it
     // could query the script nodes and the one that is in "interactive"
     // mode indicates the current script
     // ref: http://goo.gl/JHfFW
-    // if (interactiveScript && interactiveScript.readyState === "interactive") {
-    //     return interactiveScript;
-    // }
-
-    var scripts = doc.scripts,
-        script,
-        length = scripts.length;
-
-    for (var i = length - 1; i >= 0; i--) {
-        script = scripts[i];
-        if (script.readyState === "interactive") {
-            // interactiveScript = script;
-            // return interactiveScript;
-            return getScriptAbsoluteSrc(script);
-        }
+    if (interactiveScript && interactiveScript.readyState === "interactive") {
+        return interactiveScript;
     }
 
-    // safari
-    return scripts[length - 1].src;
+    var scripts = head.getElementsByTagName("script");
+
+    for (var i = scripts.length - 1; i >= 0; i--) {
+        var script = scripts[i];
+        if (script.readyState === "interactive") {
+            interactiveScript = script;
+            return interactiveScript;
+        }
+    }
 }
-S.getCurrentScriptSrc = getCurrentScriptSrc;
 
 /**
  * module.js - The core of module loader
@@ -512,24 +486,14 @@ Module.prototype = {
             return;
         }
 
-        // Begin parallel loading
-        var requestCache = {};
-
         for (i = 0; i < len; i++) {
             m = cachedMods[uris[i]];
 
             if (m.status < STATUS.FETCHING) {
-                m.fetch(requestCache);
+                m.fetch();
             }
             else if (m.status === STATUS.SAVED) {
                 m.load();
-            }
-        }
-
-        // Send all requests at last to avoid cache bug in IE6-9. Issues#808
-        for (var requestUri in requestCache) {
-            if (requestCache.hasOwnProperty(requestUri)) {
-                requestCache[requestUri]();
             }
         }
     },
@@ -619,48 +583,42 @@ Module.prototype = {
 
         mod.status = STATUS.FETCHING;
 
-        var requestUri = uri;
-
         // Empty uri or a non-CMD module
-        if (!requestUri || fetchedList[requestUri]) {
+        if (!uri || fetchedList[uri]) {
             mod.load();
             return;
         }
 
-        if (fetchingList[requestUri]) {
-            callbackList[requestUri].push(mod);
+        if (fetchingList[uri]) {
+            callbackList[uri].push(mod);
             return;
         }
 
-        fetchingList[requestUri] = true;
-        callbackList[requestUri] = [mod];
+        fetchingList[uri] = true;
+        callbackList[uri] = [mod];
 
-        if (requestCache) {
-            requestCache[requestUri] = sendRequest;
-        } else {
-            sendRequest();
-        }
+
+        sendRequest();
 
         function sendRequest() {
-            request(requestUri, onRequest, data.charset);
+            request(uri, onRequest, data.charset);
         }
 
+
         function onRequest() {
-            delete fetchingList[requestUri];
-            fetchedList[requestUri] = true;
+            delete fetchingList[uri];
+            fetchedList[uri] = true;
 
             // Save meta data of anonymous module
             if (anonymousMeta) {
-              Module.save(uri, anonymousMeta);
-              anonymousMeta = null;
+                Module.save(uri, anonymousMeta);
+                anonymousMeta = null;
             }
 
             // Call callbacks
-            var m, mods = callbackList[requestUri];
-            delete callbackList[requestUri];
-            while ((m = mods.shift())) {
-                m.load();
-            }
+            var m, mods = callbackList[uri];
+            delete callbackList[uri];
+            while ((m = mods.shift())) m.load();
         }
     }
 };
@@ -703,25 +661,6 @@ Module.require = function (ids, uri, callback) {
 Module.resolve = function(id, refUri) {
     return id2Uri(id, refUri);
 };
-// Load preload modules before all other modules
-// Module.preload = function(callback) {
-//     var preloadMods = data.preload;
-//     var len = preloadMods.length;
-
-//     if (len) {
-//         Module.require(preloadMods, function() {
-//             // config允许多次配置。所以这里也支持多次use时多次preload
-//             // Remove the loaded preload modules
-//             preloadMods.splice(0, len);
-
-//             // Allow preload modules to add new preload modules
-//             Module.preload(callback);
-//         }, data.cwd + "_preload_" + cid());
-//     }
-//     else {
-//         callback();
-//     }
-// };
 
 Module.define = function(id, deps, factory) {
     var argsLen = arguments.length;
@@ -759,7 +698,10 @@ Module.define = function(id, deps, factory) {
     // Try to derive uri in IE6-9 for anonymous modules
     // && doc.attachEvent
     if (!meta.uri) {
-        meta.uri = getCurrentScriptSrc();
+        var script = getCurrentScript();
+        if (script) {
+            meta.uri = script.src;
+        }
 
         // NOTE: If the id-deriving methods above is failed, then falls back
         // to use onload event to get the uri
@@ -807,7 +749,7 @@ data.cwd = cwd;
 // The charset for requesting files
 data.charset = "utf-8";
 
-data.preload = [];
+// data.preload = [];
 
 // data.alias - An object containing shorthands of module id
 // data.paths - An object containing path shorthands in module id
@@ -847,9 +789,10 @@ Loader.config = function(configData) {
     return Loader;
 };
 
+var componentDir = loaderDir + "component/";
 Loader.config({
-    base: loaderDir + "component/",
-    cwd: loaderDir + "component/",
+    base: componentDir,
+    cwd: componentDir,
 
     alias: {
         "jquery": "jquery/jquery-1.8.3.min.js",
@@ -858,23 +801,14 @@ Loader.config({
     },
 
     paths: {
+        base: "../../",
         maijia: '../../../maijia',
         miiee: '../../../miiee',
+
         plugin: '../plugin',
         gallery: '../gallery',
         jquery: '../jquery'
     }
-
-    // shim: {
-    //     drop: "overlay",
-    //     popup: "overlay",
-    //     tip: "drop",
-    //     lightbox: "overlay",
-    //     templatable: "handlebars",
-    //     autocomplete: ["overlay", "templatable"]
-    //     // switchable 如果想要easing效果需要自己require
-    //     // switchable: "easing"
-    // }
 });
 
 S.mix({

@@ -1,22 +1,26 @@
 /*
  * tbtx-base-js
- * 2014-04-03 10:25:19
+ * 2014-04-07 6:36:11
  * 十一_tbtx
  * zenxds@gmail.com
  */
 (function(global, S) {
 
-    var isSupportConsole = global['console'] && console.log,
+    var isSupportConsole = global.console && console.log,
+
         noop = function() {},
 
-        // 生成 cid生成器
+        /**
+         * 生成 cid生成器
+         * generate a cid generator
+         * @param  {String} prefix the cid prefix, such as widget-, then output widget-0, widget-1..
+         */
         generateCid = function(prefix) {
             var counter = 0;
-            prefix = prefix && String(prefix);
-            return function() {
-                var ret = prefix ? prefix + counter : counter;
-                counter++;
-                return ret;
+            return prefix ? function() {
+                return prefix + counter++;
+            } : function() {
+                return counter++;
             };
         };
 
@@ -26,16 +30,16 @@
 
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
-         * @param  {string} msg 消息
-         * @param  {string} cat 类型，如error/info等，可选
-         * @param  {string} src 消息来源，可选
-         * @return {object}     返回tbtx以链式调用，如tbtx.log().log()
+         * @param  {String} msg 消息
+         * @param  {String} cat 类型，如error/info等，可选
+         * @param  {String} src 消息来源，可选
+         * @return {Object}     返回tbtx以链式调用，如tbtx.log().log()
          */
         log: isSupportConsole ? function(msg, cat, src) {
             if (src) {
                 msg = src + ': ' + msg;
             }
-            console[cat && console[cat] ? cat : 'log'](msg);
+            console[cat && console[cat] ? cat : "log"](msg);
             return this;
         } : noop,
 
@@ -44,11 +48,11 @@
          * 会在后面根据实际的地址重写，这里作为备用
          * @type {String}
          */
-        staticUrl: 'http://static.tianxia.taobao.com/tbtx/',
+        staticUrl: "http://static.tianxia.taobao.com/tbtx/",
 
         /**
          * global对象，在浏览器环境中为window
-         * @type {object}
+         * @type {Object}
          */
         global: global,
 
@@ -1212,9 +1216,11 @@ requireModule('promise/polyfill').polyfill();
 
 ;(function(S, undefined) {
 
+    var cid = S.generateCid('cache-');
+
     function Cache(name) {
-        this.name = name || "";
-        this.cid = S.uniqueCid();
+        this.name = name;
+        this.cid = cid();
         this.cache = {};
     }
 
@@ -1247,7 +1253,7 @@ requireModule('promise/polyfill').polyfill();
 
     };
 
-    var dataCache = new Cache("data");
+    var dataCache = new Cache('data');
 
     /**
      * 存取数据
@@ -1316,7 +1322,7 @@ requireModule('promise/polyfill').polyfill();
                 for (i = enumProperties.length - 1; i >= 0; i--) {
                     p = enumProperties[i];
                     if (hasOwnProperty(o, p)) {
-                        result.push(p);
+                        ret.push(p);
                     }
                 }
             }
@@ -1324,9 +1330,7 @@ requireModule('promise/polyfill').polyfill();
             return ret;
         };
     }
-    S.keys = function(o) {
-        return Object.keys(o);
-    };
+    S.keys = Object.keys;
 
     if (typeof FP.bind != shimType) {
         FP.bind = function(context) {
@@ -1582,6 +1586,7 @@ requireModule('promise/polyfill').polyfill();
     });
 
     // return false终止循环
+    // 原生every必须return true or false
     var each = S.each = function(object, fn, context) {
         if (object) {
             var key,
@@ -1590,7 +1595,7 @@ requireModule('promise/polyfill').polyfill();
                 i = 0,
                 length = object.length,
                 // do not use typeof obj == 'function': bug in phantomjs
-                isObj = length === undefined || type(object) === 'function';
+                isObj = length === undefined || isFunction(object);
 
             context = context || null;
 
@@ -1637,9 +1642,12 @@ requireModule('promise/polyfill').polyfill();
             return type(o) === lc;
         };
     });
-    var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray;
+    var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
+        isFunction = S.isFunction,
+        isObject = S.isObject,
+        isString = S.isString;
 
-    var EMPTY = '',
+    var EMPTY = "",
 
         /**
          * 单例模式
@@ -1661,18 +1669,22 @@ requireModule('promise/polyfill').polyfill();
         type = function(obj) {
             return obj === null ?
                 String(obj) :
-                class2type[toString.call(obj)] || 'object';
+                class2type[toString.call(obj)] || "object";
         },
 
         inArray = function(array, item) {
             return array.indexOf(item) > -1;
         },
 
+        isWindow = function(obj) {
+            return obj != null && obj == obj.window;
+        },
+
         isPlainObject = function(obj) {
             // Must be an Object.
             // Because of IE, we also have to check the presence of the constructor property.
             // Make sure that Dom nodes and window objects don't pass through, as well
-            if (!obj || type(obj) !== 'object' || obj.nodeType || obj.window == obj) {
+            if (!obj || !isObject(obj) || obj.nodeType || isWindow(obj)) {
                 return FALSE;
             }
 
@@ -1680,7 +1692,7 @@ requireModule('promise/polyfill').polyfill();
 
             try {
                 // Not own constructor property must be Object
-                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, 'constructor') && !hasOwnProperty(objConstructor.prototype, 'isPrototypeOf')) {
+                if ((objConstructor = obj.constructor) && !hasOwnProperty(obj, "constructor") && !hasOwnProperty(objConstructor.prototype, "isPrototypeOf")) {
                     return FALSE;
                 }
             } catch (e) {
@@ -1696,27 +1708,20 @@ requireModule('promise/polyfill').polyfill();
         },
 
         makeArray = function(o) {
-            if (o === null || o === undefined) {
-                return [];
+            var ret = [];
+
+            if (o == null) {
+                return ret;
             }
             if (isArray(o)) {
                 return o;
             }
             var lengthType = typeof o.length,
                 oType = typeof o;
-            // The strings and functions also have 'length'
-            if (lengthType !== 'number' ||
-                // form.elements in ie78 has nodeName 'form'
-                // then caution select
-                // o.nodeName
-                // window
-                o.alert ||
-                oType === 'string' ||
-                // https://github.com/ariya/phantomjs/issues/11478
-                (oType === 'function' && !('item' in o && lengthType === 'number'))) {
-                return [o];
+            
+            if(lengthType !== "number" || typeof o.nodeName === "string" || o != null && o == o.window || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
+                return[o];
             }
-            var ret = [];
             for (var i = 0, l = o.length; i < l; i++) {
                 ret[i] = o[i];
             }
@@ -1724,18 +1729,18 @@ requireModule('promise/polyfill').polyfill();
         },
 
         deepCopy = function(obj) {
-            if (!obj || 'object' !== typeof obj) {
+            if (!obj || !isCopyType(obj)) {
                 return obj;
             }
-            var o = isArray(obj) ? [] : {},
+            var ret = isArray(obj) ? [] : {},
                 i;
 
             for (i in obj) {
                 if (hasOwnProperty(obj, i)) {
-                    o[i] = "object" === typeof obj[i] ? deepCopy(obj[i]) : obj[i];
+                    ret[i] = isCopyType(obj) ? deepCopy(obj[i]) : obj[i];
                 }
             }
-            return o;
+            return ret;
         },
 
         /*
@@ -1745,8 +1750,8 @@ requireModule('promise/polyfill').polyfill();
          */
         choice = function(m, n) {
             var array,
-                random,
-                temp;
+                random;
+
             if (isArray(m)) {
                 array = m;
                 m = 0;
@@ -1754,16 +1759,12 @@ requireModule('promise/polyfill').polyfill();
             }
 
             if (m > n) {
-                temp = m;
-                m = n;
-                n = temp;
+                m = [n, n = m][0];
             }
 
             random = Math.floor(Math.random() * (n - m) + m);
-            if (array) {
-                return array[random];
-            }
-            return random;
+
+            return array ? array[random] : random;
         },
 
         /*
@@ -1778,20 +1779,19 @@ requireModule('promise/polyfill').polyfill();
             }
 
             var length = array.length,
-                temp,
                 i = length,
                 j;
 
             if (length === 0) {
                 return [];
             }
+            // 不修改原数组
+            array = S.deepCopy(array);
 
-            while (i > 1) {
-                i = i - 1;
-                j = choice(0, i);
-                temp = array[i];
-                array[i] = array[j];
-                array[j] = temp;
+            while (--i) {
+                j = choice(0, i + 1);
+
+                array[i] = [array[j], array[j] = array[i]][0];
             }
             return array;
         },
@@ -1838,7 +1838,6 @@ requireModule('promise/polyfill').polyfill();
     for (var k in htmlEntities) {
         reverseEntities[htmlEntities[k]] = k;
     }
-
 
     // oo实现
     var Class = function(parent, properties) {
@@ -1995,7 +1994,10 @@ requireModule('promise/polyfill').polyfill();
     function isValidParamValue(val) {
         var t = typeof val;
         // If the type of val is null, undefined, number, string, boolean, return TRUE.
-        return val === null || (t !== 'object' && t !== 'function');
+        return val === null || (t !== "object" && t !== "function");
+    }
+    function isCopyType(val) {
+        return "object" === typeof val;
     }
 
     // S
@@ -2007,16 +2009,17 @@ requireModule('promise/polyfill').polyfill();
         classify: classify,
 
         isNotEmptyString: function(val) {
-            return S.isString(val) && val !== '';
+            return isString(val) && val !== EMPTY;
         },
 
         isEmptyObject: function(o) {
-            for (var p in o) {
-                if (p !== undefined) {
-                    return FALSE;
-                }
-            }
-            return TRUE;
+            return S.keys(o).length == 0;
+            // for (var p in o) {
+            //     if (p !== undefined) {
+            //         return FALSE;
+            //     }
+            // }
+            // return TRUE;
         },
 
         pluck: function(object, name) {
@@ -2028,11 +2031,17 @@ requireModule('promise/polyfill').polyfill();
                 return v;
             });
         },
-
+        isWindow: isWindow,
         isPlainObject: isPlainObject,
         inArray: inArray,
         type: type,
         makeArray: makeArray,
+
+        makeResult: function(val) {
+            var args = slice.call(arguments, 1);
+            return isFunction(val) ? val.apply(null, args) : val;
+        },
+
         deepCopy: deepCopy,
 
         /**
@@ -2042,7 +2051,7 @@ requireModule('promise/polyfill').polyfill();
          */
         isPending: function(val) {
             // dark type
-            if (val && S.isFunction(val.state)) {
+            if (val && isFunction(val.state)) {
                 return val.state() === "pending";
             }
             return FALSE;
@@ -2077,7 +2086,7 @@ requireModule('promise/polyfill').polyfill();
             }
 
             if (!m) {
-                S.error('later: method undefined');
+                S.log('method undefined', 'error', 'later');
             }
 
             f = function() {
@@ -2154,36 +2163,39 @@ requireModule('promise/polyfill').polyfill();
          * 在underscore里面有实现，这个版本借鉴的是kissy
          */
         throttle: function(fn, ms, context) {
-            ms = ms || 100; // 150 -> 100
+            context = context || this;
+            ms = ms || 150;
 
             if (ms === -1) {
-                return (function() {
-                    fn.apply(context || this, arguments);
-                });
+                return function() {
+                    fn.apply(context, arguments);
+                };
             }
 
             var last = S.Now();
 
-            return (function() {
+            return function() {
                 var now = S.Now();
                 if (now - last > ms) {
                     last = now;
-                    fn.apply(context || this, arguments);
+                    fn.apply(context, arguments);
                 }
-            });
+            };
         },
 
         debounce: function(fn, ms, context) {
+            context = context || this;
             ms = ms || 150;
+
             if(ms === -1) {
                 return function() {
-                    fn.apply(context || this, arguments);
+                    fn.apply(context, arguments);
                 };
             }
             var timer = null;
             var f = function() {
                 f.stop();
-                timer = S.later(fn, ms, 0, context || this, arguments);
+                timer = S.later(fn, ms, 0, context, arguments);
             };
             f.stop = function() {
                 if(timer) {
@@ -2198,13 +2210,11 @@ requireModule('promise/polyfill').polyfill();
          * 函数柯里化
          * 调用同样的函数并且传入的参数大部分都相同的时候，就是考虑柯里化的理想场景
          */
-        curry: function(fn) {
+        curry: function(fn, context) {
             var args = slice.call(arguments, 1);
 
             return function() {
-                var innerArgs = slice.call(arguments),
-                    retArgs = args.concat(innerArgs);
-                return fn.apply(null, retArgs);
+                return fn.apply(context, args.concat(slice.call(arguments)));
             };
         },
 
@@ -2298,7 +2308,7 @@ requireModule('promise/polyfill').polyfill();
                     try {
                         val = decode(val);
                     } catch (e) {
-                        S.log(e + 'decodeURIComponent error : ' + val, 'error');
+                        S.log(e + 'decodeURIComponent error : ' + val, 'error', 'unparam');
                     }
                 }
                 ret[key] = val;
@@ -2344,7 +2354,7 @@ requireModule('promise/polyfill').polyfill();
             if (key) {
                 return _queryMap[key];
             } else {
-                return _queryMap;
+                return S.deepCopy(_queryMap);
             }
         },
 
@@ -2426,7 +2436,7 @@ requireModule('promise/polyfill').polyfill();
          * whether append [] to key name when value 's type is array
          */
         toString: function (serializeArray) {
-            return S.param(this._queryMap, undefined, undefined, serializeArray);
+            return param(this._queryMap, undefined, undefined, serializeArray);
         }
 
     };
@@ -2483,7 +2493,7 @@ requireModule('promise/polyfill').polyfill();
                     try {
                         v = urlDecode(v);
                     } catch (e) {
-                        S.log(e + 'urlDecode error : ' + v, "error");
+                        S.log(e + 'urlDecode error : ' + v, "error", "Uri");
                     }
                     // need to decode to get data structure in memory
                     self[key] = v;
@@ -2624,17 +2634,16 @@ var noop = S.noop,
     isObject = S.isObject,
     global = S.global;
 
-var Loader = S.Loader = {};
-var data = Loader.data = {};
-
-var cid = S.generateCid();
+var Loader = S.Loader = {},
+    data = Loader.data = {},
+    cid = S.generateCid();
 
 var DIRNAME_RE = /[^?#]*\//;
 // Extract the directory portion of a path
 // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
 // ref: http://jsperf.com/regex-vs-split/2
 var dirname = function(path) {
-  return path.match(DIRNAME_RE)[0];
+    return path.match(DIRNAME_RE)[0];
 };
 
 var DOT_RE = /\/\.\//g;
@@ -2742,7 +2751,6 @@ function addBase(id, refUri) {
     // Relative
     else if (first === ".") {
         ret = realpath((refUri ? dirname(refUri) : data.cwd) + id);
-        // ret = realpath(data.base + id);
     }
     // Root
     else if (first === "/") {
@@ -2754,15 +2762,21 @@ function addBase(id, refUri) {
         ret = data.base + id;
     }
 
+    if (ret.indexOf("//") === 0) {
+        ret = location.protocol + ret;
+    }
+
     return ret;
 }
 
 function id2Uri(id, refUri) {
     if (!id) return "";
+
     id = parseAlias(id);
     id = parsePaths(id);
     id = parseVars(id);
     id = normalize(id);
+
     var uri = addBase(id, refUri);
     uri = parseMap(uri);
 
@@ -2788,7 +2802,8 @@ var loaderScriptSrc = (function() {
             return src;
         }
     }
-    return getScriptAbsoluteSrc(scripts[length - 1]);
+
+    // return getScriptAbsoluteSrc(scripts[length - 1]);
 })();
 
 var loaderDir = dirname(loaderScriptSrc);
@@ -2811,21 +2826,18 @@ function getScriptAbsoluteSrc(node) {
 var head = doc.head || doc.getElementsByTagName("head")[0] || doc.documentElement;
 var baseElement = head.getElementsByTagName("base")[0];
 
-var IS_CSS_RE = /\.css(?:\?|$)/i;
-var READY_STATE_RE = /^(?:loaded|complete|undefined)$/;
+var currentlyAddingScript;
+var interactiveScript;
 
-// 当前正在加载的script
-// var currentlyAddingScript;
-// var interactiveScript;
+var IS_CSS_RE = /\.css(?:\?|$)/i;
 
 // `onload` event is not supported in WebKit < 535.23 and Firefox < 9.0
 // ref:
 //  - https://bugs.webkit.org/show_activity.cgi?id=38995
 //  - https://bugzilla.mozilla.org/show_bug.cgi?id=185236
 //  - https://developer.mozilla.org/en/HTML/Element/link#Stylesheet_load_events
-var isOldWebKit = (navigator.userAgent
-    .replace(/.*AppleWebKit\/(\d+)\..*/, "$1")) * 1 < 536;
-
+var isOldWebKit = +navigator.userAgent
+  .replace(/.*(?:AppleWebKit|AndroidWebKit)\/(\d+).*/, "$1") < 536;
 
 var promiseMap = {};
 function request(url, callback, charset) {
@@ -2862,7 +2874,7 @@ function request(url, callback, charset) {
     // For some cache cases in IE 6-8, the script executes IMMEDIATELY after
     // the end of the insert execution, so use `currentlyAddingScript` to
     // hold current node, for deriving url in `define` call
-    // currentlyAddingScript = node;
+    currentlyAddingScript = node;
 
     // ref: #185 & http://dev.jquery.com/ticket/2709
     if (baseElement) {
@@ -2871,40 +2883,45 @@ function request(url, callback, charset) {
         head.appendChild(node);
     }
 
-    // currentlyAddingScript = null;
+    currentlyAddingScript = null;
     return promise;
 }
 
 function addOnload(node, callback, isCSS) {
-    // 不支持 onload事件
-    var missingOnload = isCSS && (isOldWebKit || !("onload" in node));
+    var supportOnload = "onload" in node;
 
     // for Old WebKit and Old Firefox
-    if (missingOnload) {
+    if (isCSS && (isOldWebKit || !supportOnload)) {
         setTimeout(function() {
             pollCss(node, callback);
         }, 1); // Begin after node insertion
         return;
     }
 
-    // 支持onload事件
-    node.onload = node.onerror = node.onreadystatechange = function() {
-        if (READY_STATE_RE.test(node.readyState)) {
+    var onload = function() {
+        // Ensure only run once and handle memory leak in IE
+        node.onload = node.onerror = node.onreadystatechange = null;
 
-            // Ensure only run once and handle memory leak in IE
-            node.onload = node.onerror = node.onreadystatechange = null;
+        head.removeChild(node);
 
-            // Remove the script to reduce memory leak
-            if (!isCSS && !data.debug) {
-                head.removeChild(node);
-            }
-
-            // Dereference the node
-            node = null;
-
-            callback();
-        }
+        // Dereference the node
+        node = null;
+        callback();
     };
+
+    if (supportOnload) {
+        node.onload = onload;
+        node.onerror = function(error) {
+            S.log("loadScript error", "error");
+            onload();
+        };
+    } else {
+        node.onreadystatechange = function() {
+            if (/loaded|complete/.test(node.readyState)) {
+                onload();
+            }
+        };
+    }
 }
 
 function pollCss(node, callback) {
@@ -2980,67 +2997,34 @@ S.loadCss = S.loadScript = function(url, callback, charset) {
     return request(normalizeUrl(url), callback, charset);
 };
 
-function getCurrentScriptSrc() {
+function getCurrentScript() {
     if(doc.currentScript){
-        return doc.currentScript.src;
+        return doc.currentScript;
     }
 
-    var stack;
-    try {
-        a.b.c(); //强制报错,以便捕获e.stack
-    } catch (e) { //safari的错误对象只有line,sourceId,sourceURL
-        stack = e.stack;
-        if (!stack && window.opera) {
-            //opera 9没有e.stack,但有e.Backtrace,但不能直接取得,需要对e对象转字符串进行抽取
-            stack = (String(e).match(/of linked script \S+/g) || []).join(" ");
-        }
+    if (currentlyAddingScript) {
+        return currentlyAddingScript;
     }
-    if (stack) {
-        /**e.stack最后一行在所有支持的浏览器大致如下:
-         *chrome23:
-         * at http://113.93.50.63/data.js:4:1
-         *firefox17:
-         *@http://113.93.50.63/query.js:4
-         *opera12:http://www.oldapps.com/opera.php?system=Windows_XP
-         *@http://113.93.50.63/data.js:4
-         *IE10:
-         *  at Global code (http://113.93.50.63/data.js:4:1)
-         *  //firefox4+ 可以用document.currentScript
-         */
-        stack = stack.split(/[@ ]/g).pop(); //取得最后一行,最后一个空格或@之后的部分
-        stack = stack[0] === "(" ? stack.slice(1, -1) : stack.replace(/\s/, ""); //去掉换行符
-        return stack.replace(/(:\d+)?:\d+$/i, ""); //去掉行号与或许存在的出错字符起始位置
-    }
-    // if (currentlyAddingScript) {
-    //     return currentlyAddingScript;
-    // }
 
     // For IE6-9 browsers, the script onload event may not fire right
     // after the script is evaluated. Kris Zyp found that it
     // could query the script nodes and the one that is in "interactive"
     // mode indicates the current script
     // ref: http://goo.gl/JHfFW
-    // if (interactiveScript && interactiveScript.readyState === "interactive") {
-    //     return interactiveScript;
-    // }
-
-    var scripts = doc.scripts,
-        script,
-        length = scripts.length;
-
-    for (var i = length - 1; i >= 0; i--) {
-        script = scripts[i];
-        if (script.readyState === "interactive") {
-            // interactiveScript = script;
-            // return interactiveScript;
-            return getScriptAbsoluteSrc(script);
-        }
+    if (interactiveScript && interactiveScript.readyState === "interactive") {
+        return interactiveScript;
     }
 
-    // safari
-    return scripts[length - 1].src;
+    var scripts = head.getElementsByTagName("script");
+
+    for (var i = scripts.length - 1; i >= 0; i--) {
+        var script = scripts[i];
+        if (script.readyState === "interactive") {
+            interactiveScript = script;
+            return interactiveScript;
+        }
+    }
 }
-S.getCurrentScriptSrc = getCurrentScriptSrc;
 
 /**
  * module.js - The core of module loader
@@ -3129,24 +3113,14 @@ Module.prototype = {
             return;
         }
 
-        // Begin parallel loading
-        var requestCache = {};
-
         for (i = 0; i < len; i++) {
             m = cachedMods[uris[i]];
 
             if (m.status < STATUS.FETCHING) {
-                m.fetch(requestCache);
+                m.fetch();
             }
             else if (m.status === STATUS.SAVED) {
                 m.load();
-            }
-        }
-
-        // Send all requests at last to avoid cache bug in IE6-9. Issues#808
-        for (var requestUri in requestCache) {
-            if (requestCache.hasOwnProperty(requestUri)) {
-                requestCache[requestUri]();
             }
         }
     },
@@ -3236,48 +3210,42 @@ Module.prototype = {
 
         mod.status = STATUS.FETCHING;
 
-        var requestUri = uri;
-
         // Empty uri or a non-CMD module
-        if (!requestUri || fetchedList[requestUri]) {
+        if (!uri || fetchedList[uri]) {
             mod.load();
             return;
         }
 
-        if (fetchingList[requestUri]) {
-            callbackList[requestUri].push(mod);
+        if (fetchingList[uri]) {
+            callbackList[uri].push(mod);
             return;
         }
 
-        fetchingList[requestUri] = true;
-        callbackList[requestUri] = [mod];
+        fetchingList[uri] = true;
+        callbackList[uri] = [mod];
 
-        if (requestCache) {
-            requestCache[requestUri] = sendRequest;
-        } else {
-            sendRequest();
-        }
+
+        sendRequest();
 
         function sendRequest() {
-            request(requestUri, onRequest, data.charset);
+            request(uri, onRequest, data.charset);
         }
 
+
         function onRequest() {
-            delete fetchingList[requestUri];
-            fetchedList[requestUri] = true;
+            delete fetchingList[uri];
+            fetchedList[uri] = true;
 
             // Save meta data of anonymous module
             if (anonymousMeta) {
-              Module.save(uri, anonymousMeta);
-              anonymousMeta = null;
+                Module.save(uri, anonymousMeta);
+                anonymousMeta = null;
             }
 
             // Call callbacks
-            var m, mods = callbackList[requestUri];
-            delete callbackList[requestUri];
-            while ((m = mods.shift())) {
-                m.load();
-            }
+            var m, mods = callbackList[uri];
+            delete callbackList[uri];
+            while ((m = mods.shift())) m.load();
         }
     }
 };
@@ -3320,25 +3288,6 @@ Module.require = function (ids, uri, callback) {
 Module.resolve = function(id, refUri) {
     return id2Uri(id, refUri);
 };
-// Load preload modules before all other modules
-// Module.preload = function(callback) {
-//     var preloadMods = data.preload;
-//     var len = preloadMods.length;
-
-//     if (len) {
-//         Module.require(preloadMods, function() {
-//             // config允许多次配置。所以这里也支持多次use时多次preload
-//             // Remove the loaded preload modules
-//             preloadMods.splice(0, len);
-
-//             // Allow preload modules to add new preload modules
-//             Module.preload(callback);
-//         }, data.cwd + "_preload_" + cid());
-//     }
-//     else {
-//         callback();
-//     }
-// };
 
 Module.define = function(id, deps, factory) {
     var argsLen = arguments.length;
@@ -3376,7 +3325,10 @@ Module.define = function(id, deps, factory) {
     // Try to derive uri in IE6-9 for anonymous modules
     // && doc.attachEvent
     if (!meta.uri) {
-        meta.uri = getCurrentScriptSrc();
+        var script = getCurrentScript();
+        if (script) {
+            meta.uri = script.src;
+        }
 
         // NOTE: If the id-deriving methods above is failed, then falls back
         // to use onload event to get the uri
@@ -3424,7 +3376,7 @@ data.cwd = cwd;
 // The charset for requesting files
 data.charset = "utf-8";
 
-data.preload = [];
+// data.preload = [];
 
 // data.alias - An object containing shorthands of module id
 // data.paths - An object containing path shorthands in module id
@@ -3464,9 +3416,10 @@ Loader.config = function(configData) {
     return Loader;
 };
 
+var componentDir = loaderDir + "component/";
 Loader.config({
-    base: loaderDir + "component/",
-    cwd: loaderDir + "component/",
+    base: componentDir,
+    cwd: componentDir,
 
     alias: {
         "jquery": "jquery/jquery-1.8.3.min.js",
@@ -3475,23 +3428,14 @@ Loader.config({
     },
 
     paths: {
+        base: "../../",
         maijia: '../../../maijia',
         miiee: '../../../miiee',
+
         plugin: '../plugin',
         gallery: '../gallery',
         jquery: '../jquery'
     }
-
-    // shim: {
-    //     drop: "overlay",
-    //     popup: "overlay",
-    //     tip: "drop",
-    //     lightbox: "overlay",
-    //     templatable: "handlebars",
-    //     autocomplete: ["overlay", "templatable"]
-    //     // switchable 如果想要easing效果需要自己require
-    //     // switchable: "easing"
-    // }
 });
 
 S.mix({
