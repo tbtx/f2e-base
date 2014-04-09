@@ -161,6 +161,9 @@ var cwd = dirname(location.href);
 
 // tbtx.js 的完整路径
 var loaderScriptSrc = (function() {
+    if(doc.currentScript){
+        return getScriptAbsoluteSrc(doc.currentScript);
+    }
     var scripts = doc.scripts,
         node,
         src,
@@ -171,6 +174,10 @@ var loaderScriptSrc = (function() {
     for (; i >= 0; i--) {
         node = scripts[i];
         src = getScriptAbsoluteSrc(node);
+
+        if (node.readyState === "interactive") {
+            return src;
+        }
         if (src && pattern.test(src)) {
             return src;
         }

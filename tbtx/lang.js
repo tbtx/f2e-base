@@ -440,7 +440,7 @@
             }
             var lengthType = typeof o.length,
                 oType = typeof o;
-            
+
             if(lengthType !== "number" || typeof o.nodeName === "string" || o != null && o == o.window || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
                 return[o];
             }
@@ -502,6 +502,7 @@
 
             var length = array.length,
                 i = length,
+                temp,
                 j;
 
             if (length === 0) {
@@ -513,7 +514,10 @@
             while (--i) {
                 j = choice(0, i + 1);
 
-                array[i] = [array[j], array[j] = array[i]][0];
+                temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+                // array[i] = [array[j], array[j] = array[i]][0];
             }
             return array;
         },
@@ -735,7 +739,7 @@
         },
 
         isEmptyObject: function(o) {
-            return S.keys(o).length == 0;
+            return S.keys(o).length === 0;
             // for (var p in o) {
             //     if (p !== undefined) {
             //         return FALSE;

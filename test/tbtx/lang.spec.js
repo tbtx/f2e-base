@@ -19,6 +19,11 @@ describe('lang', function() {
 				var expectResult = ["name1", "name2"];
 				expect( S.keys(o) ).toEqual(expectResult);
 				expect( Object.keys(o) ).toEqual(expectResult);
+
+				o = {
+					toString: 123
+				};
+				expect( S.keys(o) ).toEqual(["toString"]);
 			});
 		});
 

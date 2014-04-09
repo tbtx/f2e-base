@@ -10,11 +10,11 @@ module.exports = function(grunt) {
             options: {
                 // 基本均为第三方文件，部分稍作扩展
                 ignores: ['tbtx/json2.js', 'tbtx/detector.js', 'tbtx/promise.js', 'tbtx/pin.js', 'tbtx/aspect.js', 'tbtx/events.js', 'tbtx/attrs.js', 'tbtx/widget.js'],
-                browser: true,
-                sub: true,
-                proto: true,
-                debug: true,
-                "-W041": false
+                browser: true,      // 访问浏览器全局变量
+                sub: true,          // person['name'] vs. person.name
+                proto: true,        // use __proto__
+                debug: true,        // debugger statements
+                eqnull: true
             }
         },
 

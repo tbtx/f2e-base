@@ -46,6 +46,7 @@
         init: function(container, options) {
             this.container = $(container);
             this.options = $.extend(true, {}, def, options);
+            this.container.data("tbtx.pagination", this);
 
             this.render();
         },
@@ -68,8 +69,8 @@
             // 第一页,最后一页,上一页和下一页
             number.first = 1;
             number.last = number.pages;
-            number.prev = number.index == 1 ? null : number.index - 1;
-            number.next = number.index == number.pages ? null : number.index + 1;
+            number.prev = number.index == 1 ? 0 : number.index - 1;
+            number.next = number.index == number.pages ? 0 : number.index + 1;
 
 
             // 要显示的页
@@ -139,7 +140,7 @@
                     }),
                     page: page
                 }));
-            };
+            }
 
             // next
             ret.push(substitute(pattern, {

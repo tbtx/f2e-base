@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-04-07 6:36:11
+ * 2014-04-08 10:20:36
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -1718,7 +1718,7 @@ requireModule('promise/polyfill').polyfill();
             }
             var lengthType = typeof o.length,
                 oType = typeof o;
-            
+
             if(lengthType !== "number" || typeof o.nodeName === "string" || o != null && o == o.window || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
                 return[o];
             }
@@ -1780,6 +1780,7 @@ requireModule('promise/polyfill').polyfill();
 
             var length = array.length,
                 i = length,
+                temp,
                 j;
 
             if (length === 0) {
@@ -1791,7 +1792,10 @@ requireModule('promise/polyfill').polyfill();
             while (--i) {
                 j = choice(0, i + 1);
 
-                array[i] = [array[j], array[j] = array[i]][0];
+                temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+                // array[i] = [array[j], array[j] = array[i]][0];
             }
             return array;
         },
@@ -2013,7 +2017,7 @@ requireModule('promise/polyfill').polyfill();
         },
 
         isEmptyObject: function(o) {
-            return S.keys(o).length == 0;
+            return S.keys(o).length === 0;
             // for (var p in o) {
             //     if (p !== undefined) {
             //         return FALSE;
@@ -2788,6 +2792,9 @@ var cwd = dirname(location.href);
 
 // tbtx.js 的完整路径
 var loaderScriptSrc = (function() {
+    if(doc.currentScript){
+        return getScriptAbsoluteSrc(doc.currentScript);
+    }
     var scripts = doc.scripts,
         node,
         src,
@@ -2798,6 +2805,10 @@ var loaderScriptSrc = (function() {
     for (; i >= 0; i--) {
         node = scripts[i];
         src = getScriptAbsoluteSrc(node);
+
+        if (node.readyState === "interactive") {
+            return src;
+        }
         if (src && pattern.test(src)) {
             return src;
         }
