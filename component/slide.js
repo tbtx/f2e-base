@@ -304,13 +304,12 @@
         e.preventDefault();
     })
 
-    T.loadCss("base/css/component/slide.css", function() {
-        // 一开始默认data-ride="carousel" 的将自动执行
-        $(function() {
-            $('[data-ride="slide"]').each(function() {
-                var $element = $(this);
-                $element.Slide($element.data());
-            });
+    T.loadCss("base/css/component/slide.css");
+    // 一开始默认data-ride="carousel" 的将自动执行
+    $(function() {
+        $('[data-ride="slide"]').each(function() {
+            var $element = $(this);
+            $element.Slide($element.data());
         });
     });
     T.mix(T, {

@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * 2014-04-08 10:20:36
+ * 2014-04-10 3:06:18
  * 十一_tbtx
  * zenxds@gmail.com
  */
@@ -2840,16 +2840,6 @@ var baseElement = head.getElementsByTagName("base")[0];
 var currentlyAddingScript;
 var interactiveScript;
 
-var IS_CSS_RE = /\.css(?:\?|$)/i;
-
-// `onload` event is not supported in WebKit < 535.23 and Firefox < 9.0
-// ref:
-//  - https://bugs.webkit.org/show_activity.cgi?id=38995
-//  - https://bugzilla.mozilla.org/show_bug.cgi?id=185236
-//  - https://developer.mozilla.org/en/HTML/Element/link#Stylesheet_load_events
-var isOldWebKit = +navigator.userAgent
-  .replace(/.*(?:AppleWebKit|AndroidWebKit)\/(\d+).*/, "$1") < 536;
-
 var promiseMap = {};
 function request(url, callback, charset) {
 
@@ -2859,8 +2849,7 @@ function request(url, callback, charset) {
         return promise;
     }
 
-    var isCSS = IS_CSS_RE.test(url);
-    var node = doc.createElement(isCSS ? "link" : "script");
+    var node = doc.createElement("script");
 
     if (charset) {
         var cs = isFunction(charset) ? charset(url) : charset;
@@ -2870,17 +2859,12 @@ function request(url, callback, charset) {
     }
 
     promise = promiseMap[url] = new Promise(function(resolve, reject) {
-        addOnload(node, resolve, isCSS);
+        addOnload(node, resolve);
     });
     promise.then(callback);
 
-    if (isCSS) {
-        node.rel = "stylesheet";
-        node.href = url;
-    } else {
-        node.async = true;
-        node.src = url;
-    }
+    node.async = true;
+    node.src = url;
 
     // For some cache cases in IE 6-8, the script executes IMMEDIATELY after
     // the end of the insert execution, so use `currentlyAddingScript` to
@@ -2898,16 +2882,8 @@ function request(url, callback, charset) {
     return promise;
 }
 
-function addOnload(node, callback, isCSS) {
+function addOnload(node, callback) {
     var supportOnload = "onload" in node;
-
-    // for Old WebKit and Old Firefox
-    if (isCSS && (isOldWebKit || !supportOnload)) {
-        setTimeout(function() {
-            pollCss(node, callback);
-        }, 1); // Begin after node insertion
-        return;
-    }
 
     var onload = function() {
         // Ensure only run once and handle memory leak in IE
@@ -2935,42 +2911,6 @@ function addOnload(node, callback, isCSS) {
     }
 }
 
-function pollCss(node, callback) {
-    var sheet = node.sheet;
-    var isLoaded;
-
-    // for WebKit < 536
-    if (isOldWebKit) {
-        if (sheet) {
-            isLoaded = true;
-        }
-    }
-    // for Firefox < 9.0
-    else if (sheet) {
-        try {
-            if (sheet.cssRules) {
-                isLoaded = true;
-            }
-        } catch (ex) {
-            // The value of `ex.name` is changed from "NS_ERROR_DOM_SECURITY_ERR"
-            // to "SecurityError" since Firefox 13.0. But Firefox is less than 9.0
-            // in here, So it is ok to just rely on "NS_ERROR_DOM_SECURITY_ERR"
-            if (ex.name === "NS_ERROR_DOM_SECURITY_ERR") {
-                isLoaded = true;
-            }
-        }
-    }
-
-    setTimeout(function() {
-        if (isLoaded) {
-            // Place callback here to give time for style rendering
-            callback();
-        } else {
-            pollCss(node, callback);
-        }
-    }, 20);
-}
-
 var SCHEME_RE = /^(http|file)/i;
 /**
  * 请求的相对url转为绝对
@@ -2984,7 +2924,20 @@ function normalizeUrl(url) {
     return url;
 }
 
-S.loadCss = S.loadScript = function(url, callback, charset) {
+S.loadCss = function(url) {
+    url = normalizeUrl(url);
+
+    var node = doc.createElement("link");
+    node.rel = "stylesheet";
+    node.href = url;
+    if (baseElement) {
+        head.insertBefore(node, baseElement);
+    } else {
+        head.appendChild(node);
+    }
+};
+
+S.loadScript = function(url, callback, charset) {
     // url传入数组，按照数组中脚本的顺序进行加载
     if (isArray(url)) {
         var chain,
