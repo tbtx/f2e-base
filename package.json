@@ -1,13 +1,13 @@
 {
-  "name": "tbtx-base-js",
-  "author": "十一_tbtx",
-  "email": "zenxds@gmail.com",
-  "version": "0.1.0",
-  "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-uglify": "~0.2.0",
-    "grunt-contrib-jshint": "~0.6.2",
-    "grunt-contrib-concat": "~0.2.0",
-    "grunt-contrib-watch": "~0.3.1"
-  }
+    "name": "tbtx-base-js",
+    "author": "shiyi_tbtx",
+    "email": "tb_dongshuang.xiao@taobao.com",
+    "version": "0.2.0",
+    "devDependencies": {
+        "grunt": "~0.4.1",
+        "grunt-contrib-uglify": "~0.4.0",
+        "grunt-contrib-jshint": "~0.10.0",
+        "grunt-contrib-concat": "~0.4.0",
+        "grunt-contrib-watch": "~0.6.1"
+    }
 }
