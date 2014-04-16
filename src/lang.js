@@ -81,9 +81,7 @@
             return +new Date();
         };
     }
-    S.Now = function() {
-        return Date.now();
-    };
+    S.Now = Date.now;
 
     // ES5 15.5.4.20
     // whitespace from: http://es5.github.io/#x15.5.4.20
@@ -328,7 +326,7 @@
         };
     });
 
-    var isArray = Array.isArray = Array.isArray || S.isArray,
+    var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         isFunction = S.isFunction,
         isObject = S.isObject,
         isString = S.isString;

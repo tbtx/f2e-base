@@ -562,23 +562,13 @@
     Module.resolve = function(id, refUri) {
         return id2Uri(id, refUri);
     };
-    // Load preload modules before all other modules
-    Module.preload = function(callback) {
-        var preloadMods = data.preload;
-        var len = preloadMods.length;
 
-        if (len) {
-            Module.require(preloadMods, function() {
-                // config允许多次配置。所以这里也支持多次use时多次preload
-                // Remove the loaded preload modules
-                preloadMods.splice(0, len);
+    Module.register = function(id) {
+        var uri = Module.resolve(id),
+            mod = Module.get(uri);
 
-                // Allow preload modules to add new preload modules
-                Module.preload(callback);
-            }, data.cwd + "_preload_" + cid());
-        } else {
-            callback();
-        }
+        mod.id = id || uri;
+        mod.status = STATUS.EXECUTED;
     };
 
     /**
@@ -658,8 +648,6 @@
     // The charset for requesting files
     data.charset = "utf-8";
 
-    data.preload = [];
-
     // data.alias - An object containing shorthands of module id
     // data.paths - An object containing path shorthands in module id
     // data.vars - The {xxx} variables in module id
@@ -700,11 +688,11 @@
     global.define = S.define = Module.define;
 
     S.require = function(ids, callback) {
-        Module.preload(function() {
-            Module.require(ids, callback, data.cwd + "_require_" + cid());
-        });
+        Module.require(ids, callback, data.cwd + "_require_" + cid());
         return S;
     };
+
+    S.register = Module.register;
 
     S.realpath = realpath;
 

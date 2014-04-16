@@ -7,18 +7,6 @@
     var loaderDir = data.dir,
         staticUrl = S.staticUrl = realpath(loaderDir + "../../../");
 
-    /*
-     * preload config
-     */
-    // require to get the jquery exports
-    S.define.amd.jQuery = true;
-
-    var preload = ["jquery"];
-
-    if (!global.JSON) {
-        preload.push("json");
-    }
-
     /**
      * paths config
      */
@@ -39,9 +27,17 @@
             "json": "gallery/json2/json2.js"
         },
 
-        paths: paths,
+        paths: paths
 
-        preload: preload
     });
 
+    // require to get the jquery exports
+    S.define.amd.jQuery = true;
+
+    /*
+     * shim config
+     */
+    if (global.JSON) {
+        S.register("json");
+    }
 })(tbtx);

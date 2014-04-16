@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-15 1:55:16
+ * update: 2014-04-16 11:34:50
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -135,9 +135,7 @@
             return +new Date();
         };
     }
-    S.Now = function() {
-        return Date.now();
-    };
+    S.Now = Date.now;
 
     // ES5 15.5.4.20
     // whitespace from: http://es5.github.io/#x15.5.4.20
@@ -382,7 +380,7 @@
         };
     });
 
-    var isArray = Array.isArray = Array.isArray || S.isArray,
+    var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         isFunction = S.isFunction,
         isObject = S.isObject,
         isString = S.isString;
@@ -1742,23 +1740,13 @@
     Module.resolve = function(id, refUri) {
         return id2Uri(id, refUri);
     };
-    // Load preload modules before all other modules
-    Module.preload = function(callback) {
-        var preloadMods = data.preload;
-        var len = preloadMods.length;
 
-        if (len) {
-            Module.require(preloadMods, function() {
-                // config允许多次配置。所以这里也支持多次use时多次preload
-                // Remove the loaded preload modules
-                preloadMods.splice(0, len);
+    Module.register = function(id) {
+        var uri = Module.resolve(id),
+            mod = Module.get(uri);
 
-                // Allow preload modules to add new preload modules
-                Module.preload(callback);
-            }, data.cwd + "_preload_" + cid());
-        } else {
-            callback();
-        }
+        mod.id = id || uri;
+        mod.status = STATUS.EXECUTED;
     };
 
     /**
@@ -1838,8 +1826,6 @@
     // The charset for requesting files
     data.charset = "utf-8";
 
-    data.preload = [];
-
     // data.alias - An object containing shorthands of module id
     // data.paths - An object containing path shorthands in module id
     // data.vars - The {xxx} variables in module id
@@ -1880,11 +1866,11 @@
     global.define = S.define = Module.define;
 
     S.require = function(ids, callback) {
-        Module.preload(function() {
-            Module.require(ids, callback, data.cwd + "_require_" + cid());
-        });
+        Module.require(ids, callback, data.cwd + "_require_" + cid());
         return S;
     };
+
+    S.register = Module.register;
 
     S.realpath = realpath;
 
@@ -1899,18 +1885,6 @@
 
     var loaderDir = data.dir,
         staticUrl = S.staticUrl = realpath(loaderDir + "../../../");
-
-    /*
-     * preload config
-     */
-    // require to get the jquery exports
-    S.define.amd.jQuery = true;
-
-    var preload = ["jquery"];
-
-    if (!global.JSON) {
-        preload.push("json");
-    }
 
     /**
      * paths config
@@ -1932,9 +1906,17 @@
             "json": "gallery/json2/json2.js"
         },
 
-        paths: paths,
+        paths: paths
 
-        preload: preload
     });
 
+    // require to get the jquery exports
+    S.define.amd.jQuery = true;
+
+    /*
+     * shim config
+     */
+    if (global.JSON) {
+        S.register("json");
+    }
 })(tbtx);

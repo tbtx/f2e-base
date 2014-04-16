@@ -19,7 +19,9 @@ var specs = [
     "./spec/uri.spec",
     "./spec/loader.spec"
 ];
-tbtx.require(specs, function() {
+
+tbtx.require("jquery", function() {
+     tbtx.require(specs, function() {
         var jasmineEnv = jasmine.getEnv();
         jasmineEnv.updateInterval = 1000;
 
@@ -32,6 +34,7 @@ tbtx.require(specs, function() {
 
         jasmineEnv.execute();
     });
+});
 
 </script>
 </body>
