@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-16 11:34:50
+ * update: 2014-04-17 12:24:20
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1900,6 +1900,8 @@
         base: staticUrl,
 
         alias: {
+            "widget": "dist/widget.js",
+
             "jquery": "gallery/jquery/1.8.3/jquery.min.js",
             "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
             "easing": "plugin/jquery.easing.1.3.js",

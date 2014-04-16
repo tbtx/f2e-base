@@ -14,9 +14,9 @@ describe("loader", function() {
                 expect($).toBe(jQuery);
             });
 
-            S.require("miiee/js/moment.min.js", function() {
-                expect(moment).not.toBeUndefined();
-            });
+            // S.require("miiee/js/moment.min.js", function() {
+            //     expect(moment).not.toBeUndefined();
+            // });
 
             S.require("gallery/store/store.min.js", function(store) {
                 expect(store).not.toBeUndefined();
@@ -24,6 +24,12 @@ describe("loader", function() {
 
             S.require("handlebars", function() {
                 expect(Handlebars).not.toBeUndefined();
+            });
+
+            S.require("widget", function(Widget) {
+                var w = new Widget().render();
+
+                S.log(w);
             });
         });
     });

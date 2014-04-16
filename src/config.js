@@ -21,6 +21,8 @@
         base: staticUrl,
 
         alias: {
+            "widget": "dist/widget.js",
+
             "jquery": "gallery/jquery/1.8.3/jquery.min.js",
             "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
             "easing": "plugin/jquery.easing.1.3.js",

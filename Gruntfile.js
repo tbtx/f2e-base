@@ -6,10 +6,10 @@ module.exports = function(grunt) {
 
         // A list of files, which will be syntax-checked by JSHint
         jshint: {
-            files: ['src/*.js',],
+            files: ['src/*.js'],
             options: {
                 // 基本均为第三方文件，部分稍作扩展
-                // ignores: [],
+                ignores: ["src/widget.js"],
                 browser: true,      // 访问浏览器全局变量
                 sub: true,          // person['name'] vs. person.name
                 proto: true,        // use __proto__
@@ -21,13 +21,20 @@ module.exports = function(grunt) {
         // Files to be concatenated … (source and destination files)
         concat: {
             options: {
-                separator: '\n\n;',
-                banner: '/*\n * <%= pkg.name %>\n * update: <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
+                separator: '\n\n;'
             },
 
             main: {
+                options: {
+                    banner: '/*\n * <%= pkg.name %>\n * update: <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
+                },
                 src: ["src/seed.js", "src/lang.js", "src/uri.js", "src/loader.js", "src/config.js"],
                 dest: 'tbtx.js' // 合并成依赖文件
+            },
+
+            widget: {
+                src: ["src/widget.js"],
+                dest: "dist/widget.js"
             }
         },
 
