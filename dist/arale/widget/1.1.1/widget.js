@@ -1,4 +1,4 @@
-define("dist/class/1.1.0/class-debug", [], function() {
+define("arale/class/1.1.0/class", [], function() {
     // Class
     // -----------------
     // Thanks to:
@@ -148,7 +148,7 @@ define("dist/class/1.1.0/class-debug", [], function() {
     return Class;
 });
 
-define("dist/events/1.1.0/events-debug", [], function() {
+;define("arale/events/1.1.0/events", [], function() {
     // Events
     // -----------------
     // Thanks to:
@@ -273,7 +273,47 @@ define("dist/events/1.1.0/events-debug", [], function() {
     return Events;
 });
 
-define("dist/base/1.1.1/aspect-debug", [], function() {
+;define("arale/base/1.1.1/base", [ "arale/class/1.1.0/class", "arale/events/1.1.0/events", "./aspect", "./attribute" ], function(Class, Events, Aspect, Attribute) {
+    // Base
+    // ---------
+    // Base 是一个基础类，提供 Class、Events、Attrs 和 Aspect 支持。
+
+    return Class.create({
+        Implements: [ Events, Aspect, Attribute ],
+        initialize: function(config) {
+            this.initAttrs(config);
+            // Automatically register `this._onChangeAttr` method as
+            // a `change:attr` event handler.
+            parseEventsFromInstance(this, this.attrs);
+        },
+        destroy: function() {
+            this.off();
+            for (var p in this) {
+                if (this.hasOwnProperty(p)) {
+                    delete this[p];
+                }
+            }
+            // Destroy should be called only once, generate a fake destroy after called
+            // https://github.com/aralejs/widget/issues/50
+            this.destroy = function() {};
+        }
+    });
+    function parseEventsFromInstance(host, attrs) {
+        for (var attr in attrs) {
+            if (attrs.hasOwnProperty(attr)) {
+                var m = "_onChange" + ucfirst(attr);
+                if (host[m]) {
+                    host.on("change:" + attr, host[m]);
+                }
+            }
+        }
+    }
+    function ucfirst(str) {
+        return str.charAt(0).toUpperCase() + str.substring(1);
+    }
+});
+
+define("arale/base/1.1.1/aspect", [], function() {
     var exports = {};
     // Aspect
     // ---------------------
@@ -329,7 +369,7 @@ define("dist/base/1.1.1/aspect-debug", [], function() {
     return exports;
 });
 
-define("dist/base/1.1.1/attribute-debug", [], function() {
+define("arale/base/1.1.1/attribute", [], function() {
     var exports = {};
     // Attribute
     // -----------------
@@ -699,47 +739,7 @@ define("dist/base/1.1.1/attribute-debug", [], function() {
     return exports;
 });
 
-define("dist/base/1.1.1/base-debug", [ "dist/class/1.1.0/class-debug", "dist/events/1.1.0/events-debug", "dist/base/1.1.1/aspect-debug", "dist/base/1.1.1/attribute-debug" ], function(Class, Events, Aspect, Attribute) {
-    // Base
-    // ---------
-    // Base 是一个基础类，提供 Class、Events、Attrs 和 Aspect 支持。
-
-    return Class.create({
-        Implements: [ Events, Aspect, Attribute ],
-        initialize: function(config) {
-            this.initAttrs(config);
-            // Automatically register `this._onChangeAttr` method as
-            // a `change:attr` event handler.
-            parseEventsFromInstance(this, this.attrs);
-        },
-        destroy: function() {
-            this.off();
-            for (var p in this) {
-                if (this.hasOwnProperty(p)) {
-                    delete this[p];
-                }
-            }
-            // Destroy should be called only once, generate a fake destroy after called
-            // https://github.com/distjs/widget/issues/50
-            this.destroy = function() {};
-        }
-    });
-    function parseEventsFromInstance(host, attrs) {
-        for (var attr in attrs) {
-            if (attrs.hasOwnProperty(attr)) {
-                var m = "_onChange" + ucfirst(attr);
-                if (host[m]) {
-                    host.on("change:" + attr, host[m]);
-                }
-            }
-        }
-    }
-    function ucfirst(str) {
-        return str.charAt(0).toUpperCase() + str.substring(1);
-    }
-});
-
-define("dist/widget/1.1.1/daparser-debug", [ "jquery" ], function($) {
+;define("arale/widget/1.1.1/daparser", [ "jquery" ], function($) {
     // DAParser
     // --------
     // data api 解析器，提供对单个 element 的解析，可用来初始化页面中的所有 Widget 组件。
@@ -812,7 +812,7 @@ define("dist/widget/1.1.1/daparser-debug", [ "jquery" ], function($) {
     return exports;
 });
 
-define("dist/widget/1.1.1/auto-render-debug", [ "jquery" ], function($) {
+define("arale/widget/1.1.1/auto-render", [ "jquery" ], function($) {
     var exports = {};
     var DATA_WIDGET_AUTO_RENDERED = "data-widget-auto-rendered";
     // 自动渲染接口，子类可根据自己的初始化逻辑进行覆盖
@@ -871,7 +871,7 @@ define("dist/widget/1.1.1/auto-render-debug", [ "jquery" ], function($) {
     return exports;
 });
 
-define("widget", [ "dist/base/1.1.1/base-debug", "dist/class/1.1.0/class-debug", "dist/events/1.1.0/events-debug", "jquery", "dist/widget/1.1.1/daparser-debug", "dist/widget/1.1.1/auto-render-debug" ], function() {
+define("arale/widget/1.1.1/widget", [ "arale/base/1.1.1/base", "arale/class/1.1.0/class", "arale/events/1.1.0/events", "jquery", "./daparser", "./auto-render"], function() {
     // Widget
     // ---------
     // Widget 是与 DOM 元素相关联的非工具类组件，主要负责 View 层的管理。
@@ -1216,4 +1216,3 @@ define("widget", [ "dist/base/1.1.1/base-debug", "dist/class/1.1.0/class-debug",
     };
     return Widget;
 });
-

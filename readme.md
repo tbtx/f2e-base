@@ -1,6 +1,8 @@
 ## 目录结构
 	gallery: 功能独立的第三方库目录
 	plugin: 第三方jQuery插件目录
+	dist: 发布目录
+	src: 源文件目录
 	test: 测试目录
 
 	Gruntfile.js: grunt配置文件

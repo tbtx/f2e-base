@@ -9,7 +9,7 @@ module.exports = function(grunt) {
             files: ['src/*.js'],
             options: {
                 // 基本均为第三方文件，部分稍作扩展
-                ignores: ["src/widget.js"],
+                ignores: ["src/widget.js", "src/position.js"],
                 browser: true,      // 访问浏览器全局变量
                 sub: true,          // person['name'] vs. person.name
                 proto: true,        // use __proto__
@@ -32,11 +32,63 @@ module.exports = function(grunt) {
                 dest: 'tbtx.js' // 合并成依赖文件
             },
 
+            class: {
+                src: ["src/arale/class/1.1.0/class.js"],
+                dest: "dist/arale/class/1.1.0/class.js"
+            },
+            events: {
+                src: ["src/arale/events/1.1.0/events.js"],
+                dest: "dist/arale/events/1.1.0/events.js"
+            },
+            base: {
+                src: ["src/arale/class/1.1.0/class.js", "src/arale/events/1.1.0/events.js", "src/arale/base/1.1.1/base.js"],
+                dest: "dist/arale/base/1.1.1/base.js"
+            },
             widget: {
-                src: ["src/widget.js"],
-                dest: "dist/widget.js"
+                src: ["src/arale/class/1.1.0/class.js", "src/arale/events/1.1.0/events.js", "src/arale/base/1.1.1/base.js", "src/arale/widget/1.1.1/widget.js"],
+                dest: "dist/arale/widget/1.1.1/widget.js"
+            },
+
+            position: {
+                src: ["src/arale/position/1.0.1/position.js"],
+                dest: "dist/arale/position/1.0.1/position.js"
+            },
+
+            iframeShim: {
+                src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js"],
+                dest: "dist/arale/iframe-shim/1.0.2/iframe-shim.js"
+            },
+
+            templatable: {
+                src: ["src/arale/template/0.9.2/templatable.js"],
+                dest: "dist/arale/templatable/0.9.2/templatable.js"
+            },
+
+            cookie: {
+                src: ["src/cookie/1.0/cookie.js"],
+                dest: "dist/cookie/1.0/cookie.js"
+            },
+
+            // component
+            overlay: {
+                src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js"],
+                dest: "component/overlay/1.1.4/overlay.js"
+            },
+
+            popup: {
+                src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js", "src/component/popup/1.0/popup.js"],
+                dest: "component/popup/1.0/popup.js"
             }
         },
+
+        // copy: {
+        //     main: {
+        //         expand: true,
+        //         cwd: 'src/',
+        //         src: "arale/**",
+        //         dest: "dist/"
+        //     }
+        // },
 
         // js … and minified (source and destination files)
         uglify: {
@@ -61,6 +113,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     // This is the default task being executed if Grunt
     // is called without any further parameter.

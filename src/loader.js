@@ -563,11 +563,14 @@
         return id2Uri(id, refUri);
     };
 
-    Module.register = function(id) {
+    Module.register = function(id, exports) {
         var uri = Module.resolve(id),
             mod = Module.get(uri);
 
         mod.id = id || uri;
+        if (exports) {
+            mod.exports = exports;
+        }
         mod.status = STATUS.EXECUTED;
     };
 

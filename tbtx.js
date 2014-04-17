@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-17 12:24:20
+ * update: 2014-04-17 12:17:01
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1741,11 +1741,14 @@
         return id2Uri(id, refUri);
     };
 
-    Module.register = function(id) {
+    Module.register = function(id, exports) {
         var uri = Module.resolve(id),
             mod = Module.get(uri);
 
         mod.id = id || uri;
+        if (exports) {
+            mod.exports = exports;
+        }
         mod.status = STATUS.EXECUTED;
     };
 
@@ -1895,17 +1898,30 @@
         paths[name] = loaderDir + name;
     });
 
+    paths.arale = loaderDir + "dist/arale";
+
 
     Loader.config({
         base: staticUrl,
 
         alias: {
-            "widget": "dist/widget.js",
+            // arale
+            "widget": "arale/widget/1.1.1/widget",
+            "position": "arale/position/1.0.1/position",
 
-            "jquery": "gallery/jquery/1.8.3/jquery.min.js",
-            "handlebars": "gallery/handlebars/1.3.0/handlebars.js",
-            "easing": "plugin/jquery.easing.1.3.js",
-            "json": "gallery/json2/json2.js"
+            // dist
+            "cookie": "dist/cookie/1.0/cookie",
+
+            // component
+            "overlay": "component/overlay/1.1.4/overlay",
+            "popup": "component/popup/1.0/popup",
+
+            // gallery
+            "$": "gallery/jquery/1.8.3/jquery.min",
+            "jquery": "gallery/jquery/1.8.3/jquery.min",
+            "handlebars": "gallery/handlebars/1.3.0/handlebars",
+            "easing": "plugin/jquery.easing.1.3",
+            "json": "gallery/json2/json2"
         },
 
         paths: paths
@@ -1920,5 +1936,9 @@
      */
     if (global.JSON) {
         S.register("json");
+    }
+    if (global.jQuery) {
+        S.register("jquery", jQuery);
+        S.register("$", jQuery);
     }
 })(tbtx);
