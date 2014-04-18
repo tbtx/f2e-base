@@ -78,6 +78,11 @@ module.exports = function(grunt) {
             popup: {
                 src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js", "src/component/popup/1.0/popup.js"],
                 dest: "component/popup/1.0/popup.js"
+            },
+
+            switchable: {
+                src: ["src/component/switchable/1.0.3/switchable.js"],
+                dest: "component/switchable/1.0.3/switchable.js"
             }
         },
 

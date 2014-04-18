@@ -28,18 +28,20 @@
             "position": "arale/position/1.0.1/position",
 
             // dist
-            "cookie": "dist/cookie/1.0/cookie",
 
             // component
             "overlay": "component/overlay/1.1.4/overlay",
             "popup": "component/popup/1.0/popup",
+            "switchable": "component/switchable/1.0.3/switchable",
 
             // gallery
             "$": "gallery/jquery/1.8.3/jquery.min",
             "jquery": "gallery/jquery/1.8.3/jquery.min",
             "handlebars": "gallery/handlebars/1.3.0/handlebars",
-            "easing": "plugin/jquery.easing.1.3",
-            "json": "gallery/json2/json2"
+            "json": "gallery/json2/json2",
+
+            // plugin
+            "easing": "plugin/jquery.easing.1.3"
         },
 
         paths: paths

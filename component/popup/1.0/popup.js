@@ -565,7 +565,7 @@ define("arale/position/1.0.1/position", [ "jquery" ], function($) {
 
         events: {
             "click .J-popup-close": "hide",
-            "click [data-role=close]": "hide"
+            "click [data-popup-role=close]": "hide"
         },
 
         initProps: function() {
