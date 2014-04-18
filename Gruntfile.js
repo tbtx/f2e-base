@@ -28,7 +28,7 @@ module.exports = function(grunt) {
                 options: {
                     banner: '/*\n * <%= pkg.name %>\n * update: <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
                 },
-                src: ["src/seed.js", "src/lang.js", "src/uri.js", "src/loader.js", "src/config.js"],
+                src: ["src/seed.js", "src/lang.js", "src/uri.js", "src/loader.js", "src/config.js", "src/cookie.js", "src/Request.js"],
                 dest: 'tbtx.js' // 合并成依赖文件
             },
 
@@ -64,10 +64,10 @@ module.exports = function(grunt) {
                 dest: "dist/arale/templatable/0.9.2/templatable.js"
             },
 
-            cookie: {
-                src: ["src/cookie/1.0/cookie.js"],
-                dest: "dist/cookie/1.0/cookie.js"
-            },
+            // cookie: {
+            //     src: ["src/cookie/1.0/cookie.js"],
+            //     dest: "dist/cookie/1.0/cookie.js"
+            // },
 
             // component
             overlay: {

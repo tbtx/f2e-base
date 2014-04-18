@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-17 12:17:01
+ * update: 2014-04-18 12:33:23
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1178,14 +1178,14 @@
 
 ;(function(global, S, undefined) {
 
-    var Loader = S.namespace("Loader");
+    var Loader = S.namespace("Loader"),
+        data = Loader.data = {};
 
-    var data = Loader.data = {};
-
-    var isObject = S.isObject;
-    var isString = S.isString;
-    var isArray = Array.isArray;
-    var isFunction = S.isFunction;
+    var isObject = S.isObject,
+        isString = S.isString,
+        isArray = Array.isArray,
+        noop = S.noop,
+        isFunction = S.isFunction;
 
     var _cid = 0;
     function cid() {
@@ -1373,8 +1373,15 @@
     var currentlyAddingScript;
     var interactiveScript;
 
+    var IS_CSS_RE = /\.css(?:\?|$)/i;
+    var isOldWebKit = +navigator.userAgent
+        .replace(/.*(?:AppleWebKit|AndroidWebKit)\/(\d+).*/, "$1") < 536;
+
     function request(url, callback, charset) {
-        var node = doc.createElement("script");
+        callback = callback || noop;
+
+        var isCSS = IS_CSS_RE.test(url),
+            node = doc.createElement(isCSS ? "link" : "script");
 
         if (charset) {
             var cs = isFunction(charset) ? charset(url) : charset;
@@ -1383,10 +1390,16 @@
             }
         }
 
-        addOnload(node, callback);
+        addOnload(node, callback, isCSS);
 
-        node.async = true;
-        node.src = url;
+        if (isCSS) {
+            node.rel = "stylesheet";
+            node.href = url;
+        }
+        else {
+            node.async = true;
+            node.src = url;
+        }
 
         // For some cache cases in IE 6-8, the script executes IMMEDIATELY after
         // the end of the insert execution, so use `currentlyAddingScript` to
@@ -1403,15 +1416,24 @@
         currentlyAddingScript = null;
     }
 
-    function addOnload(node, callback) {
+    function addOnload(node, callback, isCSS) {
         // 不支持 onload事件
         var supportOnload = "onload" in node;
+        // for Old WebKit and Old Firefox
+        if (isCSS && (isOldWebKit || !supportOnload)) {
+            setTimeout(function() {
+              pollCss(node, callback);
+            }, 1); // Begin after node insertion
+            return;
+        }
 
         var onload = function() {
             // Ensure only run once and handle memory leak in IE
             node.onload = node.onerror = node.onreadystatechange = null;
 
-            head.removeChild(node);
+            if(!isCSS) {
+                head.removeChild(node);
+            }
 
             // Dereference the node
             node = null;
@@ -1421,8 +1443,7 @@
         if (supportOnload) {
             node.onload = onload;
             node.onerror = function(error) {
-                console.log("error:");
-                console.log(error);
+                S.log(error, "error");
                 onload();
             };
         } else {
@@ -1432,6 +1453,42 @@
                 }
             };
         }
+    }
+
+    function pollCss(node, callback) {
+        var sheet = node.sheet;
+        var isLoaded;
+
+        // for WebKit < 536
+        if (isOldWebKit) {
+            if (sheet) {
+                isLoaded = true;
+            }
+        }
+        // for Firefox < 9.0
+        else if (sheet) {
+            try {
+                if (sheet.cssRules) {
+                    isLoaded = true;
+                }
+            } catch (ex) {
+            // The value of `ex.name` is changed from "NS_ERROR_DOM_SECURITY_ERR"
+            // to "SecurityError" since Firefox 13.0. But Firefox is less than 9.0
+            // in here, So it is ok to just rely on "NS_ERROR_DOM_SECURITY_ERR"
+                if (ex.name === "NS_ERROR_DOM_SECURITY_ERR") {
+                    isLoaded = true;
+                }
+            }
+        }
+
+        setTimeout(function() {
+            if (isLoaded) {
+                // Place callback here to give time for style rendering
+                callback();
+            } else {
+                pollCss(node, callback);
+            }
+        }, 20);
     }
 
     function getCurrentScript() {
@@ -1877,6 +1934,8 @@
 
     S.realpath = realpath;
 
+    S.request = request;
+
 })(this, tbtx);
 
 
@@ -1942,3 +2001,138 @@
         S.register("$", jQuery);
     }
 })(tbtx);
+
+;(function(S) {
+
+    var isNotEmptyString = S.isNotEmptyString;
+
+    // kissy start
+    var doc = document,
+        MILLISECONDS_OF_DAY = 24 * 60 * 60 * 1000,
+        encode = encodeURIComponent,
+        decode = decodeURIComponent;
+
+    var cookie = {
+        /**
+         * 获取 cookie 值
+         * @return {string} 如果 name 不存在，返回 undefined
+         */
+        get: function(name) {
+            var ret, m;
+
+            if (isNotEmptyString(name)) {
+                if ((m = String(doc.cookie).match(
+                    new RegExp('(?:^| )' + name + '(?:(?:=([^;]*))|;|$)')))) {
+                    ret = m[1] ? decode(m[1]) : '';
+                }
+            }
+            return ret;
+        },
+
+        set: function(name, val, domain, expires, path, secure) {
+            var text = String(encode(val)),
+                date = expires;
+
+            // 从当前时间开始，多少天后过期
+            if (typeof date === 'number') {
+                date = new Date();
+                date.setTime(date.getTime() + expires * MILLISECONDS_OF_DAY);
+            }
+
+            // expiration date
+            if (date instanceof Date) {
+                text += '; expires=' + date.toUTCString();
+            }
+
+            // domain
+            if (isNotEmptyString(domain)) {
+                text += '; domain=' + domain;
+            }
+
+            // path
+            if (isNotEmptyString(path)) {
+                text += '; path=' + path;
+            }
+
+            // secure
+            if (secure) {
+                text += '; secure';
+            }
+
+            doc.cookie = name + '=' + text;
+            return this;
+        },
+
+        remove: function(name, domain, path, secure) {
+            // 置空，并立刻过期
+            this.set(name, '', domain, -1, path, secure);
+            return this;
+        }
+    };
+
+    S.cookie = cookie;
+})(tbtx);
+
+
+;define("request", ["jquery"], function($) {
+    var S = tbtx,
+        cookie = S.cookie;
+
+    var generateToken = function(name) {
+        var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
+        cookie.set(S.tokenName, token, '', '', '/');
+        return token;
+    };
+    // 默认蜜儿
+    S.tokenName = 'MIIEE_JTOKEN';
+
+    var requestFailCode = -1,
+        requestFailResponse = {
+            code: requestFailCode,
+            msg: "请求失败！请检查网络连接！"
+        },
+        requestingCode = -2,
+        requestMap = {},
+        /**
+         * 适用于用到jtoken的请求
+         */
+        Request = function(url, data, successCode) {
+            successCode = successCode || Request.successCode || [100];
+            data = data || {};
+            if (S.isPlainObject(data) && !data.jtoken) {
+                data.jtoken = generateToken();
+            }
+
+            var deferred = requestMap[url];
+            // 正在处理中
+            if (deferred && deferred.state() === "pending") {
+                deferred.notify(requestingCode);
+                return deferred.promise();
+            }
+
+            deferred = requestMap[url] = $.Deferred();
+            $.ajax({
+                url: url,
+                type: 'post',
+                dataType: 'json',
+                data: data,
+                timeout: 10000
+            })
+            .done(function(response) {
+                var code = response && response.code;
+                if (S.inArray(successCode, code)) {
+                    deferred.resolve(response);
+                } else {
+                    deferred.reject(code, response);
+                }
+            })
+            .fail(function() {
+                deferred.reject(requestFailCode, requestFailResponse);
+            });
+
+            return deferred.promise();
+        };
+
+    S.Request = Request;
+    return Request;
+});

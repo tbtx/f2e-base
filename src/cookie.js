@@ -1,14 +1,6 @@
-define("dist/cookie/1.0/cookie", [], function() {
+(function(S) {
 
-    var toString = Object.prototype.toString,
-
-        isString = function(val) {
-            return toString.call(val) === '[object String]';
-        },
-
-        isNotEmptyString = function(val) {
-            return isString(val) && val !== '';
-        };
+    var isNotEmptyString = S.isNotEmptyString;
 
     // kissy start
     var doc = document,
@@ -74,5 +66,5 @@ define("dist/cookie/1.0/cookie", [], function() {
         }
     };
 
-    return cookie;
-});
+    S.cookie = cookie;
+})(tbtx);
