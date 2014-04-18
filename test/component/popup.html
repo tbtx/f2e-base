@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="http://static.tianxia.taobao.com/tbtx/base/css/reset.css">
+    <style>
+    body {
+        height: 2000px;
+    }
+    </style>
+    <script src="../../tbtx.js"></script>
+</head>
+<div>
+    <span data-role="close">124</span>
+</div>
+<body>
+    <script>
+    var instance;
+    tbtx.require("popup", function(Popup) {
+        instance = new Popup({
+            element: "div"
+        }).show();
+    });
+    </script>
+</body>
+</html>

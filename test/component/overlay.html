@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="http://static.tianxia.taobao.com/tbtx/base/css/reset.css">
+    <style>
+    body {
+        height: 2000px;
+    }
+    </style>
+    <script src="../../tbtx.js"></script>
+</head>
+<body>
+    <script>
+    var instance;
+    tbtx.require("overlay", function(O) {
+        instance = new O.Overlay({
+            template: "<div>123</div>",
+            hideOnClick: true
+        }).show();
+    });
+    </script>
+</body>
+</html>
