@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-19 12:15:51
+ * update: 2014-04-19 12:33:42
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1974,6 +1974,7 @@
             "overlay": "component/overlay/1.1.4/overlay",
             "popup": "component/popup/1.0/popup",
             "switchable": "component/switchable/1.0.3/switchable",
+            "validator": "component/validator/0.9.7/validator",
 
             // gallery
             "$": "gallery/jquery/1.8.3/jquery.min",

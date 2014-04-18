@@ -83,6 +83,11 @@ module.exports = function(grunt) {
             switchable: {
                 src: ["src/component/switchable/1.0.3/switchable.js"],
                 dest: "component/switchable/1.0.3/switchable.js"
+            },
+
+            validator: {
+                src: ["src/component/validator/0.9.7/validator.js"],
+                dest: "component/validator/0.9.7/validator.js"
             }
         },
 

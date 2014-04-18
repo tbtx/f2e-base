@@ -33,6 +33,7 @@
             "overlay": "component/overlay/1.1.4/overlay",
             "popup": "component/popup/1.0/popup",
             "switchable": "component/switchable/1.0.3/switchable",
+            "validator": "component/validator/0.9.7/validator",
 
             // gallery
             "$": "gallery/jquery/1.8.3/jquery.min",
