@@ -64,29 +64,29 @@
 
     <script>
     var validator;
-    tbtx.require(["validator", "widget"], function(V, Widget) {
-        validator = new V({
-            element: 'form'
-        });
+    tbtx.require(["widget"], function(Widget) {
+        // validator = new V({
+        //     element: 'form'
+        // });
 
-        validator.addItem({
-            element: '[name=username]',
-            required: true,
-            rule: 'email minlength{min:1} maxlength{max:20}'
-        })
+        // validator.addItem({
+        //     element: '[name=username]',
+        //     required: true,
+        //     rule: 'email minlength{min:1} maxlength{max:20}'
+        // })
 
-        .addItem({
-            element: '[name=password]',
-            required: true,
-            rule: 'minlength{min:5}'
-        })
+        // .addItem({
+        //     element: '[name=password]',
+        //     required: true,
+        //     rule: 'minlength{min:5}'
+        // })
 
-        .addItem({
-            element: '[name=password-confirmation]',
-            required: true,
-            rule: 'confirmation{target: "#password"}'
-        });
-        // Widget.autoRenderAll();
+        // .addItem({
+        //     element: '[name=password-confirmation]',
+        //     required: true,
+        //     rule: 'confirmation{target: "#password"}'
+        // });
+        Widget.autoRenderAll();
     });
     </script>
 </body>

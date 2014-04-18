@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-19 12:33:42
+ * update: 2014-04-19 12:41:43
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */

@@ -94,7 +94,7 @@ define("arale/widget/1.1.1/auto-render", [ "jquery" ], function($) {
             }
         });
         if (modules.length) {
-            seajs.use(modules, function() {
+            tbtx.require(modules, function() {
                 for (var i = 0; i < arguments.length; i++) {
                     var SubWidget = arguments[i];
                     var element = $(elements[i]);
