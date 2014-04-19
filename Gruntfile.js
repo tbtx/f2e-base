@@ -32,6 +32,15 @@ module.exports = function(grunt) {
                 dest: 'tbtx.js' // 合并成依赖文件
             },
 
+            wangwang: {
+                src: ["src/wangwang.js"],
+                dest: "dist/wangwang.js"
+            },
+            sitenav: {
+                src: ["src/sitenav.js"],
+                dest: "dist/sitenav.js"
+            },
+
             class: {
                 src: ["src/arale/class/1.1.0/class.js"],
                 dest: "dist/arale/class/1.1.0/class.js"
@@ -48,27 +57,22 @@ module.exports = function(grunt) {
                 src: ["src/arale/class/1.1.0/class.js", "src/arale/events/1.1.0/events.js", "src/arale/base/1.1.1/base.js", "src/arale/widget/1.1.1/widget.js"],
                 dest: "dist/arale/widget/1.1.1/widget.js"
             },
-
             position: {
                 src: ["src/arale/position/1.0.1/position.js"],
                 dest: "dist/arale/position/1.0.1/position.js"
             },
-
             iframeShim: {
                 src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js"],
                 dest: "dist/arale/iframe-shim/1.0.2/iframe-shim.js"
             },
-
             templatable: {
                 src: ["src/arale/template/0.9.2/templatable.js"],
                 dest: "dist/arale/templatable/0.9.2/templatable.js"
             },
-
             detector: {
                 src: ["src/arale/detector/1.3.0/detector.js"],
                 dest: "dist/arale/detector/1.3.0/detector.js"
             },
-
             dnd: {
                 src: ["src/arale/dnd/1.0.0/dnd.js"],
                 dest: "dist/arale/dnd/1.0.0/dnd.js"
