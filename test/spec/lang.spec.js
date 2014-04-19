@@ -275,39 +275,6 @@ describe('lang', function() {
         });
     });
 
-    describe("mix", function() {
-        it("should mix to S if no src", function() {
-            expect(S.hello).not.toEqual(123);
-            S.mix({
-                hello: 123
-            });
-            expect(S.hello).toEqual(123);
-
-            S.mix(S, {
-                hello: 456
-            }, ["hello"]);
-            expect(S.hello).toEqual(123);
-
-            S.mix(S, {
-                hello: 456
-            }, [], false);
-            expect(S.hello).toEqual(123);
-
-            var r = {
-                a: {
-                    b: 123
-                }
-            };
-            var s = {
-                a: {
-                    b: 456
-                }
-            };
-            S.mix(r, s, [], true, true);
-            expect(r.a.b).toEqual(456);
-        });
-    });
-
     describe('isNotEmptyString', function() {
         it("should be true if the param is string and is not empty", function() {
             expect(S.isNotEmptyString('abc')).toBeTruthy();

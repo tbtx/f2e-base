@@ -334,36 +334,31 @@
     // return false终止循环
     // 原生every必须return true or false
     var each = S.each = function(object, fn, context) {
-        if (object) {
-            var key,
-                val,
-                keys,
-                i = 0,
-                length = object.length,
-                // do not use typeof obj == 'function': bug in phantomjs
-                isObj = length === undefined || isFunction(object);
+        var i = 0,
+            key,
+            keys,
+            length;
 
-            context = context || null;
+        context = context || null;
 
-            if (isObj) {
-                keys = Object.keys(object);
-                length = keys.length;
-                for (; i < length; i++) {
-                    key = keys[i];
-                    // can not use hasOwnProperty
-                    if (fn.call(context, object[key], key, object) === FALSE) {
-                        break;
-                    }
+        if (isArray(object)) {
+            length = object.length;
+            for (; i < length; i++) {
+                if (fn.call(context, object[i], i, object) === FALSE) {
+                    break;
                 }
-            } else {
-                for (val = object[0]; i < length; val = object[++i]) {
-                    if (fn.call(context, val, i, object) === FALSE) {
-                        break;
-                    }
+            }
+        } else {
+            keys = Object.keys(object);
+            length = keys.length;
+            for (; i < length; i++) {
+                key = keys[i];
+                // can not use hasOwnProperty
+                if (fn.call(context, object[key], key, object) === FALSE) {
+                    break;
                 }
             }
         }
-        return object;
     };
 
     var EMPTY = "",
@@ -504,32 +499,6 @@
         reverseEntities[htmlEntities[k]] = k;
     }
 
-    var mix = S.mix = function(des, source, blacklist, over, deep) {
-        var i;
-        if (!des || des === source) {
-            return des;
-        }
-        // 扩展自身
-        if (!source) {
-            source = des;
-            des = this;
-        }
-        if (typeof over !== "boolean") {
-            over = TRUE;
-        }
-        blacklist = blacklist || [];
-
-        for (i in source) {
-            if (inArray(blacklist, i)) {
-                continue;
-            }
-            if (over || !(i in des)) {
-                des[i] = deep ? deepCopy(source[i]) : source[i];
-            }
-        }
-        return des;
-    };
-
     /**
      * util
      */
@@ -549,8 +518,6 @@
 
     // S
     S.mix({
-
-        mix: mix,
 
         isNotEmptyString: function(val) {
             return isString(val) && val !== EMPTY;

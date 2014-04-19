@@ -33,14 +33,21 @@
         /**
          * 空函数，在需要使用空函数作为参数时使用
          */
-        noop: noop
+        noop: noop,
+
+        mix: mix
 
     });
 
-    function mix(des, source) {
-        for (var i in source) {
-            des[i] = source[i];
+    function mix(to, from) {
+        if (!from) {
+            from = to;
+            to = S;
         }
+        for (var i in from) {
+            to[i] = from[i];
+        }
+        return to;
     }
 
 })(this, 'tbtx');

@@ -253,7 +253,10 @@
     };
 
     S.mix({
-         isUri: function(val) {
+        urlEncode: urlEncode,
+        urlDecode: urlDecode,
+
+        isUri: function(val) {
             var match;
             if (S.isNotEmptyString(val)) {
                 match = URI_RE.exec(val);
