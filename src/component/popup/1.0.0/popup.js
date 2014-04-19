@@ -1,4 +1,4 @@
-define("component/popup/1.0/popup", ["jquery", "component/overlay/1.1.4/overlay", "position"], function($, O, Position) {
+define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overlay", "position"], function($, O, Position) {
 
     var Mask = O.Mask,
         Overlay = O.Overlay;

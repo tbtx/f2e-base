@@ -24,14 +24,16 @@
 
         alias: {
             // arale
+            "base": "arale/base/1.1.1/base",
             "widget": "arale/widget/1.1.1/widget",
             "position": "arale/position/1.0.1/position",
+            "detector": "arale/detector/1.3.0/detector",
 
             // dist
 
             // component
             "overlay": "component/overlay/1.1.4/overlay",
-            "popup": "component/popup/1.0/popup",
+            "popup": "component/popup/1.0.0/popup",
             "switchable": "component/switchable/1.0.3/switchable",
             "validator": "component/validator/0.9.7/validator",
 

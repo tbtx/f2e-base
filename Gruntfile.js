@@ -64,10 +64,15 @@ module.exports = function(grunt) {
                 dest: "dist/arale/templatable/0.9.2/templatable.js"
             },
 
-            // cookie: {
-            //     src: ["src/cookie/1.0/cookie.js"],
-            //     dest: "dist/cookie/1.0/cookie.js"
-            // },
+            detector: {
+                src: ["src/arale/detector/1.3.0/detector.js"],
+                dest: "dist/arale/detector/1.3.0/detector.js"
+            },
+
+            dnd: {
+                src: ["src/arale/dnd/1.0.0/dnd.js"],
+                dest: "dist/arale/dnd/1.0.0/dnd.js"
+            },
 
             // component
             overlay: {
@@ -76,8 +81,8 @@ module.exports = function(grunt) {
             },
 
             popup: {
-                src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js", "src/component/popup/1.0/popup.js"],
-                dest: "component/popup/1.0/popup.js"
+                src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js", "src/component/popup/1.0.0/popup.js"],
+                dest: "component/popup/1.0.0/popup.js"
             },
 
             switchable: {
