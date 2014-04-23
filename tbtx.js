@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-20 12:17:44
+ * update: 2014-04-23 4:17:24
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -2079,11 +2079,27 @@
          * 适用于用到jtoken的请求
          */
         Request = function(url, data, successCode) {
-            successCode = successCode || Request.successCode || [100];
-            data = data || {};
-            if (S.isPlainObject(data) && !data.jtoken) {
-                data.jtoken = generateToken();
+            var config;
+
+            if (S.isPlainObject(url)) {
+                config = url;
+                successCode = data;
+            } else {
+                data = data || {};
+                if (S.isPlainObject(data) && !data.jtoken) {
+                    data.jtoken = generateToken();
+                }
+                config = {
+                    url: url,
+                    data: data,
+                    type: "post",
+                    dataType: 'json',
+                    timeout: 10000
+                };
             }
+
+            successCode = successCode || 100;
+
 
             var deferred = requestMap[url];
             // 正在处理中
@@ -2093,16 +2109,10 @@
             }
 
             deferred = requestMap[url] = $.Deferred();
-            $.ajax({
-                url: url,
-                type: 'post',
-                dataType: 'json',
-                data: data,
-                timeout: 10000
-            })
+            $.ajax(config)
             .done(function(response) {
                 var code = response && response.code;
-                if (S.inArray(successCode, code)) {
+                if (code === successCode) {
                     deferred.resolve(response);
                 } else {
                     deferred.reject(code, response);
@@ -2117,4 +2127,52 @@
 
     S.Request = Request;
     return Request;
+});
+
+;define("msg", ["jquery", "position", "base/2.0/css/msg.css"], function($, Position) {
+    var S = tbtx;
+
+    var element = $('<div class="tbtx-broadcast"></div>').appendTo('body');
+
+    var timer;
+    // direction - top/bottom
+    var broadcast = function(msg, duration, direction) {
+        direction = direction || "center";
+        duration = duration || 4000;
+
+        if (timer) {
+            timer.cancel();
+        }
+
+        if (!msg) {
+            element.hide();
+            return;
+        }
+
+        element.html(msg);
+
+        if (direction == "center") {
+            Position.center(element);
+        } else {
+            Position.pin({
+                element: element,
+                x: "50%",
+                y: direction == "top" ? -60 : "100%+60"
+            }, {
+                element: Position.VIEWPORT,
+                x: "50%",
+                y: direction == "top" ? 0 : "100%"
+            });
+        }
+
+        element.fadeIn();
+
+        if (duration > 0) {
+            timer = S.later(function() {
+                element.fadeOut();
+            }, duration, false);
+        }
+    };
+
+    S.broadcast = broadcast;
 });

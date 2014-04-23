@@ -21,11 +21,27 @@ define("request", ["jquery"], function($) {
          * 适用于用到jtoken的请求
          */
         Request = function(url, data, successCode) {
-            successCode = successCode || Request.successCode || [100];
-            data = data || {};
-            if (S.isPlainObject(data) && !data.jtoken) {
-                data.jtoken = generateToken();
+            var config;
+
+            if (S.isPlainObject(url)) {
+                config = url;
+                successCode = data;
+            } else {
+                data = data || {};
+                if (S.isPlainObject(data) && !data.jtoken) {
+                    data.jtoken = generateToken();
+                }
+                config = {
+                    url: url,
+                    data: data,
+                    type: "post",
+                    dataType: 'json',
+                    timeout: 10000
+                };
             }
+
+            successCode = successCode || 100;
+
 
             var deferred = requestMap[url];
             // 正在处理中
@@ -35,16 +51,10 @@ define("request", ["jquery"], function($) {
             }
 
             deferred = requestMap[url] = $.Deferred();
-            $.ajax({
-                url: url,
-                type: 'post',
-                dataType: 'json',
-                data: data,
-                timeout: 10000
-            })
+            $.ajax(config)
             .done(function(response) {
                 var code = response && response.code;
-                if (S.inArray(successCode, code)) {
+                if (code === successCode) {
                     deferred.resolve(response);
                 } else {
                     deferred.reject(code, response);
