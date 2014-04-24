@@ -25,7 +25,7 @@ define("dist/sitenav", ["jquery", "http://g.tbcdn.cn/tb/global/2.6.10/global-min
 
     var url = global.KISSY ? "http://g.tbcdn.cn/tb/global/2.6.10/global-min.js" : "http://g.tbcdn.cn/??kissy/k/1.3.2/kissy-min.js,tb/global/2.6.10/global-min.js";
     S.require(url, handler);
-    
+
     return {
         container: "#J_SiteNavBdL",
         logined: '<div id="J_LoginInfo" class="menu"><div id="J_LoginInfoHd" class="menu-hd"><a href="{{ userUrl }}" target="_blank">{{ userName }}</a><a href="{{ logoutUrl }}">退出</a></div></div>',

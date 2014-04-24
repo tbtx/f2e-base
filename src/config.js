@@ -1,5 +1,6 @@
 (function(S) {
     var realpath = S.realpath,
+        register = S.register,
         global = S.global,
         Loader = S.Loader,
         data = Loader.data;
@@ -44,7 +45,9 @@
             "json": "gallery/json2/json2",
 
             // plugin
-            "easing": "plugin/jquery.easing.1.3"
+            "easing": "plugin/jquery.easing.1.3",
+
+            "kissy": "http://g.tbcdn.cn/kissy/k/1.4.0/seed-min.js"
         },
 
         paths: paths
@@ -58,10 +61,13 @@
      * shim config
      */
     if (global.JSON) {
-        S.register("json");
+        register("json");
     }
     if (global.jQuery) {
-        S.register("jquery", jQuery);
-        S.register("$", jQuery);
+        register("jquery", jQuery);
+        register("$", jQuery);
+    }
+    if (global.KISSY) {
+        register("kissy");
     }
 })(tbtx);

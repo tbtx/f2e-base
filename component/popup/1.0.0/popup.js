@@ -560,7 +560,7 @@ define("arale/position/1.0.1/position", [ "jquery" ], function($) {
                 baseElement: Position.VIEWPORT,
                 // 基准定位元素的定位点，默认为左上角
                 baseXY: [ "50%", "50%" ]
-            },
+            }
         },
 
         events: {

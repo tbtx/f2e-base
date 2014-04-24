@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-23 4:17:24
+ * update: 2014-04-24 4:25:49
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -35,6 +35,25 @@
          * @type {Object}
          */
         global: global,
+
+        Config: {},
+
+        config: function(name, value) {
+            var ret,
+                Config = S.Config;
+
+            if (typeof name === "string") {
+                // get value
+                if (value === undefined) {
+                    ret = Config[name];
+                } else {    // set value
+                    Config[name] = value;
+                }
+            } else {
+                mix(Config, name);
+            }
+            return ret;
+        },
 
         /**
          * 空函数，在需要使用空函数作为参数时使用
@@ -1420,7 +1439,7 @@
         if (supportOnload) {
             node.onload = onload;
             node.onerror = function(error) {
-                S.log(error, "error");
+                S.log(error, "error", "request " + isCSS ? "css" : "js");
                 onload();
             };
         } else {
@@ -1918,6 +1937,7 @@
 
 ;(function(S) {
     var realpath = S.realpath,
+        register = S.register,
         global = S.global,
         Loader = S.Loader,
         data = Loader.data;
@@ -1962,7 +1982,9 @@
             "json": "gallery/json2/json2",
 
             // plugin
-            "easing": "plugin/jquery.easing.1.3"
+            "easing": "plugin/jquery.easing.1.3",
+
+            "kissy": "http://g.tbcdn.cn/kissy/k/1.4.0/seed-min.js"
         },
 
         paths: paths
@@ -1976,11 +1998,14 @@
      * shim config
      */
     if (global.JSON) {
-        S.register("json");
+        register("json");
     }
     if (global.jQuery) {
-        S.register("jquery", jQuery);
-        S.register("$", jQuery);
+        register("jquery", jQuery);
+        register("$", jQuery);
+    }
+    if (global.KISSY) {
+        register("kissy");
     }
 })(tbtx);
 
@@ -2060,13 +2085,13 @@
     var S = tbtx,
         cookie = S.cookie;
 
-    var generateToken = function(name) {
+    var generateToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
-        cookie.set(S.tokenName, token, '', '', '/');
+        cookie.set(S.config("tokenName"), token, '', '', '/');
         return token;
     };
     // 默认蜜儿
-    S.tokenName = 'MIIEE_JTOKEN';
+    S.config("tokenName", "MIIEE_JTOKEN");
 
     var requestFailCode = -1,
         requestFailResponse = {
@@ -2093,7 +2118,7 @@
                     url: url,
                     data: data,
                     type: "post",
-                    dataType: 'json',
+                    dataType: "json",
                     timeout: 10000
                 };
             }

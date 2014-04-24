@@ -2,13 +2,13 @@ define("request", ["jquery"], function($) {
     var S = tbtx,
         cookie = S.cookie;
 
-    var generateToken = function(name) {
+    var generateToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
-        cookie.set(S.tokenName, token, '', '', '/');
+        cookie.set(S.config("tokenName"), token, '', '', '/');
         return token;
     };
     // 默认蜜儿
-    S.tokenName = 'MIIEE_JTOKEN';
+    S.config("tokenName", "MIIEE_JTOKEN");
 
     var requestFailCode = -1,
         requestFailResponse = {
@@ -35,7 +35,7 @@ define("request", ["jquery"], function($) {
                     url: url,
                     data: data,
                     type: "post",
-                    dataType: 'json',
+                    dataType: "json",
                     timeout: 10000
                 };
             }

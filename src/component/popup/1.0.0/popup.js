@@ -24,7 +24,7 @@ define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overla
                 baseElement: Position.VIEWPORT,
                 // 基准定位元素的定位点，默认为左上角
                 baseXY: [ "50%", "50%" ]
-            },
+            }
         },
 
         events: {

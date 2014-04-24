@@ -4,7 +4,7 @@ describe("loader", function() {
     describe('preload', function() {
         it("should preload the scripts", function() {
             expect(jQuery).not.toBeUndefined();
-            expect(JSON).not.toBeUndefined();
+            // expect(JSON).not.toBeUndefined();
         });
     });
 

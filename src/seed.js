@@ -30,6 +30,25 @@
          */
         global: global,
 
+        Config: {},
+
+        config: function(name, value) {
+            var ret,
+                Config = S.Config;
+
+            if (typeof name === "string") {
+                // get value
+                if (value === undefined) {
+                    ret = Config[name];
+                } else {    // set value
+                    Config[name] = value;
+                }
+            } else {
+                mix(Config, name);
+            }
+            return ret;
+        },
+
         /**
          * 空函数，在需要使用空函数作为参数时使用
          */

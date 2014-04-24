@@ -37,7 +37,7 @@ describe('lang', function() {
             });
         });
 
-        describe("JSON", function() {
+        xdescribe("JSON", function() {
             var o = {
                 a: "a",
                 b: "b"

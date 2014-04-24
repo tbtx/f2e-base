@@ -265,7 +265,7 @@
         if (supportOnload) {
             node.onload = onload;
             node.onerror = function(error) {
-                S.log(error, "error");
+                S.log(error, "error", "request " + isCSS ? "css" : "js");
                 onload();
             };
         } else {

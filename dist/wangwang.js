@@ -1,6 +1,6 @@
 /**
  * 旺旺点灯
- * <span data-role="wangwang"></span>
+ * <span data-role="wangwang" data-nick=""></span>
  */
 define("dist/wangwang", ["jquery"], function($) {
     var S = tbtx;
@@ -21,7 +21,7 @@ define("dist/wangwang", ["jquery"], function($) {
             element.replaceWith(S.substitute(template, data));
         });
     };
-    
+
     $(function() {
         light("[data-role=wangwang]");
     });
