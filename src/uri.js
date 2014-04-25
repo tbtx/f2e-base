@@ -1,8 +1,8 @@
-(function(S) {
+(function(S, undefined) {
 
     var TRUE = true,
         FALSE = false,
-        EMPTY = '',
+        EMPTY = "",
         each = S.each,
         param = S.param,
         unparam = S.unparam;
@@ -11,11 +11,11 @@
             return encodeURIComponent(String(s));
         },
         urlDecode = function (s) {
-            return decodeURIComponent(s.replace(/\+/g, ' '));
+            return decodeURIComponent(s.replace(/\+/g, " "));
         };
 
     var Query = S.Query = function(query) {
-        this._query = query || '';
+        this._query = query || EMPTY;
         this._queryMap = unparam(this._query);
     };
 
@@ -50,7 +50,7 @@
          */
         set: function (key, value) {
             var _queryMap = this._queryMap;
-            if (typeof key === 'string') {
+            if (typeof key === "string") {
                 this._queryMap[key] = value;
             } else {
                 if (key instanceof Query) {
@@ -87,7 +87,7 @@
         add: function (key, value) {
             var _queryMap = this._queryMap,
                 currentValue;
-            if (typeof key === 'string') {
+            if (typeof key === "string") {
                 currentValue = _queryMap[key];
                 if (currentValue === undefined) {
                     currentValue = value;
@@ -149,19 +149,19 @@
             self = this;
 
         S.mix(self, {
-            scheme: '',
-            credentials: '',
-            domain: '',
-            port: '',
-            path: '',
-            query: '',
-            fragment: ''
+            scheme: EMPTY,
+            credentials: EMPTY,
+            domain: EMPTY,
+            port: EMPTY,
+            path: EMPTY,
+            query: EMPTY,
+            fragment: EMPTY
         });
 
         components = Uri.getComponents(uriStr);
 
         each(components, function (v, key) {
-            if (key === 'query') {
+            if (key === "query") {
                 // need encoded content
                 self.query = new Query(v);
             } else {
@@ -169,7 +169,7 @@
                 try {
                     v = urlDecode(v);
                 } catch (e) {
-                    S.log(e + 'urlDecode error : ' + v, "error", "Uri");
+                    S.log(e + "urlDecode error : " + v, "error", "Uri");
                 }
                 // need to decode to get data structure in memory
                 self[key] = v;
@@ -198,20 +198,20 @@
 
             if (scheme) {
                 out.push(scheme);
-                out.push(':');
+                out.push(":");
             }
 
             if (domain) {
-                out.push('//');
+                out.push("//");
                 if (credentials) {
                     out.push(credentials);
-                    out.push('@');
+                    out.push("@");
                 }
 
                 out.push(encodeURIComponent(domain));
 
                 if (port) {
-                    out.push(':');
+                    out.push(":");
                     out.push(port);
                 }
             }
@@ -221,16 +221,16 @@
             }
 
             if (query) {
-                out.push('?');
+                out.push("?");
                 out.push(query);
             }
 
             if (fragment) {
-                out.push('#');
+                out.push("#");
                 out.push(fragment);
             }
 
-            return out.join('');
+            return out.join(EMPTY);
         }
     };
 
@@ -247,7 +247,7 @@
         m = url.match(URI_RE) || [];
 
         each(REG_INFO, function(index, key) {
-            ret[key] = m[index] || "";
+            ret[key] = m[index] || EMPTY;
         });
         return ret;
     };
@@ -264,6 +264,7 @@
             }
             return FALSE;
         },
+
         parseUrl: Uri.getComponents,
 
         getFragment: function(url) {
@@ -272,10 +273,10 @@
         getQueryParam: function(name, url) {
             if (S.isUri(name)) {
                 url = name;
-                name = "";
+                name = EMPTY;
             }
             var uri = new Uri(url);
-            return uri.query.get(name) || "";
+            return uri.query.get(name) || EMPTY;
         },
         addQueryParam: function(name, value, url) {
             var input = {};

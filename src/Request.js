@@ -4,11 +4,11 @@ define("request", ["jquery"], function($) {
 
     var generateToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
-        cookie.set(S.config("tokenName"), token, '', '', '/');
+        cookie.set(S.tokenName, token, '', '', '/');
         return token;
     };
     // 默认蜜儿
-    S.config("tokenName", "MIIEE_JTOKEN");
+    S.tokenName = "MIIEE_JTOKEN";
 
     var requestFailCode = -1,
         requestFailResponse = {

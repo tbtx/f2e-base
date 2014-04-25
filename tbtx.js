@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-24 4:25:49
+ * update: 2014-04-25 3:32:30
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -23,7 +23,7 @@
          */
         log: isSupportConsole ? function(msg, cat, src) {
             if (src) {
-                msg = src + ': ' + msg;
+                msg = src + ": " + msg;
             }
             console[cat && console[cat] ? cat : "log"](msg);
 
@@ -35,25 +35,6 @@
          * @type {Object}
          */
         global: global,
-
-        Config: {},
-
-        config: function(name, value) {
-            var ret,
-                Config = S.Config;
-
-            if (typeof name === "string") {
-                // get value
-                if (value === undefined) {
-                    ret = Config[name];
-                } else {    // set value
-                    Config[name] = value;
-                }
-            } else {
-                mix(Config, name);
-            }
-            return ret;
-        },
 
         /**
          * 空函数，在需要使用空函数作为参数时使用
@@ -75,7 +56,7 @@
         return to;
     }
 
-})(this, 'tbtx');
+})(this, "tbtx");
 
 
 ;(function(global, S, undefined) {
@@ -91,32 +72,34 @@
         FP = Function.prototype,
         toString = OP.toString,
         slice = AP.slice,
-        FALSE = false,
+        hasOwn = OP.hasOwnProperty,
         TRUE = true,
-        shimType = 'function',
-        spliter = ' ';
+        FALSE = false,
+        shimType = "function",
+        spliter = " ";
 
     /**
      * Object.keys
      */
     if (typeof Object.keys != shimType) {
         var hasEnumBug = !({
-            toString: 1
-        }['propertyIsEnumerable']('toString')),
+                toString: 1
+            }["propertyIsEnumerable"]("toString")),
             enumProperties = [
-                'constructor',
-                'hasOwnProperty',
-                'isPrototypeOf',
-                'propertyIsEnumerable',
-                'toString',
-                'toLocaleString',
-                'valueOf'
+                "constructor",
+                "hasOwnProperty",
+                "isPrototypeOf",
+                "propertyIsEnumerable",
+                "toString",
+                "toLocaleString",
+                "valueOf"
             ];
 
         Object.keys = function(o) {
             var ret = [],
                 p,
                 i;
+
             for (p in o) {
                 ret.push(p);
             }
@@ -178,8 +161,8 @@
 
         SP.trim = function() {
             return String(this)
-                .replace(trimBeginRegexp, "")
-                .replace(trimEndRegexp, "");
+                .replace(trimBeginRegexp, EMPTY)
+                .replace(trimEndRegexp, EMPTY);
         };
     }
     S.trim = function(str) {
@@ -275,8 +258,7 @@
                 i,
                 length = this.length;
 
-            fromIndex = fromIndex * 1 || 0;
-            i = fromIndex;
+            i = fromIndex * 1 || 0;
             i = i >= 0 ? i : Math.max(0, length + i);
 
             for (; i < length; i++) {
@@ -351,7 +333,7 @@
          * @return {Boolean/Array}              the process result
          */
         S[name] = function(object, fn, context) {
-            if (!object) {
+            if (!isArrayOrObject(object)) {
                 return object;
             }
 
@@ -442,6 +424,10 @@
     };
 
     var EMPTY = "",
+        SEP = "&",
+        EQ = "=",
+        OR = "|",
+        DOT = ".",
 
         /**
          * 单例模式
@@ -523,7 +509,7 @@
         },
 
         deepCopy = function(obj) {
-            if (!obj || !isCopyType(obj)) {
+            if (!obj || !isArrayOrObject(obj)) {
                 return obj;
             }
             var ret = isArray(obj) ? [] : {},
@@ -531,38 +517,38 @@
 
             for (i in obj) {
                 if (hasOwnProperty(obj, i)) {
-                    ret[i] = isCopyType(obj) ? deepCopy(obj[i]) : obj[i];
+                    ret[i] = isArrayOrObject(obj) ? deepCopy(obj[i]) : obj[i];
                 }
             }
             return ret;
         },
 
         htmlEntities = {
-            '&amp;': '&',
-            '&gt;': '>',
-            '&lt;': '<',
-            '&#x60;': '`',
-            '&#x2F;': '/',
-            '&quot;': '"',
-            '&#x27;': "'"
+            "&amp;": "&",
+            "&gt;": ">",
+            "&lt;": "<",
+            "&#x60;": "`",
+            "&#x2F;": "/",
+            "&quot;": '"',
+            "&#x27;": "'"
         },
         reverseEntities = {},
         getEscapeReg = singleton(function() {
             var str = EMPTY;
             each(htmlEntities, function(entity, index) {
-                str += entity + '|';
+                str += entity + OR;
             });
             str = str.slice(0, -1);
-            return new RegExp(str, 'g');
+            return new RegExp(str, "g");
         }),
         getUnEscapeReg = singleton(function() {
             var str = EMPTY;
             each(reverseEntities, function(entity, index) {
-                str += entity + '|';
+                str += entity + OR;
             });
-            str += '&#(\\d{1,5});';
+            str += "&#(\\d{1,5});";
 
-            return new RegExp(str, 'g');
+            return new RegExp(str, "g");
         }),
         escapeHtml = function(text) {
             return String(text).replace(getEscapeReg(), function(all) {
@@ -584,7 +570,7 @@
      */
 
     function hasOwnProperty(o, p) {
-        return OP.hasOwnProperty.call(o, p);
+        return hasOwn.call(o, p);
     }
 
     function isValidParamValue(val) {
@@ -592,7 +578,7 @@
         // If the type of val is null, undefined, number, string, boolean, return TRUE.
         return val === null || (t !== "object" && t !== "function");
     }
-    function isCopyType(val) {
+    function isArrayOrObject(val) {
         return "object" === typeof val;
     }
 
@@ -608,7 +594,7 @@
         },
 
         pluck: function(object, name) {
-            var names = name.split(".");
+            var names = name.split(DOT);
             return S.map(object, function(v, k, object) {
                 var i = 0,
                     length = names.length;
@@ -648,12 +634,12 @@
                 f,
                 r;
 
-            if (typeof fn === 'string') {
+            if (typeof fn === "string") {
                 m = context[fn];
             }
 
             if (!m) {
-                S.log('method undefined', 'error', 'later');
+                S.log("method undefined", "error", "later");
             }
 
             f = function() {
@@ -697,7 +683,7 @@
                 i, j, p;
 
             for (i = 0; i < l; i++) {
-                p = (EMPTY + args[i]).split('.');
+                p = (EMPTY + args[i]).split(DOT);
                 for (j = (global[p[0]] === o) ? 1 : 0; j < p.length; ++j) {
                     o = o[p[j]] = o[p[j]] || {};
                 }
@@ -776,13 +762,13 @@
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
                 }
-                return (o[name] === undefined) ? '' : o[name];
+                return (o[name] === undefined) ? EMPTY : o[name];
             });
         },
 
         param: function(o, sep, eq, serializeArray) {
-            sep = sep || '&';
-            eq = eq || '=';
+            sep = sep || SEP;
+            eq = eq || EQ;
             if (serializeArray === undefined) {
                 serializeArray = TRUE;
             }
@@ -805,7 +791,7 @@
                     for (i = 0, len = val.length; i < len; ++i) {
                         v = val[i];
                         if (isValidParamValue(v)) {
-                            buf.push(key, (serializeArray ? encode('[]') : EMPTY));
+                            buf.push(key, (serializeArray ? encode("[]") : EMPTY));
                             if (v !== undefined) {
                                 buf.push(eq, encode(v + EMPTY));
                             }
@@ -827,8 +813,8 @@
             if (!S.isNotEmptyString(str)) {
                 return {};
             }
-            sep = sep || '&';
-            eq = eq || '=';
+            sep = sep || SEP;
+            eq = eq || EQ;
 
             var ret = {},
                 eqIndex,
@@ -850,7 +836,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        S.log(e + 'decodeURIComponent error : ' + val, 'error', 'unparam');
+                        S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
                     }
                 }
                 ret[key] = val;
@@ -866,11 +852,11 @@
 })(this, tbtx);
 
 
-;(function(S) {
+;(function(S, undefined) {
 
     var TRUE = true,
         FALSE = false,
-        EMPTY = '',
+        EMPTY = "",
         each = S.each,
         param = S.param,
         unparam = S.unparam;
@@ -879,11 +865,11 @@
             return encodeURIComponent(String(s));
         },
         urlDecode = function (s) {
-            return decodeURIComponent(s.replace(/\+/g, ' '));
+            return decodeURIComponent(s.replace(/\+/g, " "));
         };
 
     var Query = S.Query = function(query) {
-        this._query = query || '';
+        this._query = query || EMPTY;
         this._queryMap = unparam(this._query);
     };
 
@@ -918,7 +904,7 @@
          */
         set: function (key, value) {
             var _queryMap = this._queryMap;
-            if (typeof key === 'string') {
+            if (typeof key === "string") {
                 this._queryMap[key] = value;
             } else {
                 if (key instanceof Query) {
@@ -955,7 +941,7 @@
         add: function (key, value) {
             var _queryMap = this._queryMap,
                 currentValue;
-            if (typeof key === 'string') {
+            if (typeof key === "string") {
                 currentValue = _queryMap[key];
                 if (currentValue === undefined) {
                     currentValue = value;
@@ -1017,19 +1003,19 @@
             self = this;
 
         S.mix(self, {
-            scheme: '',
-            credentials: '',
-            domain: '',
-            port: '',
-            path: '',
-            query: '',
-            fragment: ''
+            scheme: EMPTY,
+            credentials: EMPTY,
+            domain: EMPTY,
+            port: EMPTY,
+            path: EMPTY,
+            query: EMPTY,
+            fragment: EMPTY
         });
 
         components = Uri.getComponents(uriStr);
 
         each(components, function (v, key) {
-            if (key === 'query') {
+            if (key === "query") {
                 // need encoded content
                 self.query = new Query(v);
             } else {
@@ -1037,7 +1023,7 @@
                 try {
                     v = urlDecode(v);
                 } catch (e) {
-                    S.log(e + 'urlDecode error : ' + v, "error", "Uri");
+                    S.log(e + "urlDecode error : " + v, "error", "Uri");
                 }
                 // need to decode to get data structure in memory
                 self[key] = v;
@@ -1066,20 +1052,20 @@
 
             if (scheme) {
                 out.push(scheme);
-                out.push(':');
+                out.push(":");
             }
 
             if (domain) {
-                out.push('//');
+                out.push("//");
                 if (credentials) {
                     out.push(credentials);
-                    out.push('@');
+                    out.push("@");
                 }
 
                 out.push(encodeURIComponent(domain));
 
                 if (port) {
-                    out.push(':');
+                    out.push(":");
                     out.push(port);
                 }
             }
@@ -1089,16 +1075,16 @@
             }
 
             if (query) {
-                out.push('?');
+                out.push("?");
                 out.push(query);
             }
 
             if (fragment) {
-                out.push('#');
+                out.push("#");
                 out.push(fragment);
             }
 
-            return out.join('');
+            return out.join(EMPTY);
         }
     };
 
@@ -1115,7 +1101,7 @@
         m = url.match(URI_RE) || [];
 
         each(REG_INFO, function(index, key) {
-            ret[key] = m[index] || "";
+            ret[key] = m[index] || EMPTY;
         });
         return ret;
     };
@@ -1132,6 +1118,7 @@
             }
             return FALSE;
         },
+
         parseUrl: Uri.getComponents,
 
         getFragment: function(url) {
@@ -1140,10 +1127,10 @@
         getQueryParam: function(name, url) {
             if (S.isUri(name)) {
                 url = name;
-                name = "";
+                name = EMPTY;
             }
             var uri = new Uri(url);
-            return uri.query.get(name) || "";
+            return uri.query.get(name) || EMPTY;
         },
         addQueryParam: function(name, value, url) {
             var input = {};
@@ -2087,11 +2074,11 @@
 
     var generateToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
-        cookie.set(S.config("tokenName"), token, '', '', '/');
+        cookie.set(S.tokenName, token, '', '', '/');
         return token;
     };
     // 默认蜜儿
-    S.config("tokenName", "MIIEE_JTOKEN");
+    S.tokenName = "MIIEE_JTOKEN";
 
     var requestFailCode = -1,
         requestFailResponse = {
