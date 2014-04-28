@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-25 4:33:41
+ * update: 2014-04-28 10:12:42
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -396,15 +396,18 @@
     // return false终止循环
     // 原生every必须return true or false
     var each = S.each = function(object, fn, context) {
+        if (object == null) {
+            return object;
+        }
+
         var i = 0,
             key,
             keys,
-            length;
+            length = object.length;
 
         context = context || null;
 
-        if (isArray(object)) {
-            length = object.length;
+        if (length === +length) {
             for (; i < length; i++) {
                 if (fn.call(context, object[i], i, object) === FALSE) {
                     break;
@@ -509,18 +512,10 @@
         },
 
         deepCopy = function(obj) {
-            if (!obj || !isArrayOrObject(obj)) {
-                return obj;
+            if (isArrayOrObject(obj)) {
+                return S.extend(true, {}, obj);
             }
-            var ret = isArray(obj) ? [] : {},
-                i;
-
-            for (i in obj) {
-                if (hasOwnProperty(obj, i)) {
-                    ret[i] = isArrayOrObject(obj) ? deepCopy(obj[i]) : obj[i];
-                }
-            }
-            return ret;
+            return obj;
         },
 
         htmlEntities = {
@@ -579,7 +574,7 @@
         return val === null || (t !== "object" && t !== "function");
     }
     function isArrayOrObject(val) {
-        return "object" === typeof val;
+        return val && "object" === typeof val;
     }
 
     // S
@@ -604,6 +599,78 @@
                 }
                 return v;
             });
+        },
+
+        result: function(val, context) {
+            if (val == null) {
+                return void 0;
+            }
+            return S.isFunction(val) ? val.call(context) : val;
+        },
+
+        extend: function() {
+            var src, copyIsArray, copy, name, options, clone,
+                target = arguments[0] || {},
+                i = 1,
+                length = arguments.length,
+                deep = false;
+
+            // Handle a deep copy situation
+            if (typeof target === "boolean") {
+                deep = target;
+
+                // skip the boolean and the target
+                target = arguments[i] || {};
+                i++;
+            }
+
+            // Handle case when target is a string or something (possible in deep copy)
+            if (typeof target !== "object" && !isFunction(target)) {
+                target = {};
+            }
+
+            // extend itself if only one argument is passed
+            if (i === length) {
+                target = this;
+                i--;
+            }
+
+            for (; i < length; i++) {
+                // Only deal with non-null/undefined values
+                if ((options = arguments[i]) != null ) {
+                    // Extend the base object
+                    for (name in options) {
+                        src = target[name];
+                        copy = options[name];
+
+                        // Prevent never-ending loop
+                        if (target === copy) {
+                            continue;
+                        }
+
+                        // Recurse if we're merging plain objects or arrays
+                        if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+                            if (copyIsArray) {
+                                copyIsArray = false;
+                                clone = src && isArray(src) ? src : [];
+
+                            } else {
+                                clone = src && isPlainObject(src) ? src : {};
+                            }
+
+                            // Never move original objects, clone them
+                            target[name] = S.extend(deep, clone, copy);
+
+                        // Don't bring in undefined values
+                        } else if (copy !== undefined) {
+                            target[name] = copy;
+                        }
+                    }
+                }
+            }
+
+            // Return the modified object
+            return target;
         },
 
         isWindow: isWindow,
