@@ -540,11 +540,11 @@
             });
         },
 
-        result: function(val, context) {
+        result: function(val) {
             if (val == null) {
                 return void 0;
             }
-            return S.isFunction(val) ? val.call(context) : val;
+            return S.isFunction(val) ? val.call(this, slice.call(arguments, 1)) : val;
         },
 
         extend: function() {
@@ -695,6 +695,10 @@
                 }
             }
             return o;
+        },
+
+        ucfirst: function(str) {
+            return str.charAt(0).toUpperCase() + str.substring(1);
         },
 
         startsWith: function(str, prefix) {

@@ -9,7 +9,7 @@ module.exports = function(grunt) {
             files: ['src/*.js'],
             options: {
                 // 基本均为第三方文件，部分稍作扩展
-                ignores: ["src/widget.js", "src/position.js"],
+                ignores: ["src/widget.js", "src/position.js", "src/router.js"],
                 browser: true,      // 访问浏览器全局变量
                 sub: true,          // person['name'] vs. person.name
                 proto: true,        // use __proto__
@@ -39,6 +39,10 @@ module.exports = function(grunt) {
             sitenav: {
                 src: ["src/sitenav.js"],
                 dest: "dist/sitenav.js"
+            },
+            router: {
+                src: ["src/arale/events/1.1.0/events.js", "src/router.js"],
+                dest: "dist/router.js"
             },
 
             class: {

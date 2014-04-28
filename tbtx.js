@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-28 10:12:42
+ * update: 2014-04-28 2:58:50
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -601,11 +601,11 @@
             });
         },
 
-        result: function(val, context) {
+        result: function(val) {
             if (val == null) {
                 return void 0;
             }
-            return S.isFunction(val) ? val.call(context) : val;
+            return S.isFunction(val) ? val.call(this, slice.call(arguments, 1)) : val;
         },
 
         extend: function() {
@@ -756,6 +756,10 @@
                 }
             }
             return o;
+        },
+
+        ucfirst: function(str) {
+            return str.charAt(0).toUpperCase() + str.substring(1);
         },
 
         startsWith: function(str, prefix) {
@@ -2016,12 +2020,15 @@
 
         alias: {
             // arale
+            "events": "arale/events/1.1.0/events",
+            "class": "arale/class/1.1.0/class",
             "base": "arale/base/1.1.1/base",
             "widget": "arale/widget/1.1.1/widget",
             "position": "arale/position/1.0.1/position",
             "detector": "arale/detector/1.3.0/detector",
 
             // dist
+            "router": "dist/router",
 
             // component
             "overlay": "component/overlay/1.1.4/overlay",
@@ -2030,8 +2037,8 @@
             "validator": "component/validator/0.9.7/validator",
 
             // gallery
-            "$": "gallery/jquery/1.8.3/jquery.min",
             "jquery": "gallery/jquery/1.8.3/jquery.min",
+            "zepto": "gallery/zepto/1.1.2/zepto.min",
             "handlebars": "gallery/handlebars/1.3.0/handlebars",
             "json": "gallery/json2/json2",
 
@@ -2060,6 +2067,10 @@
     }
     if (global.KISSY) {
         register("kissy");
+    }
+    if (global.Zepto) {
+        register("zepto", Zepto);
+        register("$", Zepto);
     }
 })(tbtx);
 
