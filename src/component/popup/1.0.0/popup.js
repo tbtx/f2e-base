@@ -37,7 +37,7 @@ define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overla
                 var maskConfig = this.get("maskConfig");
 
                 // element is in dom
-                if (!maskConfig.parentNode && this.element.parent()) {
+                if (!maskConfig.parentNode && this.element.parent().length) {
                     maskConfig.parentNode = $("<div>").insertBefore(this.element).addClass('tbtx-overlay-box');
                 }
                 this.mask = new Mask(maskConfig);
