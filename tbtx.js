@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-28 2:58:50
+ * update: 2014-04-29 9:56:45
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -605,7 +605,7 @@
             if (val == null) {
                 return void 0;
             }
-            return S.isFunction(val) ? val.call(this, slice.call(arguments, 1)) : val;
+            return isFunction(val) ? val.call(this, slice.call(arguments, 1)) : val;
         },
 
         extend: function() {

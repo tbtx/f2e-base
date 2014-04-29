@@ -544,7 +544,7 @@
             if (val == null) {
                 return void 0;
             }
-            return S.isFunction(val) ? val.call(this, slice.call(arguments, 1)) : val;
+            return isFunction(val) ? val.call(this, slice.call(arguments, 1)) : val;
         },
 
         extend: function() {

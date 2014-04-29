@@ -7,6 +7,7 @@
 // falls back to polling.
 
 define("dist/history", ["$", "arale/events/1.1.0/events"], function($, Events) {
+    var S = tbtx;
     var History = function() {
         this.handlers = [];
         // _.bindAll(this, 'checkUrl');
@@ -36,7 +37,7 @@ define("dist/history", ["$", "arale/events/1.1.0/events"], function($, Events) {
     History.started = false;
 
 
-    $.extend(History.prototype, {
+    S.extend(History.prototype, {
         // The default interval to poll for hash changes, if necessary, is
         // twenty times a second.
         // 轮训hashchange的间隔
@@ -81,7 +82,7 @@ define("dist/history", ["$", "arale/events/1.1.0/events"], function($, Events) {
 
             // Figure out the initial configuration. Do we need an iframe?
             // Is pushState desired ... is it available?
-            this.options = $.extend(true, {
+            this.options = S.extend(true, {
                 root: '/'
             }, this.options, options);
             this.root = this.options.root;
@@ -275,7 +276,7 @@ define("dist/router", ["$", "dist/history", "arale/events/1.1.0/events"], functi
     var escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g;
 
     // Set up all inheritable **Backbone.Router** properties and methods.
-    $.extend(Router.prototype, {
+    S.extend(Router.prototype, {
 
         // Initialize is an empty function by default. Override it with your own
         // initialization logic.
