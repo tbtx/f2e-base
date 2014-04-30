@@ -335,7 +335,7 @@
     // return false终止循环
     // 原生every必须return true or false
     var each = S.each = function(object, fn, context) {
-        if (object == null) {
+        if (object == NULL) {
             return object;
         }
 
@@ -344,7 +344,7 @@
             keys,
             length = object.length;
 
-        context = context || null;
+        context = context || NULL;
 
         if (length === +length) {
             for (; i < length; i++) {
@@ -369,7 +369,17 @@
         SEP = "&",
         EQ = "=",
         OR = "|",
+        G = "g",
         DOT = ".",
+        ERROR = "error",
+        IMMEDIATE = -1,
+        DEFAULT_INTERVAL = 150,
+
+        NULL = null,
+        OBJECT = "object",
+        NUMBER = "number",
+        FUNCTION = "function",
+        STRING = "string",
 
         /**
          * 单例模式
@@ -389,9 +399,9 @@
          * jQuery type()
          */
         type = function(obj) {
-            return obj === null ?
+            return obj === NULL ?
                 String(obj) :
-                class2type[toString.call(obj)] || "object";
+                class2type[toString.call(obj)] || OBJECT;
         },
 
         inArray = function(array, item) {
@@ -399,7 +409,7 @@
         },
 
         isWindow = function(obj) {
-            return obj != null && obj == obj.window;
+            return obj != NULL && obj == obj.window;
         },
 
         isPlainObject = function(obj) {
@@ -430,21 +440,23 @@
         },
 
         makeArray = function(o) {
-            var ret = [];
-
-            if (o == null) {
-                return ret;
+            if (o == NULL) {
+                return [];
             }
             if (isArray(o)) {
                 return o;
             }
-            var lengthType = typeof o.length,
+
+            var ret = [],
+                i = 0,
+                length = o.length,
+                lengthType = typeof length,
                 oType = typeof o;
 
-            if(lengthType !== "number" || typeof o.nodeName === "string" || o != null && o == o.window || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
+            if(lengthType !== NUMBER || typeof o.nodeName === STRING || isWindow(o) || oType === STRING || oType === FUNCTION && !("item" in o && lengthType === NUMBER)) {
                 return [o];
             }
-            for (var i = 0, l = o.length; i < l; i++) {
+            for (; i < length; i++) {
                 ret[i] = o[i];
             }
             return ret;
@@ -452,7 +464,7 @@
 
         deepCopy = function(obj) {
             if (isArrayOrObject(obj)) {
-                return S.extend(true, {}, obj);
+                return S.extend(TRUE, {}, obj);
             }
             return obj;
         },
@@ -473,7 +485,7 @@
                 str += entity + OR;
             });
             str = str.slice(0, -1);
-            return new RegExp(str, "g");
+            return new RegExp(str, G);
         }),
         getUnEscapeReg = singleton(function() {
             var str = EMPTY;
@@ -482,7 +494,7 @@
             });
             str += "&#(\\d{1,5});";
 
-            return new RegExp(str, "g");
+            return new RegExp(str, G);
         }),
         escapeHtml = function(text) {
             return String(text).replace(getEscapeReg(), function(all) {
@@ -502,7 +514,6 @@
     /**
      * util
      */
-
     function hasOwnProperty(o, p) {
         return hasOwn.call(o, p);
     }
@@ -510,10 +521,10 @@
     function isValidParamValue(val) {
         var t = typeof val;
         // If the type of val is null, undefined, number, string, boolean, return TRUE.
-        return val === null || (t !== "object" && t !== "function");
+        return val === NULL || (t !== OBJECT && t !== FUNCTION);
     }
     function isArrayOrObject(val) {
-        return val && "object" === typeof val;
+        return val && OBJECT === typeof val;
     }
 
     // S
@@ -541,7 +552,7 @@
         },
 
         result: function(val) {
-            if (val == null) {
+            if (val == NULL) {
                 return void 0;
             }
             return isFunction(val) ? val.call(this, slice.call(arguments, 1)) : val;
@@ -552,7 +563,7 @@
                 target = arguments[0] || {},
                 i = 1,
                 length = arguments.length,
-                deep = false;
+                deep = FALSE;
 
             // Handle a deep copy situation
             if (typeof target === "boolean") {
@@ -564,7 +575,7 @@
             }
 
             // Handle case when target is a string or something (possible in deep copy)
-            if (typeof target !== "object" && !isFunction(target)) {
+            if (typeof target !== OBJECT && !isFunction(target)) {
                 target = {};
             }
 
@@ -576,7 +587,7 @@
 
             for (; i < length; i++) {
                 // Only deal with non-null/undefined values
-                if ((options = arguments[i]) != null ) {
+                if ((options = arguments[i]) != NULL ) {
                     // Extend the base object
                     for (name in options) {
                         src = target[name];
@@ -590,7 +601,7 @@
                         // Recurse if we're merging plain objects or arrays
                         if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
                             if (copyIsArray) {
-                                copyIsArray = false;
+                                copyIsArray = FALSE;
                                 clone = src && isArray(src) ? src : [];
 
                             } else {
@@ -640,12 +651,12 @@
                 f,
                 r;
 
-            if (typeof fn === "string") {
+            if (typeof fn === STRING) {
                 m = context[fn];
             }
 
             if (!m) {
-                S.log("method undefined", "error", "later");
+                S.log("method undefined", ERROR, "later");
             }
 
             f = function() {
@@ -714,9 +725,9 @@
          */
         throttle: function(fn, ms, context) {
             context = context || this;
-            ms = ms || 150;
+            ms = ms || DEFAULT_INTERVAL;
 
-            if (ms === -1) {
+            if (ms === IMMEDIATE) {
                 return function() {
                     fn.apply(context, arguments);
                 };
@@ -735,18 +746,19 @@
 
         debounce: function(fn, ms, context) {
             context = context || this;
-            ms = ms || 150;
+            ms = ms || DEFAULT_INTERVAL;
 
-            if(ms === -1) {
+            if(ms === IMMEDIATE) {
                 return function() {
                     fn.apply(context, arguments);
                 };
             }
-            var timer = null;
-            var f = function() {
-                f.stop();
-                timer = S.later(fn, ms, 0, context, arguments);
-            };
+            var timer = NULL,
+                f = function() {
+                    f.stop();
+                    timer = S.later(fn, ms, 0, context, arguments);
+                };
+
             f.stop = function() {
                 if(timer) {
                     timer.cancel();
@@ -846,7 +858,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
+                        S.log(e + "decodeURIComponent error : " + val, ERROR, "unparam");
                     }
                 }
                 ret[key] = val;

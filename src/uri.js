@@ -237,14 +237,8 @@
     Uri.getComponents = function (url) {
         url = url || location.href;
 
-        var m,
+        var m = url.match(URI_RE) || [],
             ret = {};
-
-        if (!S.isNotEmptyString(url)) {
-            return ret;
-        }
-
-        m = url.match(URI_RE) || [];
 
         each(REG_INFO, function(index, key) {
             ret[key] = m[index] || EMPTY;
@@ -257,9 +251,8 @@
         urlDecode: urlDecode,
 
         isUri: function(val) {
-            var match;
             if (S.isNotEmptyString(val)) {
-                match = URI_RE.exec(val);
+                var match = URI_RE.exec(val);
                 return match && match[1];
             }
             return FALSE;

@@ -10,41 +10,40 @@ describe('lang', function() {
     describe("shim", function() {
         describe('keys', function() {
             it("should get the keys of the object", function() {
-                var o = {
+                expect(Object.keys).toBe(S.keys);
+
+                expect(Object.keys({
                     "name1": "value1",
                     "name2": "value2"
-                };
-                var expectResult = ["name1", "name2"];
-                expect( Object.keys(o) ).toEqual(expectResult);
+                })).toEqual(["name1", "name2"]);
 
-                o = {
+                expect(Object.keys({
                     toString: 123
-                };
-                expect(S.keys(o) ).toEqual(["toString"]);
+                })).toEqual(["toString"]);
             });
         });
 
         describe('bind', function() {
             it("should bind the function to a context", function() {
-                var o = {
+                var context = {
                     name: "value"
                 };
                 var f = function() {
                     return this.name;
                 };
-                expect(f.bind(o)()).toEqual("value");
-                expect(S.bind(f, o)()).toEqual("value");
-            });
-        });
 
-        xdescribe("JSON", function() {
-            var o = {
-                a: "a",
-                b: "b"
-            };
-            var expectResult = '{"a":"a","b":"b"}';
-            expect(JSON.stringify(o)).toEqual(expectResult);
-            expect(JSON.parse(expectResult)).toEqual(o);
+                var binded = S.bind(f, context);
+                expect(binded()).toEqual("value");
+
+                binded = f.bind(context);
+                expect(binded()).toEqual("value");
+
+                // 已经bind过的无法再bind
+                binded = binded.bind({
+                    name: "value2"
+                });
+                expect(binded()).toEqual("value");
+            });
         });
 
         describe("trim", function() {
@@ -62,8 +61,8 @@ describe('lang', function() {
 
         describe('Now', function() {
             it("should get a number", function() {
+                expect(S.Now).toBe(Date.now);
                 expect(S.Now()).toEqual(jasmine.any(Number));
-                expect(Date.now()).toEqual(jasmine.any(Number));
             });
 
             it("should get a number with length 13", function() {
@@ -78,6 +77,8 @@ describe('lang', function() {
 
                 array.forEach(function() {
                     counter += 1;
+
+                    // not work
                     return false;
                 });
                 expect(counter).toEqual(4);
@@ -183,8 +184,8 @@ describe('lang', function() {
                 expect(a.map(function(v) {return v*2})).toEqual([2, 4, 6]);
 
                 expect(S.map(arrayLikeObject, function(v) {
-                    return v;
-                })).toEqual({ 1 : 'a', 2 : 'b', 3 : 'c' });
+                    return v + "a";
+                })).toEqual({ 1 : 'aa', 2 : 'ba', 3 : 'ca' });
             });
         });
         describe('filter', function() {
@@ -226,8 +227,11 @@ describe('lang', function() {
         });
 
         describe('isArray', function() {
-            expect(Array.isArray([])).toBeTruthy();
+            expect(Array.isArray).toBe(S.isArray);
+
             expect(S.isArray([])).toBeTruthy();
+            expect(S.isArray([])).toBeTruthy();
+            expect(S.isArray({})).toBeFalsy();
         });
     });
 
@@ -259,28 +263,57 @@ describe('lang', function() {
             c: "789"
         });
 
+        ret = S.some(object, function(v) {
+            return v != "123";
+        });
+        expect(ret).toBeTruthy();
+
+        ret = S.every(object, function(v) {
+            return v != "123";
+        });
+        expect(ret).toBeFalsy();
+
     });
 
-    describe("object array", function() {
-        var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
-
-        describe("pluck", function() {
-            it("should map the property of an object array", function() {
-                var ret = S.pluck(stooges, 'name');
-                expect(ret).toEqual(["moe", "larry", "curly"]);
-
-                // ret = S.pluck(stooges, 'name.0');
-                // expect(ret).toEqual(["m", "l", "c"]);
-            });
+    describe("isWindow", function() {
+        it("should tell if the object is window", function() {
+            expect(S.isWindow(window)).toBeTruthy();
+            expect(S.isWindow({})).toBeFalsy();
         });
     });
 
+    describe("pluck", function() {
+        var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
+
+        it("should map the property of an object array", function() {
+            var ret = S.pluck(stooges, 'name');
+            expect(ret).toEqual(["moe", "larry", "curly"]);
+
+            // ret = S.pluck(stooges, 'name.0');
+            // expect(ret).toEqual(["m", "l", "c"]);
+        });
+    });
+    describe("isEmptyObject", function() {
+        it("should tell if the object is empty", function() {
+            expect(S.isEmptyObject({})).toBeTruthy();
+        });
+    });
     describe('isNotEmptyString', function() {
         it("should be true if the param is string and is not empty", function() {
             expect(S.isNotEmptyString('abc')).toBeTruthy();
             expect(S.isNotEmptyString('')).toBeFalsy();
 
             expect(S.isNotEmptyString({})).toBeFalsy();
+        });
+    });
+
+    describe("result", function() {
+        it("should give the result if the input is function or val", function() {
+            expect(S.result(123)).toEqual(123);
+
+            expect(S.result(function() {
+                return 456
+            })).toEqual(456);
         });
     });
 
@@ -331,6 +364,36 @@ describe('lang', function() {
         });
     });
 
+    describe("extend", function() {
+        it("should implement the jquery extend", function() {
+            expect(S.extend({}, {a: 1}, {b: 2})).toEqual({
+                a: 1,
+                b: 2
+            });
+
+            expect(S.extend({}, {a: {
+                b: 1
+            }}, {a: {
+                c: 2
+            }})).toEqual({
+                a: {
+                    c: 2
+                }
+            });
+
+            expect(S.extend(true, {}, {a: {
+                b: 1
+            }}, {a: {
+                c: 2
+            }})).toEqual({
+                a: {
+                    b: 1,
+                    c: 2
+                }
+            });
+        });
+    });
+
     describe("type", function() {
         it("should get the type of the argument", function() {
             expect(S.type("")).toEqual("string");
@@ -355,11 +418,6 @@ describe('lang', function() {
 
             var head = document.head || document.getElementsByTagName('head')[0];
             expect(S.isPlainObject(head)).toBeFalsy();
-
-            // var o = new S.Base();
-            // expect(S.isPlainObject(o)).toBeFalsy();
-
-            // expect(S.isPlainObject("")).toBeFalsy();
         });
     });
 

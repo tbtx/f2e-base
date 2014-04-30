@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-04-29 9:56:45
+ * update: 2014-04-30 5:43:18
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -396,7 +396,7 @@
     // return false终止循环
     // 原生every必须return true or false
     var each = S.each = function(object, fn, context) {
-        if (object == null) {
+        if (object == NULL) {
             return object;
         }
 
@@ -405,7 +405,7 @@
             keys,
             length = object.length;
 
-        context = context || null;
+        context = context || NULL;
 
         if (length === +length) {
             for (; i < length; i++) {
@@ -430,7 +430,17 @@
         SEP = "&",
         EQ = "=",
         OR = "|",
+        G = "g",
         DOT = ".",
+        ERROR = "error",
+        IMMEDIATE = -1,
+        DEFAULT_INTERVAL = 150,
+
+        NULL = null,
+        OBJECT = "object",
+        NUMBER = "number",
+        FUNCTION = "function",
+        STRING = "string",
 
         /**
          * 单例模式
@@ -450,9 +460,9 @@
          * jQuery type()
          */
         type = function(obj) {
-            return obj === null ?
+            return obj === NULL ?
                 String(obj) :
-                class2type[toString.call(obj)] || "object";
+                class2type[toString.call(obj)] || OBJECT;
         },
 
         inArray = function(array, item) {
@@ -460,7 +470,7 @@
         },
 
         isWindow = function(obj) {
-            return obj != null && obj == obj.window;
+            return obj != NULL && obj == obj.window;
         },
 
         isPlainObject = function(obj) {
@@ -491,21 +501,23 @@
         },
 
         makeArray = function(o) {
-            var ret = [];
-
-            if (o == null) {
-                return ret;
+            if (o == NULL) {
+                return [];
             }
             if (isArray(o)) {
                 return o;
             }
-            var lengthType = typeof o.length,
+
+            var ret = [],
+                i = 0,
+                length = o.length,
+                lengthType = typeof length,
                 oType = typeof o;
 
-            if(lengthType !== "number" || typeof o.nodeName === "string" || o != null && o == o.window || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
+            if(lengthType !== NUMBER || typeof o.nodeName === STRING || isWindow(o) || oType === STRING || oType === FUNCTION && !("item" in o && lengthType === NUMBER)) {
                 return [o];
             }
-            for (var i = 0, l = o.length; i < l; i++) {
+            for (; i < length; i++) {
                 ret[i] = o[i];
             }
             return ret;
@@ -513,7 +525,7 @@
 
         deepCopy = function(obj) {
             if (isArrayOrObject(obj)) {
-                return S.extend(true, {}, obj);
+                return S.extend(TRUE, {}, obj);
             }
             return obj;
         },
@@ -534,7 +546,7 @@
                 str += entity + OR;
             });
             str = str.slice(0, -1);
-            return new RegExp(str, "g");
+            return new RegExp(str, G);
         }),
         getUnEscapeReg = singleton(function() {
             var str = EMPTY;
@@ -543,7 +555,7 @@
             });
             str += "&#(\\d{1,5});";
 
-            return new RegExp(str, "g");
+            return new RegExp(str, G);
         }),
         escapeHtml = function(text) {
             return String(text).replace(getEscapeReg(), function(all) {
@@ -563,7 +575,6 @@
     /**
      * util
      */
-
     function hasOwnProperty(o, p) {
         return hasOwn.call(o, p);
     }
@@ -571,10 +582,10 @@
     function isValidParamValue(val) {
         var t = typeof val;
         // If the type of val is null, undefined, number, string, boolean, return TRUE.
-        return val === null || (t !== "object" && t !== "function");
+        return val === NULL || (t !== OBJECT && t !== FUNCTION);
     }
     function isArrayOrObject(val) {
-        return val && "object" === typeof val;
+        return val && OBJECT === typeof val;
     }
 
     // S
@@ -602,7 +613,7 @@
         },
 
         result: function(val) {
-            if (val == null) {
+            if (val == NULL) {
                 return void 0;
             }
             return isFunction(val) ? val.call(this, slice.call(arguments, 1)) : val;
@@ -613,7 +624,7 @@
                 target = arguments[0] || {},
                 i = 1,
                 length = arguments.length,
-                deep = false;
+                deep = FALSE;
 
             // Handle a deep copy situation
             if (typeof target === "boolean") {
@@ -625,7 +636,7 @@
             }
 
             // Handle case when target is a string or something (possible in deep copy)
-            if (typeof target !== "object" && !isFunction(target)) {
+            if (typeof target !== OBJECT && !isFunction(target)) {
                 target = {};
             }
 
@@ -637,7 +648,7 @@
 
             for (; i < length; i++) {
                 // Only deal with non-null/undefined values
-                if ((options = arguments[i]) != null ) {
+                if ((options = arguments[i]) != NULL ) {
                     // Extend the base object
                     for (name in options) {
                         src = target[name];
@@ -651,7 +662,7 @@
                         // Recurse if we're merging plain objects or arrays
                         if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
                             if (copyIsArray) {
-                                copyIsArray = false;
+                                copyIsArray = FALSE;
                                 clone = src && isArray(src) ? src : [];
 
                             } else {
@@ -701,12 +712,12 @@
                 f,
                 r;
 
-            if (typeof fn === "string") {
+            if (typeof fn === STRING) {
                 m = context[fn];
             }
 
             if (!m) {
-                S.log("method undefined", "error", "later");
+                S.log("method undefined", ERROR, "later");
             }
 
             f = function() {
@@ -775,9 +786,9 @@
          */
         throttle: function(fn, ms, context) {
             context = context || this;
-            ms = ms || 150;
+            ms = ms || DEFAULT_INTERVAL;
 
-            if (ms === -1) {
+            if (ms === IMMEDIATE) {
                 return function() {
                     fn.apply(context, arguments);
                 };
@@ -796,18 +807,19 @@
 
         debounce: function(fn, ms, context) {
             context = context || this;
-            ms = ms || 150;
+            ms = ms || DEFAULT_INTERVAL;
 
-            if(ms === -1) {
+            if(ms === IMMEDIATE) {
                 return function() {
                     fn.apply(context, arguments);
                 };
             }
-            var timer = null;
-            var f = function() {
-                f.stop();
-                timer = S.later(fn, ms, 0, context, arguments);
-            };
+            var timer = NULL,
+                f = function() {
+                    f.stop();
+                    timer = S.later(fn, ms, 0, context, arguments);
+                };
+
             f.stop = function() {
                 if(timer) {
                     timer.cancel();
@@ -907,7 +919,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
+                        S.log(e + "decodeURIComponent error : " + val, ERROR, "unparam");
                     }
                 }
                 ret[key] = val;
@@ -1162,14 +1174,8 @@
     Uri.getComponents = function (url) {
         url = url || location.href;
 
-        var m,
+        var m = url.match(URI_RE) || [],
             ret = {};
-
-        if (!S.isNotEmptyString(url)) {
-            return ret;
-        }
-
-        m = url.match(URI_RE) || [];
 
         each(REG_INFO, function(index, key) {
             ret[key] = m[index] || EMPTY;
@@ -1182,9 +1188,8 @@
         urlDecode: urlDecode,
 
         isUri: function(val) {
-            var match;
             if (S.isNotEmptyString(val)) {
-                match = URI_RE.exec(val);
+                var match = URI_RE.exec(val);
                 return match && match[1];
             }
             return FALSE;
@@ -1984,12 +1989,11 @@
         return S;
     };
 
-    S.register = Module.register;
-
-    S.realpath = realpath;
-
-    S.request = request;
-
+    S.mix({
+        register: Module.register,
+        realpath: realpath,
+        request: request
+    });
 })(this, tbtx);
 
 
@@ -2143,6 +2147,125 @@
     };
 
     S.cookie = cookie;
+})(tbtx);
+
+
+;(function(S) {
+
+    var isDate = S.isDate,
+        each = S.each;
+
+    /*
+     * 将日期格式化成字符串
+     *  Y - 4位年
+     *  y - 2位年
+     *  M - 不补0的月,
+     *  m - 补0的月
+     *  D - 不补0的日期
+     *  d - 补0的日期
+     *  H - 不补0的小时
+     *  h - 补0的小时
+     *  I - 不补0的分
+     *  i - 补0的分
+     *  S - 不补0的秒
+     *  s - 补0的秒
+     *  毫秒暂不支持
+     *  @return：指定格式的字符串
+     */
+    function formatDate(format, date) {
+        format = format || "Y-m-d h:i:s";
+
+        var ret = format;
+
+        each(normalizeDate(date), function(v, k) {
+            ret = ret.replace(k, v);
+        });
+        return ret;
+    }
+
+    // date转对象
+    function normalizeDate(date) {
+        date = toDate(date);
+
+        var o = {
+            Y: date.getFullYear(),
+            M: date.getMonth() + 1,
+            D: date.getDate(),
+            H: date.getHours(),
+            I: date.getMinutes(),
+            S: date.getSeconds()
+        };
+
+        var ret = {},
+            key,
+            i;
+
+        for(i in o) {
+            o[i] = String(o[i]);
+            ret[i] = o[i];
+
+            key = i.toLowerCase();
+            if (key == "y") {
+                ret[key] = o[i].substring(2, 4);
+            } else {
+                ret[key] = padding2(o[i]);
+            }
+        }
+
+        return ret;
+    }
+
+    function diffDate(v1, v2) {
+        v1 = toDate(v1);
+        v2 = toDate(v2);
+
+        var SECONDS = 60,
+            SECONDS_OF_HOUR = SECONDS * 60,
+            SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
+
+            // diff seconds
+            diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
+            remain = diff;
+
+        var day, hour, minute, second;
+
+        day = Math.floor(remain / SECONDS_OF_DAY);
+        remain -= day * SECONDS_OF_DAY;
+        hour = Math.floor(remain / SECONDS_OF_HOUR);
+        remain -= hour * SECONDS_OF_HOUR;
+        minute = Math.floor(remain / SECONDS);
+        remain -= minute * SECONDS;
+        second = Math.floor(remain);
+
+        return {
+            day: day,
+            hour: hour,
+            minute: minute,
+            second: second
+        };
+    }
+
+    // 字符串/数字 -> Date
+    function toDate(date) {
+        if (isDate(date)) {
+            return date;
+        }
+
+        var type = typeof date;
+        return (type == "number" || type == "string") ? new Date(date) : new Date();
+    }
+
+    function padding2(str) {
+        str = String(str);
+        return str.length === 1 ? "0" + str : str;
+    }
+
+    S.mix({
+        normalizeDate: normalizeDate,
+        diffDate: diffDate,
+        toDate: toDate,
+        formatDate: formatDate
+    });
 })(tbtx);
 
 

@@ -752,10 +752,9 @@
         return S;
     };
 
-    S.register = Module.register;
-
-    S.realpath = realpath;
-
-    S.request = request;
-
+    S.mix({
+        register: Module.register,
+        realpath: realpath,
+        request: request
+    });
 })(this, tbtx);

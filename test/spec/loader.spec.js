@@ -1,10 +1,24 @@
 describe("loader", function() {
     var S = tbtx;
 
-    describe('preload', function() {
+    xdescribe('preload', function() {
         it("should preload the scripts", function() {
             expect(jQuery).not.toBeUndefined();
             // expect(JSON).not.toBeUndefined();
+        });
+    });
+
+    describe("register", function() {
+        it("should register the mod if the mod is in env", function() {
+            S.require("json", function() {
+                var o = {
+                    a: "a",
+                    b: "b"
+                };
+                var expectResult = '{"a":"a","b":"b"}';
+                expect(JSON.stringify(o)).toEqual(expectResult);
+                expect(JSON.parse(expectResult)).toEqual(o);
+            });
         });
     });
 
