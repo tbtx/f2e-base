@@ -2,9 +2,10 @@ describe('lang', function() {
     var S = tbtx;
 
     var arrayLikeObject = {
-        1: "a",
-        2: "b",
-        3: "c"
+        0: "a",
+        1: "b",
+        2: "c",
+        length: 3
     };
 
     describe("shim", function() {
@@ -174,6 +175,10 @@ describe('lang', function() {
                 expect(S.reduceRight([1, 2, 3, 4], function(prev, now) {
                     return prev + now;
                 }, 3)).toEqual(13);
+
+                expect(S.reduce(arrayLikeObject, function(prev, now) {
+                    return prev + now;
+                })).toEqual("abc");
             });
         });
 
@@ -185,7 +190,7 @@ describe('lang', function() {
 
                 expect(S.map(arrayLikeObject, function(v) {
                     return v + "a";
-                })).toEqual({ 1 : 'aa', 2 : 'ba', 3 : 'ca' });
+                })).toEqual(['aa', 'ba', 'ca']);
             });
         });
         describe('filter', function() {
@@ -207,7 +212,7 @@ describe('lang', function() {
                 r = S.filter(arrayLikeObject, function(elem, index, arr) {
                     return elem != "a";
                 });
-                expect(r).toEqual({ 2 : 'b', 3 : 'c' });
+                expect(r).toEqual(["b", "c"]);
             });
         });
 
@@ -452,7 +457,6 @@ describe('lang', function() {
                 }
             };
             expect(S.deepCopy(src)).toEqual(src);
-            expect(S.deepCopy("abc")).toEqual("abc");
         });
     });
 

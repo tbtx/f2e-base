@@ -1,47 +1,72 @@
-define("msg", ["jquery", "position", "base/2.0/css/msg.css"], function($, Position) {
+define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, Position) {
     var S = tbtx;
 
-    var element = $('<div class="tbtx-broadcast"></div>').appendTo('body');
+    var BroadcastWidget = Widget.extend({
+        attrs: {
+            visible: false,
+            msg: "",
+            // 消息持续时间
+            duration: 4000,
+            // 消息位置
+            direction: "center"
+        },
 
-    var timer;
-    // direction - top/bottom
-    var broadcast = function(msg, duration, direction) {
-        direction = direction || "center";
-        duration = duration || 4000;
+        _onRenderVisible: function(val) {
+            this.element[val ? "fadeIn" : "fadeOut"]();
+        },
 
-        if (timer) {
-            timer.cancel();
+        _onRenderMsg: function(val) {
+            var self = this,
+                duration = this.get("duration");
+
+            if (self.timer) {
+                self.timer.cancel();
+            }
+            if (!val) {
+                self.set("visible", false);
+                return;
+            }
+
+            self.element.html(val);
+            self.set("visible", true);
+            if (duration > 0) {
+                self.timer = S.later(function() {
+                    self.set("visible", false);
+                }, duration, false);
+            }
+        },
+
+        _onRenderDirection: function(val) {
+            var element = this.element;
+
+            if (val === "center") {
+                Position.center(element);
+            } else {
+                Position.pin({
+                    element: element,
+                    x: "50%",
+                    y: val === "top" ? -60 : "100%+60"
+                }, {
+                    element: Position.VIEWPORT,
+                    x: "50%",
+                    y: val === "top" ? 0 : "100%"
+                });
+            }
         }
+    });
+    var init = S.singleton(function() {
+        return new BroadcastWidget({
+            className: "tbtx-broadcast"
+        }).render();
+    });
 
-        if (!msg) {
-            element.hide();
-            return;
+    S.broadcast = function(msg, direction, duration) {
+        var instance = init();
+        if (duration) {
+            instance.set("duration", duration);
         }
-
-        element.html(msg);
-
-        if (direction == "center") {
-            Position.center(element);
-        } else {
-            Position.pin({
-                element: element,
-                x: "50%",
-                y: direction == "top" ? -60 : "100%+60"
-            }, {
-                element: Position.VIEWPORT,
-                x: "50%",
-                y: direction == "top" ? 0 : "100%"
-            });
-        }
-
-        element.fadeIn();
-
-        if (duration > 0) {
-            timer = S.later(function() {
-                element.fadeOut();
-            }, duration, false);
-        }
+        instance.set("direction", direction || "center");
+        instance.set("msg", msg);
+        return S;
     };
-
-    S.broadcast = broadcast;
 });

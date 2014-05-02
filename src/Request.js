@@ -1,6 +1,7 @@
 define("request", ["jquery"], function($) {
     var S = tbtx,
-        cookie = S.cookie;
+        cookie = S.cookie,
+        isPlainObject = S.isPlainObject;
 
     var generateToken = function() {
         var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
@@ -23,12 +24,12 @@ define("request", ["jquery"], function($) {
         Request = function(url, data, successCode) {
             var config;
 
-            if (S.isPlainObject(url)) {
+            if (isPlainObject(url)) {
                 config = url;
                 successCode = data;
             } else {
                 data = data || {};
-                if (S.isPlainObject(data) && !data.jtoken) {
+                if (isPlainObject(data) && !data.jtoken) {
                     data.jtoken = generateToken();
                 }
                 config = {
@@ -41,7 +42,6 @@ define("request", ["jquery"], function($) {
             }
 
             successCode = successCode || 100;
-
 
             var deferred = requestMap[url];
             // 正在处理中

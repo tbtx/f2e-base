@@ -1,7 +1,6 @@
 (function(global, S) {
 
     var isSupportConsole = global.console && console.log,
-
         noop = function() {};
 
     S = global[S] = global[S] || {};

@@ -1,13 +1,19 @@
-(function(global, S, undefined) {
-
-    var Loader = S.namespace("Loader"),
-        data = Loader.data = {};
+/**
+ * an amd loader
+ * thanks seajs
+ * 尽量减少对seajs代码的修改
+ */
+(function(S, undefined) {
 
     var isObject = S.isObject,
         isString = S.isString,
-        isArray = Array.isArray,
-        noop = S.noop,
-        isFunction = S.isFunction;
+        isArray = S.isArray,
+        isFunction = S.isFunction,
+        global = S.global,
+        noop = S.noop;
+
+    var Loader = S.Loader = {},
+        data = Loader.data = {};
 
     var _cid = 0;
     function cid() {
@@ -19,7 +25,6 @@
     // Extract the directory portion of a path
     // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
     // ref: http://jsperf.com/regex-vs-split/2
-
     function dirname(path) {
         return path.match(DIRNAME_RE)[0];
     }
@@ -27,10 +32,8 @@
     var DOT_RE = /\/\.\//g;
     var DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//;
     var DOUBLE_SLASH_RE = /([^:/])\/\//g;
-
     // Canonicalize a path
     // realpath("http://test.com/a//./b/../c") ==> "http://test.com/a/c"
-
     function realpath(path) {
         // /a/b/./c/./d ==> /a/b/c/d
         path = path.replace(DOT_RE, "/");
@@ -49,7 +52,6 @@
     // Normalize an id
     // normalize("path/to/a") ==> "path/to/a.js"
     // NOTICE: substring is faster than negative slice and RegExp
-
     function normalize(path) {
         var last = path.length - 1;
         var lastC = path.charAt(last);
@@ -757,4 +759,4 @@
         realpath: realpath,
         request: request
     });
-})(this, tbtx);
+})(tbtx);

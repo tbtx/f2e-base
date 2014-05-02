@@ -1,17 +1,108 @@
+/**
+ * Uri 相关
+ */
 (function(S, undefined) {
 
-    var TRUE = true,
-        FALSE = false,
-        EMPTY = "",
-        each = S.each,
-        param = S.param,
-        unparam = S.unparam;
+    var each = S.each,
+        endsWith = S.endsWith,
+        isArray = S.isArray;
 
-    var urlEncode = function (s) {
+    var EMPTY = "",
+        encode = function (s) {
             return encodeURIComponent(String(s));
         },
-        urlDecode = function (s) {
+        decode = function (s) {
             return decodeURIComponent(s.replace(/\+/g, " "));
+        },
+        param = function(o, sep, eq, serializeArray) {
+            sep = sep || "&";
+            eq = eq || "=";
+            if (serializeArray === undefined) {
+                serializeArray = true;
+            }
+            var buf = [],
+                key, i, v, len, val;
+            for (key in o) {
+                val = o[key];
+                key = encode(key);
+
+                // val is valid non-array value
+                if (isValidParamValue(val)) {
+                    buf.push(key);
+                    if (val !== undefined) {
+                        buf.push(eq, encode(val + EMPTY));
+                    }
+                    buf.push(sep);
+                } else if (isArray(val) && val.length) {
+                    // val is not empty array
+                    for (i = 0, len = val.length; i < len; ++i) {
+                        v = val[i];
+                        if (isValidParamValue(v)) {
+                            buf.push(key, (serializeArray ? encode("[]") : EMPTY));
+                            if (v !== undefined) {
+                                buf.push(eq, encode(v + EMPTY));
+                            }
+                            buf.push(sep);
+                        }
+                    }
+                }
+                // ignore other cases, including empty array, Function, RegExp, Date etc.
+
+            }
+
+            buf.pop();
+            return buf.join(EMPTY);
+        },
+        /**
+         * query字符串转为对象
+         */
+        unparam = function(str, sep, eq) {
+            if (typeof str !== "string" || !(str = str.trim())) {
+                return {};
+            }
+            sep = sep || "&";
+            eq = eq || "=";
+
+            var ret = {},
+                eqIndex,
+                pairs = str.split(sep),
+                key,
+                val,
+                i = 0,
+                len = pairs.length;
+
+            for (; i < len; ++i) {
+                eqIndex = pairs[i].indexOf(eq);
+                if (eqIndex == -1) { // 没有=
+                    key = decode(pairs[i]);
+                    val = undefined;
+                } else {
+                    // remember to decode key!
+                    key = decode(pairs[i].substring(0, eqIndex));
+                    val = pairs[i].substring(eqIndex + 1);
+                    try {
+                        val = decode(val);
+                    } catch (e) {
+                        S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
+                    }
+                    if (endsWith(key, '[]')) {
+                        key = key.substring(0, key.length - 2);
+                    }
+                }
+                if (key in ret) {
+                    if (isArray(ret[key])) {
+                        ret[key].push(val);
+                    } else {
+                        ret[key] = [
+                            ret[key],
+                            val
+                        ];
+                    }
+                } else {
+                    ret[key] = val;
+                }
+            }
+            return ret;
         };
 
     var Query = S.Query = function(query) {
@@ -20,26 +111,13 @@
     };
 
     Query.prototype = {
-
         /**
          * Return parameter value corresponding to current key
          * @param {String} [key]
          */
         get: function (key) {
             var _queryMap = this._queryMap;
-            if (key) {
-                return _queryMap[key];
-            } else {
-                return S.deepCopy(_queryMap);
-            }
-        },
-
-        /**
-         * Parameter names.
-         * @return {String[]}
-         */
-        keys: function () {
-            return S.keys(this._queryMap);
+            return key ? _queryMap[key] : _queryMap;
         },
 
         /**
@@ -49,9 +127,10 @@
          * @chainable
          */
         set: function (key, value) {
-            var _queryMap = this._queryMap;
+            var self = this,
+                _queryMap = self._queryMap;
             if (typeof key === "string") {
-                this._queryMap[key] = value;
+                self._queryMap[key] = value;
             } else {
                 if (key instanceof Query) {
                     key = key.get();
@@ -60,7 +139,7 @@
                     _queryMap[k] = v;
                 });
             }
-            return this;
+            return self;
         },
 
         /**
@@ -69,13 +148,14 @@
          * @chainable
          */
         remove: function (key) {
-            if (key) {
-                delete this._queryMap[key];
-            } else {
-                this._queryMap = {};
-            }
-            return this;
+            var self = this;
 
+            if (key) {
+                delete self._queryMap[key];
+            } else {
+                self._queryMap = {};
+            }
+            return self;
         },
 
         /**
@@ -85,7 +165,8 @@
          * @chainable
          */
         add: function (key, value) {
-            var _queryMap = this._queryMap,
+            var self = this,
+                _queryMap = self._queryMap,
                 currentValue;
             if (typeof key === "string") {
                 currentValue = _queryMap[key];
@@ -100,10 +181,10 @@
                     key = key.get();
                 }
                 for (var k in key) {
-                    this.add(k, key[k]);
+                    self.add(k, key[k]);
                 }
             }
-            return this;
+            return self;
         },
 
         /**
@@ -114,12 +195,11 @@
         toString: function (serializeArray) {
             return param(this._queryMap, undefined, undefined, serializeArray);
         }
-
     };
 
 
     // from caja uri
-    var URI_RE = new RegExp(
+    var RE_URI = new RegExp(
             "^" +
             "(?:" +
             "([^:/?#]+)" + // scheme
@@ -142,20 +222,17 @@
             path: 5,
             query: 6,
             fragment: 7
-        };
+        },
+        defaultUri = location.href;
 
     var Uri = S.Uri = function(uriStr) {
         var components,
             self = this;
 
-        S.mix(self, {
-            scheme: EMPTY,
-            credentials: EMPTY,
-            domain: EMPTY,
-            port: EMPTY,
-            path: EMPTY,
-            query: EMPTY,
-            fragment: EMPTY
+        uriStr = uriStr || defaultUri;
+
+        S.keys(REG_INFO).forEach(function(item) {
+            self[item] = EMPTY;
         });
 
         components = Uri.getComponents(uriStr);
@@ -167,7 +244,7 @@
             } else {
                 // https://github.com/kissyteam/kissy/issues/298
                 try {
-                    v = urlDecode(v);
+                    v = decode(v);
                 } catch (e) {
                     S.log(e + "urlDecode error : " + v, "error", "Uri");
                 }
@@ -208,7 +285,7 @@
                     out.push("@");
                 }
 
-                out.push(encodeURIComponent(domain));
+                out.push(encode(domain));
 
                 if (port) {
                     out.push(":");
@@ -235,9 +312,9 @@
     };
 
     Uri.getComponents = function (url) {
-        url = url || location.href;
+        url = url || "";
 
-        var m = url.match(URI_RE) || [],
+        var m = url.match(RE_URI) || [],
             ret = {};
 
         each(REG_INFO, function(index, key) {
@@ -246,54 +323,81 @@
         return ret;
     };
 
+
+    function isValidParamValue(val) {
+        var t = typeof val;
+        // If the type of val is null, undefined, number, string, boolean, return TRUE.
+        return val === null || (t !== "object" && t !== "function");
+    }
+
     S.mix({
-        urlEncode: urlEncode,
-        urlDecode: urlDecode,
+        urlEncode: encode,
+        urlDecode: decode,
+        param: param,
+        unparam: unparam,
 
         isUri: function(val) {
             if (S.isNotEmptyString(val)) {
-                var match = URI_RE.exec(val);
+                var match = RE_URI.exec(val);
                 return match && match[1];
             }
-            return FALSE;
+            return false;
         },
 
-        parseUrl: Uri.getComponents,
-
-        getFragment: function(url) {
-            return new Uri(url).getFragment();
+        parseUri: function(uri) {
+            return Uri.getComponents(uri || defaultUri);
         },
-        getQueryParam: function(name, url) {
+
+        getFragment: function(uri) {
+            return new Uri(uri).getFragment();
+        },
+
+        /**
+         * name, url or
+         * url, name
+         */
+        getQueryParam: function(name, uri) {
             if (S.isUri(name)) {
-                url = name;
-                name = EMPTY;
+                // swap
+                name = [uri, uri = name][0];
             }
-            var uri = new Uri(url);
+
+            uri = new Uri(uri);
             return uri.query.get(name) || EMPTY;
         },
-        addQueryParam: function(name, value, url) {
-            var input = {};
+
+        /**
+         * name, value, url
+         * {}, url
+         */
+        addQueryParam: function(name, value, uri) {
+            var params = {};
+
             if (S.isPlainObject(name)) {
-                url = value;
-                input = name;
+                params = name;
+                uri = value;
             } else {
-                input[name] = value;
+                params[name] = value;
             }
-            var uri = new Uri(url);
-            uri.query.add(input);
+
+            uri = new Uri(uri);
+            uri.query.add(params);
 
             return uri.toString();
         },
-        removeQueryParam: function(name, url) {
-            name = S.makeArray(name);
-            var uri = new Uri(url);
 
-            name.forEach(function(item) {
+        removeQueryParam: function(names, uri) {
+            names = S.makeArray(names);
+            uri = new Uri(uri);
+
+            names.forEach(function(item) {
                 uri.query.remove(item);
             });
             return uri.toString();
         }
-
     });
+    
+    // 兼容之前的API
+    S.parseUrl = S.parseUri;
 
 })(tbtx);
