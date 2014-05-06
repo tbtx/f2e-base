@@ -28,7 +28,7 @@ module.exports = function(grunt) {
                 options: {
                     banner: '/*\n * <%= pkg.name %>\n * update: <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
                 },
-                src: ["src/seed.js", "src/lang.js", "src/uri.js", "src/loader.js", "src/config.js", "src/cookie.js", "src/date.js", "src/Request.js", "src/msg.js"],
+                src: ["src/seed.js", "src/lang.js", "src/uri.js", "src/loader.js", "src/config.js", "src/cookie.js", "src/arale/events/1.1.0/events.js", "src/support.js", "src/date.js", "src/Request.js", "src/msg.js"],
                 dest: 'tbtx.js' // 合并成依赖文件
             },
 
@@ -54,11 +54,11 @@ module.exports = function(grunt) {
                 dest: "dist/arale/events/1.1.0/events.js"
             },
             base: {
-                src: ["src/arale/class/1.1.0/class.js", "src/arale/events/1.1.0/events.js", "src/arale/base/1.1.1/base.js"],
+                src: ["src/arale/class/1.1.0/class.js", "src/arale/base/1.1.1/base.js"],
                 dest: "dist/arale/base/1.1.1/base.js"
             },
             widget: {
-                src: ["src/arale/class/1.1.0/class.js", "src/arale/events/1.1.0/events.js", "src/arale/base/1.1.1/base.js", "src/arale/widget/1.1.1/widget.js"],
+                src: ["src/arale/class/1.1.0/class.js", "src/arale/base/1.1.1/base.js", "src/arale/widget/1.1.1/widget.js"],
                 dest: "dist/arale/widget/1.1.1/widget.js"
             },
             position: {
@@ -101,6 +101,11 @@ module.exports = function(grunt) {
             validator: {
                 src: ["src/component/validator/0.9.7/validator.js"],
                 dest: "component/validator/0.9.7/validator.js"
+            },
+
+            countDown: {
+                src: ["src/component/countDown/1.0.0/countDown.js"],
+                dest: "component/countDown/1.0.0/countDown.js"
             }
         },
 

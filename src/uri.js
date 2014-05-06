@@ -396,7 +396,7 @@
             return uri.toString();
         }
     });
-    
+
     // 兼容之前的API
     S.parseUrl = S.parseUri;
 

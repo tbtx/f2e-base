@@ -32,6 +32,7 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
             if (duration > 0) {
                 self.timer = S.later(function() {
                     self.set("visible", false);
+                    self.set("msg", "");    // 清空消息
                 }, duration, false);
             }
         },

@@ -98,17 +98,6 @@ define("arale/events/1.1.0/events", [], function() {
     // Helpers
     // -------
     var keys = Object.keys;
-    if (!keys) {
-        keys = function(o) {
-            var result = [];
-            for (var name in o) {
-                if (o.hasOwnProperty(name)) {
-                    result.push(name);
-                }
-            }
-            return result;
-        };
-    }
     // Execute callbacks
     function callEach(list, args, context, returned) {
         var r;
@@ -120,7 +109,12 @@ define("arale/events/1.1.0/events", [], function() {
             }
         }
     }
+
     return Events;
+});
+
+tbtx.require("events", function(Events) {
+    Events.mixTo(tbtx);
 });
 
 ;// Backbone.History
