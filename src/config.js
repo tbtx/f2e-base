@@ -19,6 +19,7 @@
 
     paths.arale = loaderDir + "dist/arale";
 
+
     Loader.config({
         base: staticUrl,
 

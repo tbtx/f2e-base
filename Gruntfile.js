@@ -41,7 +41,7 @@ module.exports = function(grunt) {
                 dest: "dist/sitenav.js"
             },
             router: {
-                src: ["src/arale/events/1.1.0/events.js", "src/router.js"],
+                src: ["src/router.js"],
                 dest: "dist/router.js"
             },
 

@@ -246,8 +246,6 @@ define("component/overlay/1.1.4/overlay", [ "jquery", "arale/position/1.0.1/posi
     // 兼容之前的用法
     Overlay.prototype.adjust = Overlay.prototype._setPosition;
 
-    return {
-        Overlay: Overlay,
-        Mask: Mask
-    };
+    Overlay.Mask = Mask;
+    return Overlay;
 });

@@ -527,8 +527,6 @@ define("arale/position/1.0.1/position", [ "jquery" ], function($) {
     // 兼容之前的用法
     Overlay.prototype.adjust = Overlay.prototype._setPosition;
 
-    return {
-        Overlay: Overlay,
-        Mask: Mask
-    };
+    Overlay.Mask = Mask;
+    return Overlay;
 });

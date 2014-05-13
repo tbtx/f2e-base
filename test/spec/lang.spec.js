@@ -287,17 +287,14 @@ describe('lang', function() {
         });
     });
 
-    describe("pluck", function() {
-        var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
+    // describe("pluck", function() {
+    //     var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
 
-        it("should map the property of an object array", function() {
-            var ret = S.pluck(stooges, 'name');
-            expect(ret).toEqual(["moe", "larry", "curly"]);
-
-            // ret = S.pluck(stooges, 'name.0');
-            // expect(ret).toEqual(["m", "l", "c"]);
-        });
-    });
+    //     it("should map the property of an object array", function() {
+    //         var ret = S.pluck(stooges, 'name');
+    //         expect(ret).toEqual(["moe", "larry", "curly"]);
+    //     });
+    // });
     describe("isEmptyObject", function() {
         it("should tell if the object is empty", function() {
             expect(S.isEmptyObject({})).toBeTruthy();
@@ -312,15 +309,15 @@ describe('lang', function() {
         });
     });
 
-    describe("result", function() {
-        it("should give the result if the input is function or val", function() {
-            expect(S.result(123)).toEqual(123);
+    // describe("result", function() {
+    //     it("should give the result if the input is function or val", function() {
+    //         expect(S.result(123)).toEqual(123);
 
-            expect(S.result(function() {
-                return 456
-            })).toEqual(456);
-        });
-    });
+    //         expect(S.result(function() {
+    //             return 456
+    //         })).toEqual(456);
+    //     });
+    // });
 
     describe("singleton", function() {
         it("should get only one instance", function() {
@@ -445,7 +442,7 @@ describe('lang', function() {
         });
     });
 
-    describe('deepCopy', function() {
+    xdescribe('deepCopy', function() {
         it("should make a deep copy", function() {
             var src = {
                 names: ["alex", "john"],

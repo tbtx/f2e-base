@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-05 4:46:36
+ * update: 2014-05-13 3:26:33
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -332,14 +332,11 @@
                 return object[name](fn, context);
             } else {
                 var keys = Object.keys(object),
-                    values = keys.map(function(key) {
-                        return object[key];
-                    }),
                     ret;
 
                 // memory
-                var memo = values[name](function(value, index) {
-                    var key = keys[index],
+                var memo = keys[name](function(key) {
+                    var value = object[key],
                         item = fn.call(context, value, key, object);
 
                     if (name === "filter" && item) {
@@ -354,8 +351,6 @@
                 });
                 return ret || memo;
             }
-
-            return object;
         };
     });
 
@@ -631,28 +626,6 @@
 
         isPlainObject: isPlainObject,
 
-        pluck: function(object, names) {
-            names = (names + EMPTY).split(".");
-
-            return S.map(object, function(v, k, object) {
-                var i = 0,
-                    ret = v,
-                    length = names.length;
-
-                for (; i < length; i++) {
-                    ret = ret[names[i]];
-                }
-                return ret;
-            });
-        },
-
-        result: function(val) {
-            if (isFunction(val)) {
-                return val.call(this, slice.call(arguments, 1));
-            }
-            return val;
-        },
-
         extend: extend,
 
         inArray: function(array, item) {
@@ -662,10 +635,6 @@
         type: type,
 
         makeArray: makeArray,
-
-        deepCopy: function(object) {
-            return extend(true, {}, object);
-        },
 
         singleton: singleton,
 
@@ -833,16 +802,18 @@
 (function(S, undefined) {
 
     var each = S.each,
-        endsWith = S.endsWith,
         isArray = S.isArray;
 
     var EMPTY = "",
+
         encode = function (s) {
             return encodeURIComponent(String(s));
         },
+
         decode = function (s) {
             return decodeURIComponent(s.replace(/\+/g, " "));
         },
+
         param = function(o, sep, eq, serializeArray) {
             sep = sep || "&";
             eq = eq || "=";
@@ -882,6 +853,7 @@
             buf.pop();
             return buf.join(EMPTY);
         },
+
         /**
          * query字符串转为对象
          */
@@ -914,7 +886,7 @@
                     } catch (e) {
                         S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
                     }
-                    if (endsWith(key, '[]')) {
+                    if (S.endsWith(key, '[]')) {
                         key = key.substring(0, key.length - 2);
                     }
                 }
@@ -958,6 +930,7 @@
         set: function (key, value) {
             var self = this,
                 _queryMap = self._queryMap;
+
             if (typeof key === "string") {
                 self._queryMap[key] = value;
             } else {
@@ -1009,9 +982,10 @@
                 if (key instanceof Query) {
                     key = key.get();
                 }
-                for (var k in key) {
-                    self.add(k, key[k]);
-                }
+
+                each(key, function(v, k) {
+                    self.add(k, v);
+                });
             }
             return self;
         },
@@ -1141,7 +1115,7 @@
     };
 
     Uri.getComponents = function (url) {
-        url = url || "";
+        url = url || EMPTY;
 
         var m = url.match(RE_URI) || [],
             ret = {};
@@ -1254,7 +1228,11 @@
     }
 
     // path
-    var DIRNAME_RE = /[^?#]*\//;
+    var DIRNAME_RE = /[^?#]*\//,
+        DOT_RE = /\/\.\//g,
+        DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//,
+        DOUBLE_SLASH_RE = /([^:/])\/\//g;
+
     // Extract the directory portion of a path
     // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
     // ref: http://jsperf.com/regex-vs-split/2
@@ -1262,9 +1240,6 @@
         return path.match(DIRNAME_RE)[0];
     }
 
-    var DOT_RE = /\/\.\//g;
-    var DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//;
-    var DOUBLE_SLASH_RE = /([^:/])\/\//g;
     // Canonicalize a path
     // realpath("http://test.com/a//./b/../c") ==> "http://test.com/a/c"
     function realpath(path) {
@@ -1301,8 +1276,8 @@
     }
 
 
-    var PATHS_RE = /^([^/:]+)(\/.+)$/;
-    var VARS_RE = /{([^{]+)}/g;
+    var PATHS_RE = /^([^/:]+)(\/.+)$/,
+        VARS_RE = /{([^{]+)}/g;
 
     function parseAlias(id) {
         var alias = data.alias;
@@ -1310,8 +1285,8 @@
     }
 
     function parsePaths(id) {
-        var paths = data.paths;
-        var m;
+        var paths = data.paths,
+            m;
 
         if (paths && (m = id.match(PATHS_RE)) && isString(paths[m[1]])) {
             id = paths[m[1]] + m[2];
@@ -1333,8 +1308,8 @@
     }
 
     function parseMap(uri) {
-        var map = data.map;
-        var ret = uri;
+        var map = data.map,
+            ret = uri;
 
         if (map) {
             for (var i = 0, len = map.length; i < len; i++) {
@@ -1353,12 +1328,12 @@
     }
 
 
-    var ABSOLUTE_RE = /^\/\/.|:\//;
-    var ROOT_DIR_RE = /^.*?\/\/.*?\//;
+    var ABSOLUTE_RE = /^\/\/.|:\//,
+        ROOT_DIR_RE = /^.*?\/\/.*?\//;
 
     function addBase(id, refUri) {
-        var ret;
-        var first = id.charAt(0);
+        var ret,
+            first = id.charAt(0);
 
         // Absolute
         if (ABSOLUTE_RE.test(id)) {
@@ -1399,40 +1374,34 @@
         return uri;
     }
 
-    var doc = document;
-    // @update 神经病document.URL 和location.href
-    var cwd = dirname(location.href);
-    var scripts = doc.scripts;
-
-    var loaderScript = scripts[scripts.length - 1];
-
-    // When `sea.js` is inline, set loaderDir to current working directory
-    var loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
+    var doc = document,
+        cwd = dirname(location.href),
+        scripts = doc.scripts,
+        loaderScript = scripts[scripts.length - 1],
+        loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
 
     function getScriptAbsoluteSrc(node) {
         return node.hasAttribute ? // non-IE6/7
-        node.src :
-        // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
-        node.getAttribute("src", 4);
+            node.src :
+            // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
+            node.getAttribute("src", 4);
     }
 
-    Loader.resolve = id2Uri;
 
     /**
      * util-request.js - The utilities for requesting script and style files
      * ref: tests/research/load-js-css/test.html
      */
 
-    var head = doc.head || doc.getElementsByTagName("head")[0] || doc.documentElement;
-    var baseElement = head.getElementsByTagName("base")[0];
+    var head = doc.head || doc.getElementsByTagName("head")[0] || doc.documentElement,
+        baseElement = head.getElementsByTagName("base")[0];
 
     // 当前正在加载的script
-    var currentlyAddingScript;
-    var interactiveScript;
-
-    var IS_CSS_RE = /\.css(?:\?|$)/i;
-    var isOldWebKit = +navigator.userAgent
-        .replace(/.*(?:AppleWebKit|AndroidWebKit)\/(\d+).*/, "$1") < 536;
+    var currentlyAddingScript,
+        interactiveScript,
+        IS_CSS_RE = /\.css(?:\?|$)/i,
+        isOldWebKit = +navigator.userAgent
+            .replace(/.*(?:AppleWebKit|AndroidWebKit)\/(\d+).*/, "$1") < 536;
 
     function request(url, callback, charset) {
         callback = callback || noop;
@@ -1513,8 +1482,8 @@
     }
 
     function pollCss(node, callback) {
-        var sheet = node.sheet;
-        var isLoaded;
+        var sheet = node.sheet,
+            isLoaded;
 
         // for WebKit < 536
         if (isOldWebKit) {
@@ -1566,10 +1535,12 @@
             return interactiveScript;
         }
 
-        var scripts = head.getElementsByTagName("script");
+        var scripts = head.getElementsByTagName("script"),
+            script,
+            i = scripts.length - 1;
 
-        for (var i = scripts.length - 1; i >= 0; i--) {
-            var script = scripts[i];
+        for (; i >= 0; i--) {
+            script = scripts[i];
             if (script.readyState === "interactive") {
                 interactiveScript = script;
                 return interactiveScript;
@@ -1581,12 +1552,11 @@
      * module.js - The core of module loader
      */
 
-    var cachedMods = Loader.cache = {};
-    var anonymousMeta;
-
-    var fetchingList = {};
-    var fetchedList = {};
-    var callbackList = {};
+    var cachedMods = Loader.cache = {},
+        anonymousMeta,
+        fetchingList = {},
+        fetchedList = {},
+        callbackList = {};
 
     var STATUS = Module.STATUS = {
         // 1 - The `module.uri` is being fetched
@@ -1621,14 +1591,13 @@
         // Resolve module.dependencies
         // 返回依赖模块的uri数组
         resolve: function() {
-            var mod = this;
-            var ids = mod.dependencies;
-            var uris = [];
+            var mod = this,
+                uri = mod.uri,
+                ids = mod.dependencies;
 
-            for (var i = 0, len = ids.length; i < len; i++) {
-                uris[i] = Module.resolve(ids[i], mod.uri);
-            }
-            return uris;
+            return S.map(ids, function(id) {
+                return Module.resolve(id, uri);
+            });
         },
 
         // Load module.dependencies and fire onload when all done
@@ -1645,11 +1614,12 @@
             var uris = mod.resolve();
 
             // 未加载的依赖数
-            var len = mod._remain = uris.length;
-            var m;
+            var len = mod._remain = uris.length,
+                m,
+                i = 0;
 
             // Initialize modules and register waitings
-            for (var i = 0; i < len; i++) {
+            for (; i < len; i++) {
                 m = Module.get(uris[i]);
 
                 if (m.status < STATUS.EXECUTED) {
@@ -1689,6 +1659,7 @@
         onload: function() {
             var mod = this;
             mod.status = STATUS.LOADED;
+
             if (mod.callback) {
                 mod.callback();
             }
@@ -1696,8 +1667,9 @@
             mod.exec();
 
             // Notify waiting modules to fire onload
-            var waitings = mod._waitings;
-            var uri, m;
+            var waitings = mod._waitings,
+                uri,
+                m;
 
             for (uri in waitings) {
                 if (waitings.hasOwnProperty(uri)) {
@@ -1726,28 +1698,30 @@
             }
 
             mod.status = STATUS.EXECUTING;
-            var uri = mod.uri;
 
-            var uris = mod.resolve();
-            var deps = [];
-            for (var i = 0, len = uris.length; i < len; i++) {
+            var uri = mod.uri,
+                uris = mod.resolve(),
+                deps = [],
+                i = 0,
+                len = uris.length;
+
+            for (; i < len; i++) {
                 deps[i] = Module.get(uris[i]).exports;
             }
 
             // Exec factory
-            var factory = mod.factory;
-
-            var exports = isFunction(factory) ?
-                factory.apply(null, deps) :
-                factory;
+            var factory = mod.factory,
+                exports = isFunction(factory) ?
+                    factory.apply(null, deps) :
+                    factory;
 
             if (exports === undefined) {
                 exports = mod.exports;
             }
 
-            if (exports === null) {
+            // if (exports === null) {
 
-            }
+            // }
 
             // Reduce memory leak
             delete mod.factory;
@@ -1762,8 +1736,8 @@
         },
 
         fetch: function() {
-            var mod = this;
-            var uri = mod.uri;
+            var mod = this,
+                uri = mod.uri;
 
             mod.status = STATUS.FETCHING;
 
@@ -1833,10 +1807,12 @@
         // 注册模块完成时的callback
         // 获取依赖模块的export并且执行callback
         mod.callback = function() {
-            var exports = [];
-            var uris = mod.resolve();
+            var exports = [],
+                uris = mod.resolve(),
+                i = 0,
+                len = uris.length;
 
-            for (var i = 0, len = uris.length; i < len; i++) {
+            for (; i < len; i++) {
                 exports[i] = cachedMods[uris[i]].exports;
             }
 
@@ -1921,6 +1897,7 @@
             anonymousMeta = meta;
         }
     };
+
     Module.define.amd = {};
 
     /**
@@ -1952,8 +1929,8 @@
     Loader.config = function(configData) {
 
         for (var key in configData) {
-            var curr = configData[key];
-            var prev = data[key];
+            var curr = configData[key],
+                prev = data[key];
 
             // Merge object config such as alias, vars
             if (prev && isObject(prev)) {
@@ -1979,6 +1956,7 @@
         }
     };
 
+    Loader.resolve = id2Uri;
 
     global.define = S.define = Module.define;
 
@@ -2015,6 +1993,7 @@
     });
 
     paths.arale = loaderDir + "dist/arale";
+
 
     Loader.config({
         base: staticUrl,
@@ -2311,14 +2290,15 @@ tbtx.require("events", function(Events) {
      *  @return：指定格式的字符串
      */
     function formatDate(format, date) {
+        if (typeof format === "number") {
+            date = [format, format = date][0];
+        }
         format = format || "Y-m-d h:i:s";
 
-        var ret = format;
-
         each(normalizeDate(date), function(v, k) {
-            ret = ret.replace(k, v);
+            format = format.replace(k, v);
         });
-        return ret;
+        return format;
     }
 
     // date转对象

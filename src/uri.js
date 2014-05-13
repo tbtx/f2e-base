@@ -4,16 +4,18 @@
 (function(S, undefined) {
 
     var each = S.each,
-        endsWith = S.endsWith,
         isArray = S.isArray;
 
     var EMPTY = "",
+
         encode = function (s) {
             return encodeURIComponent(String(s));
         },
+
         decode = function (s) {
             return decodeURIComponent(s.replace(/\+/g, " "));
         },
+
         param = function(o, sep, eq, serializeArray) {
             sep = sep || "&";
             eq = eq || "=";
@@ -53,6 +55,7 @@
             buf.pop();
             return buf.join(EMPTY);
         },
+
         /**
          * query字符串转为对象
          */
@@ -85,7 +88,7 @@
                     } catch (e) {
                         S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
                     }
-                    if (endsWith(key, '[]')) {
+                    if (S.endsWith(key, '[]')) {
                         key = key.substring(0, key.length - 2);
                     }
                 }
@@ -129,6 +132,7 @@
         set: function (key, value) {
             var self = this,
                 _queryMap = self._queryMap;
+
             if (typeof key === "string") {
                 self._queryMap[key] = value;
             } else {
@@ -180,9 +184,10 @@
                 if (key instanceof Query) {
                     key = key.get();
                 }
-                for (var k in key) {
-                    self.add(k, key[k]);
-                }
+
+                each(key, function(v, k) {
+                    self.add(k, v);
+                });
             }
             return self;
         },
@@ -312,7 +317,7 @@
     };
 
     Uri.getComponents = function (url) {
-        url = url || "";
+        url = url || EMPTY;
 
         var m = url.match(RE_URI) || [],
             ret = {};

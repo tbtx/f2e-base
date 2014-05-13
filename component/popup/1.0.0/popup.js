@@ -527,17 +527,14 @@ define("arale/position/1.0.1/position", [ "jquery" ], function($) {
     // 兼容之前的用法
     Overlay.prototype.adjust = Overlay.prototype._setPosition;
 
-    return {
-        Overlay: Overlay,
-        Mask: Mask
-    };
+    Overlay.Mask = Mask;
+    return Overlay;
 });
 
 
-;define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overlay", "position"], function($, O, Position) {
+;define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overlay", "position"], function($, Overlay, Position) {
 
-    var Mask = O.Mask,
-        Overlay = O.Overlay;
+    var Mask = Overlay.Mask;
 
     var Popup = Overlay.extend({
         attrs: {
@@ -572,6 +569,9 @@ define("arale/position/1.0.1/position", [ "jquery" ], function($) {
             if (this.get("withMask")) {
                 var maskConfig = this.get("maskConfig");
 
+                // if (!isInDocument(this.element)) {
+
+                // }
                 // element is in dom
                 if (!maskConfig.parentNode && this.element.parent().length) {
                     maskConfig.parentNode = $("<div>").insertBefore(this.element).addClass('tbtx-overlay-box');
@@ -617,6 +617,10 @@ define("arale/position/1.0.1/position", [ "jquery" ], function($) {
         }
 
     });
+
+    function isInDocument(element) {
+        return $.contains(document.documentElement, element);
+    }
 
     return Popup;
 });

@@ -272,14 +272,11 @@
                 return object[name](fn, context);
             } else {
                 var keys = Object.keys(object),
-                    values = keys.map(function(key) {
-                        return object[key];
-                    }),
                     ret;
 
                 // memory
-                var memo = values[name](function(value, index) {
-                    var key = keys[index],
+                var memo = keys[name](function(key) {
+                    var value = object[key],
                         item = fn.call(context, value, key, object);
 
                     if (name === "filter" && item) {
@@ -294,8 +291,6 @@
                 });
                 return ret || memo;
             }
-
-            return object;
         };
     });
 
@@ -571,28 +566,6 @@
 
         isPlainObject: isPlainObject,
 
-        pluck: function(object, names) {
-            names = (names + EMPTY).split(".");
-
-            return S.map(object, function(v, k, object) {
-                var i = 0,
-                    ret = v,
-                    length = names.length;
-
-                for (; i < length; i++) {
-                    ret = ret[names[i]];
-                }
-                return ret;
-            });
-        },
-
-        result: function(val) {
-            if (isFunction(val)) {
-                return val.call(this, slice.call(arguments, 1));
-            }
-            return val;
-        },
-
         extend: extend,
 
         inArray: function(array, item) {
@@ -602,10 +575,6 @@
         type: type,
 
         makeArray: makeArray,
-
-        deepCopy: function(object) {
-            return extend(true, {}, object);
-        },
 
         singleton: singleton,
 

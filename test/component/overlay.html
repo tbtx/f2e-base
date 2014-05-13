@@ -14,11 +14,13 @@
 <body>
     <script>
     var instance;
-    tbtx.require("overlay", function(O) {
-        instance = new O.Overlay({
+    tbtx.require("overlay", function(Overlay) {
+        instance = new Overlay({
             template: "<div>123</div>",
             hideOnClick: true
         }).show();
+
+        new Overlay.Mask().show();
     });
     </script>
 </body>

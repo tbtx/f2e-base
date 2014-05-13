@@ -21,14 +21,15 @@
      *  @return：指定格式的字符串
      */
     function formatDate(format, date) {
+        if (typeof format === "number") {
+            date = [format, format = date][0];
+        }
         format = format || "Y-m-d h:i:s";
 
-        var ret = format;
-
         each(normalizeDate(date), function(v, k) {
-            ret = ret.replace(k, v);
+            format = format.replace(k, v);
         });
-        return ret;
+        return format;
     }
 
     // date转对象

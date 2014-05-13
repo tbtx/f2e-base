@@ -1,7 +1,6 @@
-define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overlay", "position"], function($, O, Position) {
+define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overlay", "position"], function($, Overlay, Position) {
 
-    var Mask = O.Mask,
-        Overlay = O.Overlay;
+    var Mask = Overlay.Mask;
 
     var Popup = Overlay.extend({
         attrs: {
@@ -36,6 +35,9 @@ define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overla
             if (this.get("withMask")) {
                 var maskConfig = this.get("maskConfig");
 
+                // if (!isInDocument(this.element)) {
+
+                // }
                 // element is in dom
                 if (!maskConfig.parentNode && this.element.parent().length) {
                     maskConfig.parentNode = $("<div>").insertBefore(this.element).addClass('tbtx-overlay-box');
@@ -81,6 +83,10 @@ define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overla
         }
 
     });
+
+    function isInDocument(element) {
+        return $.contains(document.documentElement, element);
+    }
 
     return Popup;
 });
