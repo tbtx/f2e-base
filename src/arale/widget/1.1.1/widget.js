@@ -168,7 +168,8 @@ define("arale/widget/1.1.1/widget", [ "arale/base/1.1.1/base", "arale/class/1.1.
             // 默认数据模型
             model: null,
             // 组件的默认父节点
-            parentNode: document.body
+            parentNode: document.body,
+            renderMethod: "appendTo"
         },
         // 初始化方法，确定组件创建时的基本流程：
         // 初始化 attrs --》 初始化 props --》 初始化 events --》 子类的初始化
@@ -310,16 +311,20 @@ define("arale/widget/1.1.1/widget", [ "arale/base/1.1.1/base", "arale/class/1.1.
                 this.rendered = true;
             }
             // 插入到文档流中
-            var parentNode = this.get("parentNode");
-            if (parentNode && !isInDocument(this.element[0])) {
+            var parentNode = this.get("parentNode"),
+                relatedNode = this.get("relatedNode"),
+                targetNode = relatedNode || parentNode,
+                renderMethod = this.get("renderMethod");
+
+            if (targetNode && !isInDocument(this.element[0])) {
                 // 隔离样式，添加统一的命名空间
                 // https://github.com/aliceui/aliceui.org/issues/9
                 var outerBoxClass = this.constructor.outerBoxClass;
                 if (outerBoxClass) {
                     var outerBox = this._outerBox = $("<div></div>").addClass(outerBoxClass);
-                    outerBox.append(this.element).appendTo(parentNode);
+                    outerBox.append(this.element)[renderMethod](targetNode);
                 } else {
-                    this.element.appendTo(parentNode);
+                    this.element[renderMethod](targetNode);
                 }
             }
             return this;

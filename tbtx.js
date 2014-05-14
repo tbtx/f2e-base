@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-13 3:26:33
+ * update: 2014-05-14 5:40:20
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -630,6 +630,18 @@
 
         inArray: function(array, item) {
             return array.indexOf(item) > -1;
+        },
+
+        erase: function(target, array) {
+            var i = 0,
+                length = array.length;
+
+            for (; i < length; i++) {
+                if (target === array[i]) {
+                    array.splice(i, 1);
+                    return array;
+                }
+            }
         },
 
         type: type,

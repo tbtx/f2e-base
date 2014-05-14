@@ -17,12 +17,25 @@
 </div>
 <body>
     <script>
-    var instance;
     tbtx.require("popup", function(Popup) {
-        instance = new Popup({
-            template: "<div>124124</div>"
+        instance1 = new Popup({
+            // template: "<div>124124</div>",
+            element: "div"
+        }).show();
+
+        instance1.on("tbtx.popup.cancel", function() {
+            this.hide();
+        });
+
+        instance2 = new Popup({
+            template: "<div>456456</div>",
+            destroyOnHide: true
             // element: "div"
         }).show();
+
+        instance2.on("tbtx.popup.cancel", function() {
+            this.hide();
+        });
     });
     </script>
 </body>

@@ -572,6 +572,18 @@
             return array.indexOf(item) > -1;
         },
 
+        erase: function(target, array) {
+            var i = 0,
+                length = array.length;
+
+            for (; i < length; i++) {
+                if (target === array[i]) {
+                    array.splice(i, 1);
+                    return array;
+                }
+            }
+        },
+
         type: type,
 
         makeArray: makeArray,
