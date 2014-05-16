@@ -24,6 +24,13 @@
         } : noop,
 
         /**
+         * Throws error message.
+         */
+        error: function (msg) {
+            throw msg instanceof Error ? msg : new Error(msg);
+        },
+
+        /**
          * global对象，在浏览器环境中为window
          * @type {Object}
          */
@@ -38,6 +45,9 @@
 
     });
 
+    /*
+     * simple mix
+     */
     function mix(to, from) {
         if (!from) {
             from = to;

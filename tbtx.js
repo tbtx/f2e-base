@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-14 5:40:20
+ * update: 2014-05-15 3:22:22
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -30,6 +30,13 @@
         } : noop,
 
         /**
+         * Throws error message.
+         */
+        error: function (msg) {
+            throw msg instanceof Error ? msg : new Error(msg);
+        },
+
+        /**
          * global对象，在浏览器环境中为window
          * @type {Object}
          */
@@ -44,6 +51,9 @@
 
     });
 
+    /*
+     * simple mix
+     */
     function mix(to, from) {
         if (!from) {
             from = to;

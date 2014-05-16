@@ -1,16 +1,13 @@
 define("component/countDown/1.0.0/countDown", ["widget"], function() {
     var S = tbtx;
 
-    var countDownAttrConfig = {
+    var attrConfig = {
         value: "00",
         setter: function(val) {
             val = String(val);
             return val.length == 1 ? "0" + val : val;
         }
     };
-    var SECONDS = 60,
-        SECONDS_OF_HOUR = SECONDS * 60,
-        SECONDS_OF_DAY = SECONDS_OF_HOUR * 24;
 
     // 倒计时组件
     var CountDown = S.createWidget({
@@ -30,15 +27,15 @@ define("component/countDown/1.0.0/countDown", ["widget"], function() {
                 }
             },
 
-            day: countDownAttrConfig,
-            hour: countDownAttrConfig,
-            minute: countDownAttrConfig,
-            second: countDownAttrConfig
+            day: attrConfig,
+            hour: attrConfig,
+            minute: attrConfig,
+            second: attrConfig
         },
 
         setup: function() {
             var serverNow = this.get("now");
-            var clientNow = S.Now();
+            var clientNow = Date.now();
 
             // 计算客户端当前时间和服务器当前时间的差
             this.diff = clientNow - serverNow;
@@ -53,7 +50,7 @@ define("component/countDown/1.0.0/countDown", ["widget"], function() {
             // 目标时间
             var target = this.get("target");
 
-            var clientNow = S.Now(),
+            var clientNow = Date.now(),
                 now = clientNow - this.diff;
 
             if (now >= target) {
@@ -81,5 +78,5 @@ define("component/countDown/1.0.0/countDown", ["widget"], function() {
         }
     });
 
-    return countDown;
+    return CountDown;
 });
