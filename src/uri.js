@@ -4,7 +4,8 @@
 (function(S, undefined) {
 
     var each = S.each,
-        isArray = S.isArray;
+        isString = S.isString,
+        makeArray = S.makeArray;
 
     var EMPTY = "",
 
@@ -16,41 +17,21 @@
             return decodeURIComponent(s.replace(/\+/g, " "));
         },
 
-        param = function(o, sep, eq, serializeArray) {
+        param = function(o, sep, eq) {
             sep = sep || "&";
             eq = eq || "=";
-            if (serializeArray === undefined) {
-                serializeArray = true;
-            }
-            var buf = [],
-                key, i, v, len, val;
-            for (key in o) {
-                val = o[key];
-                key = encode(key);
 
-                // val is valid non-array value
+            var buf = [];
+            each(o, function(val, key) {
+                key = encode(key);
                 if (isValidParamValue(val)) {
                     buf.push(key);
                     if (val !== undefined) {
                         buf.push(eq, encode(val + EMPTY));
                     }
                     buf.push(sep);
-                } else if (isArray(val) && val.length) {
-                    // val is not empty array
-                    for (i = 0, len = val.length; i < len; ++i) {
-                        v = val[i];
-                        if (isValidParamValue(v)) {
-                            buf.push(key, (serializeArray ? encode("[]") : EMPTY));
-                            if (v !== undefined) {
-                                buf.push(eq, encode(v + EMPTY));
-                            }
-                            buf.push(sep);
-                        }
-                    }
                 }
-                // ignore other cases, including empty array, Function, RegExp, Date etc.
-
-            }
+            });
 
             buf.pop();
             return buf.join(EMPTY);
@@ -60,7 +41,7 @@
          * query字符串转为对象
          */
         unparam = function(str, sep, eq) {
-            if (typeof str !== "string" || !(str = str.trim())) {
+            if (!(isString(str) && (str = str.trim()))) {
                 return {};
             }
             sep = sep || "&";
@@ -88,39 +69,26 @@
                     } catch (e) {
                         S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
                     }
-                    if (S.endsWith(key, '[]')) {
-                        key = key.substring(0, key.length - 2);
-                    }
                 }
-                if (key in ret) {
-                    if (isArray(ret[key])) {
-                        ret[key].push(val);
-                    } else {
-                        ret[key] = [
-                            ret[key],
-                            val
-                        ];
-                    }
-                } else {
-                    ret[key] = val;
-                }
+                ret[key] = val;
             }
             return ret;
         };
 
     var Query = S.Query = function(query) {
         this._query = query || EMPTY;
-        this._queryMap = unparam(this._query);
+        this._map = unparam(this._query);
     };
 
     Query.prototype = {
+
         /**
          * Return parameter value corresponding to current key
          * @param {String} [key]
          */
         get: function (key) {
-            var _queryMap = this._queryMap;
-            return key ? _queryMap[key] : _queryMap;
+            var _map = this._map;
+            return key ? _map[key] : _map;
         },
 
         /**
@@ -130,20 +98,20 @@
          * @chainable
          */
         set: function (key, value) {
-            var self = this,
-                _queryMap = self._queryMap;
+            var query = this,
+                _map = query._map;
 
-            if (typeof key === "string") {
-                self._queryMap[key] = value;
+            if (isString(key)) {
+                _map[key] = value;
             } else {
                 if (key instanceof Query) {
                     key = key.get();
                 }
                 each(key, function (v, k) {
-                    _queryMap[k] = v;
+                    _map[k] = v;
                 });
             }
-            return self;
+            return query;
         },
 
         /**
@@ -151,15 +119,18 @@
          * @param {String} key
          * @chainable
          */
-        remove: function (key) {
-            var self = this;
+        remove: function (keys) {
+            var query = this;
 
-            if (key) {
-                delete self._queryMap[key];
+            if (keys) {
+                keys = makeArray(keys);
+                keys.forEach(function(key) {
+                    delete query._map[key];
+                });
             } else {
-                self._queryMap = {};
+                query._map = {};
             }
-            return self;
+            return query;
         },
 
         /**
@@ -169,56 +140,49 @@
          * @chainable
          */
         add: function (key, value) {
-            var self = this,
-                _queryMap = self._queryMap,
-                currentValue;
-            if (typeof key === "string") {
-                currentValue = _queryMap[key];
-                if (currentValue === undefined) {
-                    currentValue = value;
-                } else {
-                    currentValue = [].concat(currentValue).concat(value);
-                }
-                _queryMap[key] = currentValue;
+            var query = this,
+                _map = query._map;
+
+            if (isString(key)) {
+                _map[key] = value;
             } else {
                 if (key instanceof Query) {
                     key = key.get();
                 }
 
                 each(key, function(v, k) {
-                    self.add(k, v);
+                    query.set(k, v);
                 });
             }
-            return self;
+            return query;
         },
 
         /**
          * Serialize query to string.
-         * @param {Boolean} [serializeArray=true]
-         * whether append [] to key name when value 's type is array
          */
-        toString: function (serializeArray) {
-            return param(this._queryMap, undefined, undefined, serializeArray);
+        toString: function () {
+            return param(this._map);
         }
     };
 
 
     // from caja uri
-    var RE_URI = new RegExp(
-            "^" +
-            "(?:" +
-            "([^:/?#]+)" + // scheme
-            ":)?" +
-            "(?://" +
-            "(?:([^/?#]*)@)?" + // credentials
-            "([^/?#:@]*)" + // domain
-            "(?::([0-9]+))?" + // port
-            ")?" +
-            "([^?#]+)?" + // path
-            "(?:\\?([^#]*))?" + // query
-            "(?:#(.*))?" + // fragment
-            "$"
-        ),
+    var RE_URI = new RegExp([
+            "^",
+            "(?:",
+                "([^:/?#]+)", // scheme
+            ":)?",
+            "(?://",
+                "(?:([^/?#]*)@)?", // credentials
+                "([^/?#:@]*)", // domain
+                "(?::([0-9]+))?", // port
+            ")?",
+            "([^?#]+)?", // path
+            "(?:\\?([^#]*))?", // query
+            "(?:#(.*))?", // fragment
+            "$",
+        ].join(EMPTY)),
+
         REG_INFO = {
             scheme: 1,
             credentials: 2,
@@ -228,24 +192,18 @@
             query: 6,
             fragment: 7
         },
+
         defaultUri = location.href;
 
     var Uri = S.Uri = function(uriStr) {
-        var components,
-            self = this;
-
-        uriStr = uriStr || defaultUri;
-
-        S.keys(REG_INFO).forEach(function(item) {
-            self[item] = EMPTY;
-        });
-
-        components = Uri.getComponents(uriStr);
+        var uri = this,
+            components = Uri.getComponents(uriStr);
 
         each(components, function (v, key) {
+
             if (key === "query") {
                 // need encoded content
-                self.query = new Query(v);
+                uri.query = new Query(v);
             } else {
                 // https://github.com/kissyteam/kissy/issues/298
                 try {
@@ -254,11 +212,11 @@
                     S.log(e + "urlDecode error : " + v, "error", "Uri");
                 }
                 // need to decode to get data structure in memory
-                self[key] = v;
+                uri[key] = v;
             }
         });
 
-        return self;
+        return uri;
     };
 
     Uri.prototype = {
@@ -267,16 +225,16 @@
             return this.fragment;
         },
 
-        toString: function (serializeArray) {
+        toString: function () {
             var out = [],
-                self = this,
-                scheme = self.scheme,
-                domain = self.domain,
-                path = self.path,
-                port = self.port,
-                fragment = self.fragment,
-                query = self.query.toString(serializeArray),
-                credentials = self.credentials;
+                uri = this,
+                scheme = uri.scheme,
+                domain = uri.domain,
+                path = uri.path,
+                port = uri.port,
+                fragment = uri.fragment,
+                query = uri.query.toString(),
+                credentials = uri.credentials;
 
             if (scheme) {
                 out.push(scheme);
@@ -316,10 +274,10 @@
         }
     };
 
-    Uri.getComponents = function (url) {
-        url = url || EMPTY;
+    Uri.getComponents = function (uri) {
+        uri = uri || defaultUri;
 
-        var m = url.match(RE_URI) || [],
+        var m = uri.match(RE_URI) || [],
             ret = {};
 
         each(REG_INFO, function(index, key) {
@@ -335,70 +293,57 @@
         return val === null || (t !== "object" && t !== "function");
     }
 
+    function isUri(val) {
+        if (isString(val)) {
+            var match = RE_URI.exec(val);
+            return match && match[1];
+        }
+        return false;
+    }
+
+    /**
+     * get/set/remove/add QueryParam
+     * uri, args... or args.., uri
+     */
+    "add get remove set".split(" ").forEach(function(name) {
+        S[name + "QueryParam"] = function() {
+            var args = makeArray(arguments),
+                length = args.length,
+                // 第一个跟最后一个参数都可能是uri
+                first = args[0],
+                last = args[length - 1],
+                uriStr;
+
+            if (isUri(first)) {
+                uriStr = first;
+                args.shift();
+            } else if (isUri(last)) {
+                uriStr = last;
+                args.pop();
+            }
+
+            var uri = new Uri(uriStr),
+                query = uri.query,
+                ret = query[name].apply(query, args);
+
+            return ret === query ? uri.toString() : ret || EMPTY;
+        };
+    });
+
     S.mix({
         urlEncode: encode,
         urlDecode: decode,
         param: param,
         unparam: unparam,
 
-        isUri: function(val) {
-            if (S.isNotEmptyString(val)) {
-                var match = RE_URI.exec(val);
-                return match && match[1];
-            }
-            return false;
-        },
+        isUri: isUri,
 
         parseUri: function(uri) {
-            return Uri.getComponents(uri || defaultUri);
+            return Uri.getComponents(uri);
         },
 
         getFragment: function(uri) {
             return new Uri(uri).getFragment();
-        },
-
-        /**
-         * name, url or
-         * url, name
-         */
-        getQueryParam: function(name, uri) {
-            if (S.isUri(name)) {
-                // swap
-                name = [uri, uri = name][0];
-            }
-
-            uri = new Uri(uri);
-            return uri.query.get(name) || EMPTY;
-        },
-
-        /**
-         * name, value, url
-         * {}, url
-         */
-        addQueryParam: function(name, value, uri) {
-            var params = {};
-
-            if (S.isPlainObject(name)) {
-                params = name;
-                uri = value;
-            } else {
-                params[name] = value;
-            }
-
-            uri = new Uri(uri);
-            uri.query.add(params);
-
-            return uri.toString();
-        },
-
-        removeQueryParam: function(names, uri) {
-            names = S.makeArray(names);
-            uri = new Uri(uri);
-
-            names.forEach(function(item) {
-                uri.query.remove(item);
-            });
-            return uri.toString();
         }
     });
 

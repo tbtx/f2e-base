@@ -51,7 +51,7 @@
     function mix(to, from) {
         if (!from) {
             from = to;
-            to = S;
+            to = this;
         }
         for (var i in from) {
             to[i] = from[i];

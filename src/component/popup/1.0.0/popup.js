@@ -30,6 +30,7 @@ define("component/popup/1.0.0/popup", ["jquery", "component/overlay/1.1.4/overla
 
         events: {
             "click .J-popup-close": "hide",
+            "click [data-role=close]": "hide",      // 兼容之前的写法，现在最好使用data-popup-role
             "click [data-popup-role=close]": "hide",
             "click [data-popup-role=confirm]": "confirm",
             "click [data-popup-role=cancel]": "cancel"

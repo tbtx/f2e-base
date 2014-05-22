@@ -1,11 +1,7 @@
 (function(S) {
     var realpath = S.realpath,
-        register = S.register,
-        global = S.global,
         Loader = S.Loader,
-        data = Loader.data;
-
-    var loaderDir = data.dir,
+        loaderDir = Loader.data.dir,
         staticUrl = S.staticUrl = realpath(loaderDir + "../../../");
 
     /**
@@ -18,7 +14,6 @@
     });
 
     paths.arale = loaderDir + "dist/arale";
-
 
     Loader.config({
         base: staticUrl,
@@ -56,25 +51,4 @@
         paths: paths
 
     });
-
-    // require to get the jquery exports
-    S.define.amd.jQuery = true;
-
-    /*
-     * shim config
-     */
-    if (global.JSON) {
-        register("json");
-    }
-    if (global.jQuery) {
-        register("jquery", jQuery);
-        register("$", jQuery);
-    }
-    if (global.KISSY) {
-        register("kissy");
-    }
-    if (global.Zepto) {
-        register("zepto", Zepto);
-        register("$", Zepto);
-    }
 })(tbtx);

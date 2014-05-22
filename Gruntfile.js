@@ -9,7 +9,7 @@ module.exports = function(grunt) {
             files: ['src/*.js'],
             options: {
                 // 基本均为第三方文件，部分稍作扩展
-                ignores: ["src/widget.js", "src/position.js", "src/router.js"],
+                ignores: ["src/router.js"],
                 browser: true,      // 访问浏览器全局变量
                 sub: true,          // person['name'] vs. person.name
                 proto: true,        // use __proto__
@@ -28,7 +28,7 @@ module.exports = function(grunt) {
                 options: {
                     banner: '/*\n * <%= pkg.name %>\n * update: <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
                 },
-                src: ["src/seed.js", "src/lang.js", "src/uri.js", "src/loader.js", "src/config.js", "src/cookie.js", "src/arale/events/1.1.0/events.js", "src/support.js", "src/date.js", "src/Request.js", "src/msg.js"],
+                src: ["src/seed.js", "src/lang.js", "src/uri.js", "src/loader.js", "src/config.js", "src/cookie.js", "src/arale/events/1.1.0/events.js", "src/arale/position/1.0.1/position.js", "src/support.js", "src/date.js", "src/request.js", "src/msg.js", "src/register.js"],
                 dest: 'tbtx.js' // 合并成依赖文件
             },
 
@@ -66,7 +66,7 @@ module.exports = function(grunt) {
                 dest: "dist/arale/position/1.0.1/position.js"
             },
             iframeShim: {
-                src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js"],
+                src: ["src/arale/iframe-shim/1.0.2/iframe-shim.js"],
                 dest: "dist/arale/iframe-shim/1.0.2/iframe-shim.js"
             },
             templatable: {
@@ -84,12 +84,12 @@ module.exports = function(grunt) {
 
             // component
             overlay: {
-                src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js"],
+                src: ["src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js"],
                 dest: "component/overlay/1.1.4/overlay.js"
             },
 
             popup: {
-                src: ["src/arale/position/1.0.1/position.js", "src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js", "src/component/popup/1.0.0/popup.js"],
+                src: ["src/arale/iframe-shim/1.0.2/iframe-shim.js", "src/component/overlay/1.1.4/overlay.js", "src/component/popup/1.0.0/popup.js"],
                 dest: "component/popup/1.0.0/popup.js"
             },
 
@@ -106,6 +106,11 @@ module.exports = function(grunt) {
             countDown: {
                 src: ["src/component/countDown/1.0.0/countDown.js"],
                 dest: "component/countDown/1.0.0/countDown.js"
+            },
+
+            pagination: {
+                src: ["src/component/pagination/1.0.0/pagination.js"],
+                dest: "component/pagination/1.0.0/pagination.js"
             }
         },
 

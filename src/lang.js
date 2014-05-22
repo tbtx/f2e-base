@@ -2,12 +2,12 @@
  * 语言扩展
  */
 (function(S, undefined) {
-    var global = S.global;
 
     /*
      * shim first
      */
-    var AP = Array.prototype,
+    var global = S.global,
+        AP = Array.prototype,
         OP = Object.prototype,
         SP = String.prototype,
         FP = Function.prototype,
@@ -16,7 +16,8 @@
         hasOwn = OP.hasOwnProperty,
         hasOwnProperty = function(o, p) {
             return hasOwn.call(o, p);
-        };
+        },
+        EMPTY = "";
 
     /**
      * Object.keys
@@ -62,11 +63,11 @@
     if (!FP.bind) {
         FP.bind = function(context) {
             var args = slice.call(arguments, 1),
-                self = this,
+                fn = this,
                 noop = function() {},
                 ret = function() {
                     // 已经bind过context, context还应该是this
-                    return self.apply(this instanceof noop && context ? this : context || global, args.concat(slice.call(arguments)));
+                    return fn.apply(this instanceof noop && context ? this : context || global, args.concat(slice.call(arguments)));
                 };
 
             noop.prototype = this.prototype;
@@ -91,7 +92,7 @@
     if (!SP.trim) {
         var RE_TRIM = /^\s+|\s+$/g;
         SP.trim = function() {
-            return this.replace(RE_TRIM, "");
+            return this.replace(RE_TRIM, EMPTY);
         };
     }
     S.trim = function(str) {
@@ -272,24 +273,29 @@
                 return object[name](fn, context);
             } else {
                 var keys = Object.keys(object),
-                    ret;
+                    ret = {};
 
-                // memory
-                var memo = keys[name](function(key) {
-                    var value = object[key],
-                        item = fn.call(context, value, key, object);
+                if (S.inArray(["map", "filter"], name)){
+                    keys[name](function(key) {
+                        var value = object[key],
+                            item = fn.call(context, value, key, object);
 
-                    if (name === "filter" && item) {
-                        ret = ret || {};
-                        ret[key] = value;
-                    }
-                    if (name === "map") {
-                        ret = ret || {};
-                        ret[key] = item;
-                    }
-                    return item;
-                });
-                return ret || memo;
+                        if (name === "filter" && item) {
+                            ret[key] = value;
+                        }
+                        if (name === "map") {
+                            ret[key] = item;
+                        }
+                        return item;
+                    });
+
+                    return ret;
+                } else {
+                    return keys[name](function(key, value) {
+                        value = object[key];
+                        return fn.call(context, value, key, object);
+                    });
+                }
             }
         };
     });
@@ -362,15 +368,14 @@
         }
     };
 
-    var EMPTY = "",
-        /**
-         * 单例模式
-         * return only one instance
-         * @param  {Function} fn      the function to return the instance
-         * @param  {object}   context
-         * @return {Function}
-         */
-        singleton = function(fn, context) {
+    /**
+     * 单例模式
+     * return only one instance
+     * @param  {Function} fn      the function to return the instance
+     * @param  {object}   context
+     * @return {Function}
+     */
+    var singleton = function(fn, context) {
             var result;
             return function() {
                 return result || (result = fn.apply(context, arguments));

@@ -1,6 +1,22 @@
 describe("uri", function() {
     var S = tbtx;
 
+    describe('unparam, param', function() {
+        it("should get a object of the params", function() {
+            expect(S.unparam("spm=a310i.2181409.5731777.1.eVI5Sh&name=1213")).toEqual({
+                spm: "a310i.2181409.5731777.1.eVI5Sh",
+                name: "1213"
+            });
+        });
+
+        it("should param a object to params", function() {
+            expect(S.param({
+                spm: "a310i.2181409.5731777.1.eVI5Sh",
+                name: "1213"
+            })).toEqual("spm=a310i.2181409.5731777.1.eVI5Sh&name=1213");
+        });
+    });
+
     describe("isUri", function() {
         it("should test a str is a uri", function() {
             expect(S.isUri("http://www.taobao.com")).toBeTruthy();
@@ -37,7 +53,7 @@ describe("uri", function() {
             var url = "http://miiee.taobao.com/themes/theme_118.htm?spm=a310i.2181409.5731777.1.eVI5Sh&name=1213#page-5";
             var target = {spm: "a310i.2181409.5731777.1.eVI5Sh", name: "1213"};
 
-            expect( S.getQueryParam("", url) ).toEqual(target);
+            expect( S.getQueryParam(url) ).toEqual(target);
             expect( S.getQueryParam(url) ).toEqual(target);
             expect( S.getQueryParam("name", url) ).toEqual("1213");
 
@@ -45,7 +61,7 @@ describe("uri", function() {
             expect( S.getQueryParam("name") ).toEqual('');
 
             expect( S.getQueryParam("name", "abc") ).toEqual('');
-            expect( S.getQueryParam("", "abc") ).toEqual({});
+            expect( S.getQueryParam("abc") ).toEqual('');
 
             // expect( S.getQueryParam() ).toEqual(S.data("urlInfo").query);
         });

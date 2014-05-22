@@ -21,7 +21,7 @@ define("request", ["jquery"], function($) {
         /**
          * 适用于用到jtoken的请求
          */
-        Request = function(url, data, successCode) {
+        request = function(url, data, successCode) {
             var config;
 
             if (isPlainObject(url)) {
@@ -67,6 +67,8 @@ define("request", ["jquery"], function($) {
             return deferred.promise();
         };
 
-    S.Request = Request;
-    return Request;
+    // 大写兼容之前的用法
+    S.Request = S.request = request;
+
+    return request;
 });

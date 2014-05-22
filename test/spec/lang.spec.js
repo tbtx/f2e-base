@@ -2,11 +2,17 @@ describe('lang', function() {
     var S = tbtx;
 
     var arrayLikeObject = {
-        0: "a",
-        1: "b",
-        2: "c",
-        length: 3
-    };
+            0: "a",
+            1: "b",
+            2: "c",
+            length: 3
+        },
+        object = {
+            a: "av",
+            b: "bv",
+            c: "cv",
+            d: "dv"
+        };
 
     describe("shim", function() {
         describe('keys', function() {
@@ -71,13 +77,20 @@ describe('lang', function() {
             });
         });
 
-        describe('forEach every some', function() {
-            it("should implement ES'5 forEach .. etc", function() {
-                var counter = 0;
-                array = [1, 2, 3, 4];
+        describe("forEach", function() {
+            it("should implement ES'5 forEach", function() {
+                var array = [1, 2, 3, 4],
+                    counter = 0;
 
                 array.forEach(function() {
-                    counter += 1;
+                    counter++;
+                });
+
+                expect(counter).toEqual(4);
+
+                counter = 0;
+                S.forEach(array, function() {
+                    counter++;
 
                     // not work
                     return false;
@@ -85,57 +98,154 @@ describe('lang', function() {
                 expect(counter).toEqual(4);
 
                 counter = 0;
-                S.forEach(array, function() {
-                    counter += 1;
-                    return false;
+                S.forEach(arrayLikeObject, function() {
+                    counter++;
+                });
+                expect(counter).toEqual(3);
+
+                counter = 0;
+                var ret = "";
+                S.forEach(object, function(v, k) {
+                    counter++;
+                    ret += k;
+                });
+                expect(counter).toEqual(4);
+                expect(ret).toEqual("abcd");
+            });
+        });
+
+        describe("every", function() {
+            it("should implement ES'5 every", function() {
+                var array = [1, 2, 3, 4],
+                    counter = 0;
+
+                // every必须return一个值
+                array.every(function() {
+                    counter++;
+                    return true;
                 });
                 expect(counter).toEqual(4);
 
                 counter = 0;
                 array.every(function() {
-                    counter += 1;
+                    counter++;
                     return false;
                 });
                 expect(counter).toEqual(1);
 
                 counter = 0;
                 S.every(array, function() {
-                    counter += 1;
+                    counter++;
                     return false;
                 });
                 expect(counter).toEqual(1);
 
-                counter = 0;
-                S.each(array, function() {
-                    counter += 1;
-                    return false;
-                });
-                expect(counter).toEqual(1);
-
-
-                var a = [1, 2, 3];
-                expect(S.every(a, function(v) {return v>0})).toBeTruthy();
-                expect(S.every(a, function(v) {return v<0})).toBeFalsy();
+                expect(S.every(array, function(v) {
+                    return v>0;
+                })).toBeTruthy();
+                expect(S.every(array, function(v) {
+                    return v<0;
+                })).toBeFalsy();
 
                 counter = 0;
-                S.forEach(arrayLikeObject, function() {
-                    counter += 1;
-                    return false;
+                S.every(arrayLikeObject, function() {
+                    counter++;
+                    return true;
                 });
                 expect(counter).toEqual(3);
 
                 counter = 0;
-                S.every(arrayLikeObject, function() {
-                    counter += 1;
-                    return false;
+                var ret = "";
+                S.every(object, function(v, k) {
+                    counter++;
+                    ret += k;
+                    return true;
                 });
-                expect(counter).toEqual(1);
+                expect(counter).toEqual(4);
+                expect(ret).toEqual("abcd");
+            });
+        });
+
+        describe('some', function() {
+            it("should implement ES'5 some", function() {
+                var counter = 0,
+                    array = [1, 2, 3, 4];
 
 
-                expect(S.some(a, function(v) {return v>2})).toBeTruthy();
-                expect(a.some(function(v) {return v>2})).toBeTruthy();
-                expect(a.some(function(v) {return v>4})).toBeFalsy();
+                expect(S.some(array, function(v) {
+                    return v>2;
+                })).toBeTruthy();
+                expect(array.some(function(v) {
+                    return v>2;
+                })).toBeTruthy();
+                expect(array.some(function(v) {
+                    return v>4;
+                })).toBeFalsy();
 
+                expect(S.some(arrayLikeObject, function(v, k) {
+                    return k >= 2;
+                })).toBeTruthy();
+
+                expect(S.some(object, function(v, k) {
+                    return k == "b";
+                })).toBeTruthy();
+
+            });
+        });
+
+        describe('map', function() {
+            it("should map the array", function() {
+                var a = [1, 2, 3];
+                expect(S.map(a, function(v) {return v*2})).toEqual([2, 4, 6]);
+                expect(a.map(function(v) {return v*2})).toEqual([2, 4, 6]);
+
+                expect(S.map(arrayLikeObject, function(v) {
+                    return v + "a";
+                })).toEqual(['aa', 'ba', 'ca']);
+
+                expect(S.map(object, function(v) {
+                    return v + "a";
+                })).toEqual({
+                    a: 'ava',
+                    b: 'bva',
+                    c: 'cva',
+                    d: 'dva'
+                });
+            });
+        });
+        describe('filter', function() {
+            it("should filter the array", function() {
+                var array = [1, 2, 3, 4, 5],
+                    result;
+
+                result = S.filter(array, function(elem, index, arr) {
+                    expect(arr).toBe(array);
+                    return elem % 2 === 0;
+                });
+                expect(result).toEqual([2, 4]);
+
+                result = array.filter(function(elem, index, arr) {
+                    expect(arr).toBe(array);
+                    return elem % 2 === 1;
+                });
+                expect(result).toEqual([1, 3, 5]);
+
+                result = S.filter(arrayLikeObject, function(item, index, arr) {
+                    return item != "a";
+                });
+                expect(result).toEqual(["b", "c"]);
+
+                result = S.filter(object, function(v, k) {
+                    return v === "av";
+                });
+                expect(result).toEqual({
+                    a: "av"
+                });
+
+                result = S.filter(object, function(v, k) {
+                    return v === "abcd";
+                });
+                expect(result).toEqual({});
             });
         });
 
@@ -182,40 +292,6 @@ describe('lang', function() {
             });
         });
 
-        describe('map', function() {
-            it("should map the array", function() {
-                var a = [1, 2, 3];
-                expect(S.map(a, function(v) {return v*2})).toEqual([2, 4, 6]);
-                expect(a.map(function(v) {return v*2})).toEqual([2, 4, 6]);
-
-                expect(S.map(arrayLikeObject, function(v) {
-                    return v + "a";
-                })).toEqual(['aa', 'ba', 'ca']);
-            });
-        });
-        describe('filter', function() {
-            it("should filter the array", function() {
-                var array = [1, 2, 3, 4, 5];
-
-                var r = S.filter(array, function(elem, index, arr) {
-                    expect(arr).toBe(array);
-                    return elem % 2 == 0;
-                });
-                expect(r).toEqual([2, 4]);
-
-                var r = array.filter(function(elem, index, arr) {
-                    expect(arr).toBe(array);
-                    return elem % 2 == 0;
-                });
-                expect(r).toEqual([2, 4]);
-
-                r = S.filter(arrayLikeObject, function(elem, index, arr) {
-                    return elem != "a";
-                });
-                expect(r).toEqual(["b", "c"]);
-            });
-        });
-
         describe('indexOf lastIndexOf', function() {
             it("should get the index of the param", function() {
                 var array = [1, 2, 3, 4, 5];
@@ -240,64 +316,40 @@ describe('lang', function() {
         });
     });
 
-    describe("shim extend", function() {
-        var object = {
-            c: "789",
-            a: "123",
-            b: "456"
-        };
+    describe("each", function() {
+        var array = [1, 2, 3, 4],
+            counter = 0;
 
-        S.forEach(object, function(v, k, object) {
-            expect(object[k]).toEqual(v);
+        S.each(array, function() {
+            counter++;
         });
 
-        var ret = S.map(object, function(v, k, object) {
-            return v + "a";
-        });
-        expect(ret).toEqual({
-            c: "789a",
-            a: "123a",
-            b: "456a"
-        });
+        expect(counter).toEqual(4);
 
-        ret = S.filter(object, function(v, k, object) {
-            return v != "123";
-        });
-        expect(ret).toEqual({
-            b: "456",
-            c: "789"
-        });
+        counter = 0;
+        S.each(array, function() {
+            counter++;
 
-        ret = S.some(object, function(v) {
-            return v != "123";
+            // not work
+            return false;
         });
-        expect(ret).toBeTruthy();
-
-        ret = S.every(object, function(v) {
-            return v != "123";
-        });
-        expect(ret).toBeFalsy();
-
+        expect(counter).toEqual(1);
     });
 
     describe("isWindow", function() {
         it("should tell if the object is window", function() {
             expect(S.isWindow(window)).toBeTruthy();
             expect(S.isWindow({})).toBeFalsy();
+            expect(S.isWindow(document.documentElement)).toBeFalsy();
         });
     });
 
-    // describe("pluck", function() {
-    //     var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
-
-    //     it("should map the property of an object array", function() {
-    //         var ret = S.pluck(stooges, 'name');
-    //         expect(ret).toEqual(["moe", "larry", "curly"]);
-    //     });
-    // });
     describe("isEmptyObject", function() {
         it("should tell if the object is empty", function() {
             expect(S.isEmptyObject({})).toBeTruthy();
+            expect(S.isEmptyObject({
+                a: 123
+            })).toBeFalsy();
         });
     });
     describe('isNotEmptyString', function() {
@@ -308,16 +360,6 @@ describe('lang', function() {
             expect(S.isNotEmptyString({})).toBeFalsy();
         });
     });
-
-    // describe("result", function() {
-    //     it("should give the result if the input is function or val", function() {
-    //         expect(S.result(123)).toEqual(123);
-
-    //         expect(S.result(function() {
-    //             return 456
-    //         })).toEqual(456);
-    //     });
-    // });
 
     describe("singleton", function() {
         it("should get only one instance", function() {
@@ -363,6 +405,12 @@ describe('lang', function() {
     describe("unique", function() {
         it("should unique an array", function() {
             expect(S.unique(["a", "b", "a", "b", "c", "c"])).toEqual(["a", "b", "c"]);
+        });
+    });
+
+    describe("ucfirst", function() {
+        it("should ucpercase the first letter", function() {
+            expect(S.ucfirst("abc")).toEqual("Abc");
         });
     });
 
@@ -442,24 +490,15 @@ describe('lang', function() {
         });
     });
 
-    xdescribe('deepCopy', function() {
-        it("should make a deep copy", function() {
-            var src = {
-                names: ["alex", "john"],
-                titles: {
-                    name: "abc",
-                    info: {
-                        title: "title"
-                    }
-                }
-            };
-            expect(S.deepCopy(src)).toEqual(src);
-        });
-    });
-
     describe('namespace', function() {
         it("should return the namepace object", function() {
             expect(S.namespace("test")).toBe(S.test);
+        });
+    });
+
+    describe("erase", function() {
+        it("should erase an item from an array", function() {
+            expect(S.erase("a", ["b", "a", "c"])).toEqual(["b", "c"]);
         });
     });
 
@@ -472,22 +511,6 @@ describe('lang', function() {
         it("should get true if the string endsWith the suffix", function() {
             expect(S.endsWith("hello", 'hello')).toBeTruthy();
             expect(S.endsWith("hello", 'ahello')).toBeFalsy();
-        });
-    });
-
-    describe('unparam, param', function() {
-        it("should get a object of the params", function() {
-            expect(S.unparam("spm=a310i.2181409.5731777.1.eVI5Sh&name=1213")).toEqual({
-                spm: "a310i.2181409.5731777.1.eVI5Sh",
-                name: "1213"
-            });
-        });
-
-        it("should param a object to params", function() {
-            expect(S.param({
-                spm: "a310i.2181409.5731777.1.eVI5Sh",
-                name: "1213"
-            })).toEqual("spm=a310i.2181409.5731777.1.eVI5Sh&name=1213");
         });
     });
 

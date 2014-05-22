@@ -1,13 +1,6 @@
 describe("loader", function() {
     var S = tbtx;
 
-    xdescribe('preload', function() {
-        it("should preload the scripts", function() {
-            expect(jQuery).not.toBeUndefined();
-            // expect(JSON).not.toBeUndefined();
-        });
-    });
-
     describe("register", function() {
         it("should register the mod if the mod is in env", function() {
             S.require("json", function() {

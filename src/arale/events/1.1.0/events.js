@@ -112,7 +112,3 @@ define("arale/events/1.1.0/events", [], function() {
 
     return Events;
 });
-
-tbtx.require("events", function(Events) {
-    Events.mixTo(tbtx);
-});

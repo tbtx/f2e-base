@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-15 3:22:22
+ * update: 2014-05-22 5:22:55
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -57,7 +57,7 @@
     function mix(to, from) {
         if (!from) {
             from = to;
-            to = S;
+            to = this;
         }
         for (var i in from) {
             to[i] = from[i];
@@ -72,12 +72,12 @@
  * 语言扩展
  */
 (function(S, undefined) {
-    var global = S.global;
 
     /*
      * shim first
      */
-    var AP = Array.prototype,
+    var global = S.global,
+        AP = Array.prototype,
         OP = Object.prototype,
         SP = String.prototype,
         FP = Function.prototype,
@@ -86,7 +86,8 @@
         hasOwn = OP.hasOwnProperty,
         hasOwnProperty = function(o, p) {
             return hasOwn.call(o, p);
-        };
+        },
+        EMPTY = "";
 
     /**
      * Object.keys
@@ -132,11 +133,11 @@
     if (!FP.bind) {
         FP.bind = function(context) {
             var args = slice.call(arguments, 1),
-                self = this,
+                fn = this,
                 noop = function() {},
                 ret = function() {
                     // 已经bind过context, context还应该是this
-                    return self.apply(this instanceof noop && context ? this : context || global, args.concat(slice.call(arguments)));
+                    return fn.apply(this instanceof noop && context ? this : context || global, args.concat(slice.call(arguments)));
                 };
 
             noop.prototype = this.prototype;
@@ -161,7 +162,7 @@
     if (!SP.trim) {
         var RE_TRIM = /^\s+|\s+$/g;
         SP.trim = function() {
-            return this.replace(RE_TRIM, "");
+            return this.replace(RE_TRIM, EMPTY);
         };
     }
     S.trim = function(str) {
@@ -342,24 +343,29 @@
                 return object[name](fn, context);
             } else {
                 var keys = Object.keys(object),
-                    ret;
+                    ret = {};
 
-                // memory
-                var memo = keys[name](function(key) {
-                    var value = object[key],
-                        item = fn.call(context, value, key, object);
+                if (S.inArray(["map", "filter"], name)){
+                    keys[name](function(key) {
+                        var value = object[key],
+                            item = fn.call(context, value, key, object);
 
-                    if (name === "filter" && item) {
-                        ret = ret || {};
-                        ret[key] = value;
-                    }
-                    if (name === "map") {
-                        ret = ret || {};
-                        ret[key] = item;
-                    }
-                    return item;
-                });
-                return ret || memo;
+                        if (name === "filter" && item) {
+                            ret[key] = value;
+                        }
+                        if (name === "map") {
+                            ret[key] = item;
+                        }
+                        return item;
+                    });
+
+                    return ret;
+                } else {
+                    return keys[name](function(key, value) {
+                        value = object[key];
+                        return fn.call(context, value, key, object);
+                    });
+                }
             }
         };
     });
@@ -432,15 +438,14 @@
         }
     };
 
-    var EMPTY = "",
-        /**
-         * 单例模式
-         * return only one instance
-         * @param  {Function} fn      the function to return the instance
-         * @param  {object}   context
-         * @return {Function}
-         */
-        singleton = function(fn, context) {
+    /**
+     * 单例模式
+     * return only one instance
+     * @param  {Function} fn      the function to return the instance
+     * @param  {object}   context
+     * @return {Function}
+     */
+    var singleton = function(fn, context) {
             var result;
             return function() {
                 return result || (result = fn.apply(context, arguments));
@@ -824,7 +829,8 @@
 (function(S, undefined) {
 
     var each = S.each,
-        isArray = S.isArray;
+        isString = S.isString,
+        makeArray = S.makeArray;
 
     var EMPTY = "",
 
@@ -836,41 +842,21 @@
             return decodeURIComponent(s.replace(/\+/g, " "));
         },
 
-        param = function(o, sep, eq, serializeArray) {
+        param = function(o, sep, eq) {
             sep = sep || "&";
             eq = eq || "=";
-            if (serializeArray === undefined) {
-                serializeArray = true;
-            }
-            var buf = [],
-                key, i, v, len, val;
-            for (key in o) {
-                val = o[key];
-                key = encode(key);
 
-                // val is valid non-array value
+            var buf = [];
+            each(o, function(val, key) {
+                key = encode(key);
                 if (isValidParamValue(val)) {
                     buf.push(key);
                     if (val !== undefined) {
                         buf.push(eq, encode(val + EMPTY));
                     }
                     buf.push(sep);
-                } else if (isArray(val) && val.length) {
-                    // val is not empty array
-                    for (i = 0, len = val.length; i < len; ++i) {
-                        v = val[i];
-                        if (isValidParamValue(v)) {
-                            buf.push(key, (serializeArray ? encode("[]") : EMPTY));
-                            if (v !== undefined) {
-                                buf.push(eq, encode(v + EMPTY));
-                            }
-                            buf.push(sep);
-                        }
-                    }
                 }
-                // ignore other cases, including empty array, Function, RegExp, Date etc.
-
-            }
+            });
 
             buf.pop();
             return buf.join(EMPTY);
@@ -880,7 +866,7 @@
          * query字符串转为对象
          */
         unparam = function(str, sep, eq) {
-            if (typeof str !== "string" || !(str = str.trim())) {
+            if (!(isString(str) && (str = str.trim()))) {
                 return {};
             }
             sep = sep || "&";
@@ -908,39 +894,26 @@
                     } catch (e) {
                         S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
                     }
-                    if (S.endsWith(key, '[]')) {
-                        key = key.substring(0, key.length - 2);
-                    }
                 }
-                if (key in ret) {
-                    if (isArray(ret[key])) {
-                        ret[key].push(val);
-                    } else {
-                        ret[key] = [
-                            ret[key],
-                            val
-                        ];
-                    }
-                } else {
-                    ret[key] = val;
-                }
+                ret[key] = val;
             }
             return ret;
         };
 
     var Query = S.Query = function(query) {
         this._query = query || EMPTY;
-        this._queryMap = unparam(this._query);
+        this._map = unparam(this._query);
     };
 
     Query.prototype = {
+
         /**
          * Return parameter value corresponding to current key
          * @param {String} [key]
          */
         get: function (key) {
-            var _queryMap = this._queryMap;
-            return key ? _queryMap[key] : _queryMap;
+            var _map = this._map;
+            return key ? _map[key] : _map;
         },
 
         /**
@@ -950,20 +923,20 @@
          * @chainable
          */
         set: function (key, value) {
-            var self = this,
-                _queryMap = self._queryMap;
+            var query = this,
+                _map = query._map;
 
-            if (typeof key === "string") {
-                self._queryMap[key] = value;
+            if (isString(key)) {
+                _map[key] = value;
             } else {
                 if (key instanceof Query) {
                     key = key.get();
                 }
                 each(key, function (v, k) {
-                    _queryMap[k] = v;
+                    _map[k] = v;
                 });
             }
-            return self;
+            return query;
         },
 
         /**
@@ -971,15 +944,18 @@
          * @param {String} key
          * @chainable
          */
-        remove: function (key) {
-            var self = this;
+        remove: function (keys) {
+            var query = this;
 
-            if (key) {
-                delete self._queryMap[key];
+            if (keys) {
+                keys = makeArray(keys);
+                keys.forEach(function(key) {
+                    delete query._map[key];
+                });
             } else {
-                self._queryMap = {};
+                query._map = {};
             }
-            return self;
+            return query;
         },
 
         /**
@@ -989,56 +965,49 @@
          * @chainable
          */
         add: function (key, value) {
-            var self = this,
-                _queryMap = self._queryMap,
-                currentValue;
-            if (typeof key === "string") {
-                currentValue = _queryMap[key];
-                if (currentValue === undefined) {
-                    currentValue = value;
-                } else {
-                    currentValue = [].concat(currentValue).concat(value);
-                }
-                _queryMap[key] = currentValue;
+            var query = this,
+                _map = query._map;
+
+            if (isString(key)) {
+                _map[key] = value;
             } else {
                 if (key instanceof Query) {
                     key = key.get();
                 }
 
                 each(key, function(v, k) {
-                    self.add(k, v);
+                    query.set(k, v);
                 });
             }
-            return self;
+            return query;
         },
 
         /**
          * Serialize query to string.
-         * @param {Boolean} [serializeArray=true]
-         * whether append [] to key name when value 's type is array
          */
-        toString: function (serializeArray) {
-            return param(this._queryMap, undefined, undefined, serializeArray);
+        toString: function () {
+            return param(this._map);
         }
     };
 
 
     // from caja uri
-    var RE_URI = new RegExp(
-            "^" +
-            "(?:" +
-            "([^:/?#]+)" + // scheme
-            ":)?" +
-            "(?://" +
-            "(?:([^/?#]*)@)?" + // credentials
-            "([^/?#:@]*)" + // domain
-            "(?::([0-9]+))?" + // port
-            ")?" +
-            "([^?#]+)?" + // path
-            "(?:\\?([^#]*))?" + // query
-            "(?:#(.*))?" + // fragment
-            "$"
-        ),
+    var RE_URI = new RegExp([
+            "^",
+            "(?:",
+                "([^:/?#]+)", // scheme
+            ":)?",
+            "(?://",
+                "(?:([^/?#]*)@)?", // credentials
+                "([^/?#:@]*)", // domain
+                "(?::([0-9]+))?", // port
+            ")?",
+            "([^?#]+)?", // path
+            "(?:\\?([^#]*))?", // query
+            "(?:#(.*))?", // fragment
+            "$",
+        ].join(EMPTY)),
+
         REG_INFO = {
             scheme: 1,
             credentials: 2,
@@ -1048,24 +1017,18 @@
             query: 6,
             fragment: 7
         },
+
         defaultUri = location.href;
 
     var Uri = S.Uri = function(uriStr) {
-        var components,
-            self = this;
-
-        uriStr = uriStr || defaultUri;
-
-        S.keys(REG_INFO).forEach(function(item) {
-            self[item] = EMPTY;
-        });
-
-        components = Uri.getComponents(uriStr);
+        var uri = this,
+            components = Uri.getComponents(uriStr);
 
         each(components, function (v, key) {
+
             if (key === "query") {
                 // need encoded content
-                self.query = new Query(v);
+                uri.query = new Query(v);
             } else {
                 // https://github.com/kissyteam/kissy/issues/298
                 try {
@@ -1074,11 +1037,11 @@
                     S.log(e + "urlDecode error : " + v, "error", "Uri");
                 }
                 // need to decode to get data structure in memory
-                self[key] = v;
+                uri[key] = v;
             }
         });
 
-        return self;
+        return uri;
     };
 
     Uri.prototype = {
@@ -1087,16 +1050,16 @@
             return this.fragment;
         },
 
-        toString: function (serializeArray) {
+        toString: function () {
             var out = [],
-                self = this,
-                scheme = self.scheme,
-                domain = self.domain,
-                path = self.path,
-                port = self.port,
-                fragment = self.fragment,
-                query = self.query.toString(serializeArray),
-                credentials = self.credentials;
+                uri = this,
+                scheme = uri.scheme,
+                domain = uri.domain,
+                path = uri.path,
+                port = uri.port,
+                fragment = uri.fragment,
+                query = uri.query.toString(),
+                credentials = uri.credentials;
 
             if (scheme) {
                 out.push(scheme);
@@ -1136,10 +1099,10 @@
         }
     };
 
-    Uri.getComponents = function (url) {
-        url = url || EMPTY;
+    Uri.getComponents = function (uri) {
+        uri = uri || defaultUri;
 
-        var m = url.match(RE_URI) || [],
+        var m = uri.match(RE_URI) || [],
             ret = {};
 
         each(REG_INFO, function(index, key) {
@@ -1155,70 +1118,57 @@
         return val === null || (t !== "object" && t !== "function");
     }
 
+    function isUri(val) {
+        if (isString(val)) {
+            var match = RE_URI.exec(val);
+            return match && match[1];
+        }
+        return false;
+    }
+
+    /**
+     * get/set/remove/add QueryParam
+     * uri, args... or args.., uri
+     */
+    "add get remove set".split(" ").forEach(function(name) {
+        S[name + "QueryParam"] = function() {
+            var args = makeArray(arguments),
+                length = args.length,
+                // 第一个跟最后一个参数都可能是uri
+                first = args[0],
+                last = args[length - 1],
+                uriStr;
+
+            if (isUri(first)) {
+                uriStr = first;
+                args.shift();
+            } else if (isUri(last)) {
+                uriStr = last;
+                args.pop();
+            }
+
+            var uri = new Uri(uriStr),
+                query = uri.query,
+                ret = query[name].apply(query, args);
+
+            return ret === query ? uri.toString() : ret || EMPTY;
+        };
+    });
+
     S.mix({
         urlEncode: encode,
         urlDecode: decode,
         param: param,
         unparam: unparam,
 
-        isUri: function(val) {
-            if (S.isNotEmptyString(val)) {
-                var match = RE_URI.exec(val);
-                return match && match[1];
-            }
-            return false;
-        },
+        isUri: isUri,
 
         parseUri: function(uri) {
-            return Uri.getComponents(uri || defaultUri);
+            return Uri.getComponents(uri);
         },
 
         getFragment: function(uri) {
             return new Uri(uri).getFragment();
-        },
-
-        /**
-         * name, url or
-         * url, name
-         */
-        getQueryParam: function(name, uri) {
-            if (S.isUri(name)) {
-                // swap
-                name = [uri, uri = name][0];
-            }
-
-            uri = new Uri(uri);
-            return uri.query.get(name) || EMPTY;
-        },
-
-        /**
-         * name, value, url
-         * {}, url
-         */
-        addQueryParam: function(name, value, uri) {
-            var params = {};
-
-            if (S.isPlainObject(name)) {
-                params = name;
-                uri = value;
-            } else {
-                params[name] = value;
-            }
-
-            uri = new Uri(uri);
-            uri.query.add(params);
-
-            return uri.toString();
-        },
-
-        removeQueryParam: function(names, uri) {
-            names = S.makeArray(names);
-            uri = new Uri(uri);
-
-            names.forEach(function(item) {
-                uri.query.remove(item);
-            });
-            return uri.toString();
         }
     });
 
@@ -1853,17 +1803,6 @@
         return id2Uri(id, refUri);
     };
 
-    Module.register = function(id, exports) {
-        var uri = Module.resolve(id),
-            mod = Module.get(uri);
-
-        mod.id = id || uri;
-        if (exports) {
-            mod.exports = exports;
-        }
-        mod.status = STATUS.EXECUTED;
-    };
-
     /**
      * define
      * 匿名模块与非匿名模块
@@ -1978,6 +1917,7 @@
         }
     };
 
+
     Loader.resolve = id2Uri;
 
     global.define = S.define = Module.define;
@@ -1987,22 +1927,29 @@
         return S;
     };
 
+    Module.register = function(id, exports) {
+        var uri = Module.resolve(id),
+            mod = Module.get(uri);
+
+        mod.id = id || uri;
+        if (exports) {
+            mod.exports = exports;
+        }
+
+        mod.status = STATUS.EXECUTED;
+    };
+
     S.mix({
         register: Module.register,
-        realpath: realpath,
-        request: request
+        realpath: realpath
     });
 })(tbtx);
 
 
 ;(function(S) {
     var realpath = S.realpath,
-        register = S.register,
-        global = S.global,
         Loader = S.Loader,
-        data = Loader.data;
-
-    var loaderDir = data.dir,
+        loaderDir = Loader.data.dir,
         staticUrl = S.staticUrl = realpath(loaderDir + "../../../");
 
     /**
@@ -2015,7 +1962,6 @@
     });
 
     paths.arale = loaderDir + "dist/arale";
-
 
     Loader.config({
         base: staticUrl,
@@ -2053,27 +1999,6 @@
         paths: paths
 
     });
-
-    // require to get the jquery exports
-    S.define.amd.jQuery = true;
-
-    /*
-     * shim config
-     */
-    if (global.JSON) {
-        register("json");
-    }
-    if (global.jQuery) {
-        register("jquery", jQuery);
-        register("$", jQuery);
-    }
-    if (global.KISSY) {
-        register("kissy");
-    }
-    if (global.Zepto) {
-        register("zepto", Zepto);
-        register("$", Zepto);
-    }
 })(tbtx);
 
 ;(function(S) {
@@ -2263,29 +2188,310 @@
     return Events;
 });
 
-tbtx.require("events", function(Events) {
-    Events.mixTo(tbtx);
-});
+;define("arale/position/1.0.1/position", ["jquery"], function($) {
 
-;(function(S) {
-    var ucfirst = S.ucfirst;
+    var Position = {},
+        VIEWPORT = {
+            _id: 'VIEWPORT',
+            nodeType: 1
+        },
+        isPinFixed = false,
+        ua = (window.navigator.userAgent || "").toLowerCase(),
+        isIE6 = ua.indexOf("msie 6") !== -1;
 
-    function transition() {
-        var el = document.createElement('tbtx'),
-            transNames = ["moz", "webkit", "o"].map(function(prefix) {
-                return ucfirst(prefix) + ucfirst("transition");
-            });
 
-        transNames.push("transition");
+    // 将目标元素相对于基准元素进行定位
+    // 这是 Position 的基础方法，接收两个参数，分别描述了目标元素和基准元素的定位点
+    Position.pin = function(pinObject, baseObject) {
 
-        return transNames.some(function(name) {
-            return el.style[name] !== undefined;
+        // 将两个参数转换成标准定位对象 { element: a, x: 0, y: 0 }
+        pinObject = normalize(pinObject);
+        baseObject = normalize(baseObject);
+
+        // 设定目标元素的 position 为绝对定位
+        // 若元素的初始 position 不为 absolute，会影响元素的 display、宽高等属性
+        var pinElement = $(pinObject.element);
+
+        if (pinElement.css('position') !== 'fixed' || isIE6) {
+            pinElement.css('position', 'absolute');
+            isPinFixed = false;
+        } else {
+            // 定位 fixed 元素的标志位，下面有特殊处理
+            isPinFixed = true;
+        }
+
+        // 将位置属性归一化为数值
+        // 注：必须放在上面这句 `css('position', 'absolute')` 之后，
+        //    否则获取的宽高有可能不对
+        posConverter(pinObject);
+        posConverter(baseObject);
+
+        var parentOffset = getParentOffset(pinElement);
+        var baseOffset = baseObject.offset();
+
+        // 计算目标元素的位置
+        var top = baseOffset.top + baseObject.y -
+            pinObject.y - parentOffset.top;
+
+        var left = baseOffset.left + baseObject.x -
+            pinObject.x - parentOffset.left;
+
+        // 定位目标元素
+        pinElement.css({
+            left: left,
+            top: top
         });
+    };
+
+
+    // 将目标元素相对于基准元素进行居中定位
+    // 接受两个参数，分别为目标元素和定位的基准元素，都是 DOM 节点类型
+    Position.center = function(pinElement, baseElement) {
+        Position.pin({
+            element: pinElement,
+            x: '50%',
+            y: '50%'
+        }, {
+            element: baseElement,
+            x: '50%',
+            y: '50%'
+        });
+    };
+
+
+    // 这是当前可视区域的伪 DOM 节点
+    // 需要相对于当前可视区域定位时，可传入此对象作为 element 参数
+    Position.VIEWPORT = VIEWPORT;
+
+
+    // Helpers
+    // -------
+
+    // 将参数包装成标准的定位对象，形似 { element: a, x: 0, y: 0 }
+
+    function normalize(posObject) {
+        posObject = toElement(posObject) || {};
+
+        if (posObject.nodeType) {
+            posObject = {
+                element: posObject
+            };
+        }
+
+        var element = toElement(posObject.element) || VIEWPORT;
+        if (element.nodeType !== 1) {
+            throw new Error('posObject.element is invalid.');
+        }
+
+        var result = {
+            element: element,
+            x: posObject.x || 0,
+            y: posObject.y || 0
+        };
+
+        // config 的深度克隆会替换掉 Position.VIEWPORT, 导致直接比较为 false
+        var isVIEWPORT = (element === VIEWPORT || element._id === 'VIEWPORT');
+
+        // 归一化 offset
+        result.offset = function() {
+            // 若定位 fixed 元素，则父元素的 offset 没有意义
+            if (isPinFixed) {
+                return {
+                    left: 0,
+                    top: 0
+                };
+            } else if (isVIEWPORT) {
+                return {
+                    left: $(document).scrollLeft(),
+                    top: $(document).scrollTop()
+                };
+            } else {
+                return getOffset($(element)[0]);
+            }
+        };
+
+        // 归一化 size, 含 padding 和 border
+        result.size = function() {
+            var el = isVIEWPORT ? $(window) : $(element);
+            return {
+                width: el.outerWidth(),
+                height: el.outerHeight()
+            };
+        };
+
+        return result;
     }
 
-    S.support = {
-        transition: transition()
-    };
+    // 对 x, y 两个参数为 left|center|right|%|px 时的处理，全部处理为纯数字
+
+    function posConverter(pinObject) {
+        pinObject.x = xyConverter(pinObject.x, pinObject, 'width');
+        pinObject.y = xyConverter(pinObject.y, pinObject, 'height');
+    }
+
+    // 处理 x, y 值，都转化为数字
+
+    function xyConverter(x, pinObject, type) {
+        // 先转成字符串再说！好处理
+        x = x + '';
+
+        // 处理 px
+        x = x.replace(/px/gi, '');
+
+        // 处理 alias
+        if (/\D/.test(x)) {
+            x = x.replace(/(?:top|left)/gi, '0%')
+                .replace(/center/gi, '50%')
+                .replace(/(?:bottom|right)/gi, '100%');
+        }
+
+        // 将百分比转为像素值
+        if (x.indexOf('%') !== -1) {
+            //支持小数
+            x = x.replace(/(\d+(?:\.\d+)?)%/gi, function(m, d) {
+                return pinObject.size()[type] * (d / 100.0);
+            });
+        }
+
+        // 处理类似 100%+20px 的情况
+        if (/[+\-*\/]/.test(x)) {
+            try {
+                // eval 会影响压缩
+                // new Function 方法效率高于 for 循环拆字符串的方法
+                // 参照：http://jsperf.com/eval-newfunction-for
+                x = (new Function('return ' + x))();
+            } catch (e) {
+                throw new Error('Invalid position value: ' + x);
+            }
+        }
+
+        // 转回为数字
+        return numberize(x);
+    }
+
+    // 获取 offsetParent 的位置
+
+    function getParentOffset(element) {
+        var parent = element.offsetParent();
+
+        // IE7 下，body 子节点的 offsetParent 为 html 元素，其 offset 为
+        // { top: 2, left: 2 }，会导致定位差 2 像素，所以这里将 parent
+        // 转为 document.body
+        if (parent[0] === document.documentElement) {
+            parent = $(document.body);
+        }
+
+        // 修正 ie6 下 absolute 定位不准的 bug
+        if (isIE6) {
+            parent.css('zoom', 1);
+        }
+
+        // 获取 offsetParent 的 offset
+        var offset;
+
+        // 当 offsetParent 为 body，
+        // 而且 body 的 position 是 static 时
+        // 元素并不按照 body 来定位，而是按 document 定位
+        // http://jsfiddle.net/afc163/hN9Tc/2/
+        // 因此这里的偏移值直接设为 0 0
+        if (parent[0] === document.body &&
+            parent.css('position') === 'static') {
+            offset = {
+                top: 0,
+                left: 0
+            };
+        } else {
+            offset = getOffset(parent[0]);
+        }
+
+        // 根据基准元素 offsetParent 的 border 宽度，来修正 offsetParent 的基准位置
+        offset.top += numberize(parent.css('border-top-width'));
+        offset.left += numberize(parent.css('border-left-width'));
+
+        return offset;
+    }
+
+    function numberize(s) {
+        return parseFloat(s, 10) || 0;
+    }
+
+    function toElement(element) {
+        return $(element)[0];
+    }
+
+    // fix jQuery 1.7.2 offset
+    // document.body 的 position 是 absolute 或 relative 时
+    // jQuery.offset 方法无法正确获取 body 的偏移值
+    //   -> http://jsfiddle.net/afc163/gMAcp/
+    // jQuery 1.9.1 已经修正了这个问题
+    //   -> http://jsfiddle.net/afc163/gMAcp/1/
+    // 这里先实现一份
+    // 参照 kissy 和 jquery 1.9.1
+    //   -> https://github.com/kissyteam/kissy/blob/master/src/dom/sub-modules/base/src/base/offset.js#L366 
+    //   -> https://github.com/jquery/jquery/blob/1.9.1/src/offset.js#L28
+
+    function getOffset(element) {
+        var box = element.getBoundingClientRect(),
+            docElem = document.documentElement;
+
+        // < ie8 不支持 win.pageXOffset, 则使用 docElem.scrollLeft
+        return {
+            left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || document.body.clientLeft || 0),
+            top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || document.body.clientTop || 0)
+        };
+    }
+
+    return Position;
+});
+
+
+;(function(S) {
+
+    var ucfirst = S.ucfirst;
+
+    // thanks modernizr
+    var element = document.createElement("tbtx"),
+
+        style = element.style,
+
+        omPrefixes = 'Webkit Moz O ms',
+
+        cssomPrefixes = omPrefixes.split(' ');
+
+    var prefixed = function(prop) {
+            return testPropsAll(prop, 'pfx');
+        },
+        testProps = function(props, prefixed) {
+            var prop,
+                i;
+
+            for (i in props) {
+                prop = props[i];
+                if (prop.indexOf("-") === -1 && style[prop] !== undefined) {
+                    return prefixed == 'pfx' ? prop : true;
+                }
+            }
+            return false;
+        },
+        testPropsAll = function (prop, prefixed) {
+            var ucProp = ucfirst(prop),
+                props = (prop + ' ' + cssomPrefixes.join(ucProp + ' ') + ucProp).split(' ');
+
+            return testProps(props, prefixed);
+        };
+
+
+    // export
+    var support = S.namespace("support");
+
+    "transition transform".split(" ").forEach(function(name) {
+        support[name] = testPropsAll(name);
+    });
+
+    S.mix({
+        testPropsAll: testPropsAll,
+        prefixed: prefixed
+    });
 })(tbtx);
 
 
@@ -2432,7 +2638,7 @@ tbtx.require("events", function(Events) {
         /**
          * 适用于用到jtoken的请求
          */
-        Request = function(url, data, successCode) {
+        request = function(url, data, successCode) {
             var config;
 
             if (isPlainObject(url)) {
@@ -2478,8 +2684,10 @@ tbtx.require("events", function(Events) {
             return deferred.promise();
         };
 
-    S.Request = Request;
-    return Request;
+    // 大写兼容之前的用法
+    S.Request = S.request = request;
+
+    return request;
 });
 
 ;define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, Position) {
@@ -2555,3 +2763,32 @@ tbtx.require("events", function(Events) {
         return S;
     };
 });
+
+;(function(S){
+
+    var global = S.global,
+        register = S.register;
+
+    // require to get the jquery exports
+    S.define.amd.jQuery = true;
+
+    /*
+     * shim config
+     */
+    if (global.JSON) {
+        register("json");
+    }
+
+    var $ = global.jQuery || global.Zepto;
+    if ($) {
+        register("jquery", $);
+        register("$", $);
+
+        S.require("request");
+    }
+
+    S.require("events", function(Events) {
+        S.Events = Events;
+        Events.mixTo(S);
+    });
+})(tbtx);

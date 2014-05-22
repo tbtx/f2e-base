@@ -1,6 +1,2 @@
 node_modules
-component/calendar
-component/imageProcess
-component/popup/1.0
-component/waterfall
-component/paging
+component/
