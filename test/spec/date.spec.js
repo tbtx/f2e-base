@@ -28,4 +28,18 @@ describe('date', function() {
                 });
         });
     });
+
+    describe("diffDate", function() {
+        it("should get the diff of two date", function() {
+            var date1 = new Date(1383272557027);
+            var date2 = new Date(1400838542662);
+            expect(S
+                .diffDate(date1, date2)).toEqual({
+                    day: 203,
+                    hour: 7,
+                    minute: 26,
+                    second: 25
+                });
+        });
+    });
 });

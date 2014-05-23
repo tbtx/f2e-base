@@ -7,12 +7,14 @@
 
         style = element.style,
 
-        omPrefixes = 'Webkit Moz O ms',
+        spliter = " ",
 
-        cssomPrefixes = omPrefixes.split(' ');
+        omPrefixes = "Webkit Moz O ms",
+
+        cssomPrefixes = omPrefixes.split(spliter);
 
     var prefixed = function(prop) {
-            return testPropsAll(prop, 'pfx');
+            return testPropsAll(prop, "pfx");
         },
         testProps = function(props, prefixed) {
             var prop,
@@ -20,15 +22,15 @@
 
             for (i in props) {
                 prop = props[i];
-                if (prop.indexOf("-") === -1 && style[prop] !== undefined) {
-                    return prefixed == 'pfx' ? prop : true;
+                if (style[prop] !== undefined) {
+                    return prefixed == "pfx" ? prop : true;
                 }
             }
             return false;
         },
         testPropsAll = function (prop, prefixed) {
             var ucProp = ucfirst(prop),
-                props = (prop + ' ' + cssomPrefixes.join(ucProp + ' ') + ucProp).split(' ');
+                props = (prop + spliter + cssomPrefixes.join(ucProp + spliter) + ucProp).split(spliter);
 
             return testProps(props, prefixed);
         };
@@ -37,7 +39,7 @@
     // export
     var support = S.namespace("support");
 
-    "transition transform".split(" ").forEach(function(name) {
+    "transition transform".split(spliter).forEach(function(name) {
         support[name] = testPropsAll(name);
     });
 

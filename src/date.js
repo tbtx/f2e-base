@@ -1,7 +1,12 @@
 (function(S) {
 
     var isDate = S.isDate,
-        each = S.each;
+        each = S.each,
+        floor = Math.floor,
+        EMPTY = "",
+        rword = S.rword,
+        rdate = /number|object/,
+        rnewdate = /number|string/;
 
     /*
      * 将日期格式化成字符串
@@ -21,9 +26,11 @@
      *  @return：指定格式的字符串
      */
     function formatDate(format, date) {
-        if (typeof format === "number") {
+        // 交换参数
+        if (rdate.test(typeof format)) {
             date = [format, format = date][0];
         }
+
         format = format || "Y-m-d h:i:s";
 
         each(normalizeDate(date), function(v, k) {
@@ -34,85 +41,73 @@
 
     // date转对象
     function normalizeDate(date) {
-        date = toDate(date);
+        date = makeDate(date);
 
         var o = {
-            Y: date.getFullYear(),
-            M: date.getMonth() + 1,
-            D: date.getDate(),
-            H: date.getHours(),
-            I: date.getMinutes(),
-            S: date.getSeconds()
-        };
+                Y: date.getFullYear(),
+                M: date.getMonth() + 1,
+                D: date.getDate(),
+                H: date.getHours(),
+                I: date.getMinutes(),
+                S: date.getSeconds()
+            },
+            ret = {};
 
-        var ret = {},
-            key,
-            i;
+        each(o, function(v, k) {
+            v = EMPTY + v;
 
-        for(i in o) {
-            o[i] = String(o[i]);
-            ret[i] = o[i];
+            ret[k] = v;
 
-            key = i.toLowerCase();
-            if (key == "y") {
-                ret[key] = o[i].substring(2, 4);
-            } else {
-                ret[key] = padding2(o[i]);
-            }
-        }
+            k = k.toLowerCase();
+            ret[k] = k === "y" ? v.substring(2, 4) : padding2(v);
+        });
 
         return ret;
     }
 
-    function diffDate(v1, v2) {
-        v1 = toDate(v1);
-        v2 = toDate(v2);
+    var seconds = {
+        second: 1,
+        minute: 60,
+        hour: 60 * 60,
+        day: 60 * 60 * 24
+    };
+    function diffDate(d1, d2) {
+        d1 = makeDate(d1);
+        d2 = makeDate(d2);
 
-        var SECONDS = 60,
-            SECONDS_OF_HOUR = SECONDS * 60,
-            SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
+        // 相差的秒
+        var diff = Math.abs(d1 - d2) / 1000,
+            remain = diff,
+            ret = {};
 
-            // diff seconds
-            diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
-            remain = diff;
+        "day hour minute second".replace(rword, function(name) {
+            var s = seconds[name],
+                current = floor(remain / s);
 
-        var day, hour, minute, second;
-
-        day = Math.floor(remain / SECONDS_OF_DAY);
-        remain -= day * SECONDS_OF_DAY;
-        hour = Math.floor(remain / SECONDS_OF_HOUR);
-        remain -= hour * SECONDS_OF_HOUR;
-        minute = Math.floor(remain / SECONDS);
-        remain -= minute * SECONDS;
-        second = Math.floor(remain);
-
-        return {
-            day: day,
-            hour: hour,
-            minute: minute,
-            second: second
-        };
+            ret[name] = current;
+            remain -= s * current;
+        });
+        return ret;
     }
 
     // 字符串/数字 -> Date
-    function toDate(date) {
+    function makeDate(date) {
         if (isDate(date)) {
-            return date;
+            return new Date(+date);
         }
 
-        var type = typeof date;
-        return (type == "number" || type == "string") ? new Date(date) : new Date();
+        return rnewdate.test(typeof date) ? new Date(date) : new Date();
     }
 
     function padding2(str) {
-        str = String(str);
+        str = EMPTY + str;
         return str.length === 1 ? "0" + str : str;
     }
 
     S.mix({
         normalizeDate: normalizeDate,
         diffDate: diffDate,
-        toDate: toDate,
+        makeDate: makeDate,
         formatDate: formatDate
     });
 })(tbtx);

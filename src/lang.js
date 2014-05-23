@@ -7,17 +7,26 @@
      * shim first
      */
     var global = S.global,
+
         AP = Array.prototype,
         OP = Object.prototype,
         SP = String.prototype,
         FP = Function.prototype,
+
         toString = OP.toString,
-        slice = AP.slice,
         hasOwn = OP.hasOwnProperty,
+        slice = AP.slice,
+
         hasOwnProperty = function(o, p) {
             return hasOwn.call(o, p);
         },
-        EMPTY = "";
+
+        EMPTY = "",
+
+        rtrim = /^\s+|\s+$/g,
+        //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
+        rword = /[^, ]+/g,
+        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g;
 
     /**
      * Object.keys
@@ -90,9 +99,8 @@
     S.Now = Date.now;
 
     if (!SP.trim) {
-        var RE_TRIM = /^\s+|\s+$/g;
         SP.trim = function() {
-            return this.replace(RE_TRIM, EMPTY);
+            return this.replace(rtrim, EMPTY);
         };
     }
     S.trim = function(str) {
@@ -252,7 +260,7 @@
         };
     }
 
-    "forEach map filter every some".split(" ").forEach(function(name) {
+    "forEach map filter every some".replace(rword, function(name) {
         /**
          * iter object and array
          * only use when you want to iter both array and object, if only array, please use [].map/filter..
@@ -262,8 +270,8 @@
          * @return {Boolean/Array}              the process result
          */
         S[name] = function(object, fn, context) {
-            if (object == null) {
-                return object;
+            if (!object) {
+                return;
             }
             // 处理arrayLike object
             if (object.length === +object.length) {
@@ -300,7 +308,7 @@
         };
     });
 
-    "reduce reduceRight".split(" ").forEach(function(name) {
+    "reduce reduceRight".replace(rword, function(name) {
         S[name] = function(array, fn, initialValue) {
             if (array.length === +array.length) {
                 array = makeArray(array);
@@ -312,7 +320,7 @@
         };
     });
 
-    "indexOf lastIndexOf".split(" ").forEach(function(name) {
+    "indexOf lastIndexOf".replace(rword, function(name) {
         S[name] = function(array, searchElement, fromIndex) {
             // indexOf对string能同样使用
             if (array.length === +array.length && !isString(array)) {
@@ -323,7 +331,7 @@
     });
 
     var class2type = {};
-    "Boolean Number String Function Array Date RegExp Object".split(" ").forEach(function(name, lc) {
+    "Boolean Number String Function Array Date RegExp Object".replace(rword, function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
         S["is" + name] = function(o) {
             return type(o) === lc;
@@ -338,8 +346,8 @@
     // return false终止循环
     // 原生every必须return true or false
     var each = S.each = function(object, fn, context) {
-        if (object == null) {
-            return object;
+        if (!object) {
+            return;
         }
 
         var i = 0,
@@ -392,14 +400,14 @@
         },
 
         isWindow = function(object) {
-            return object != null && object == object.window;
+            return object && object === object.window;
         },
 
         isPlainObject = function(object) {
             // Must be an Object.
             // Because of IE, we also have to check the presence of the constructor property.
             // Make sure that Dom nodes and window objects don't pass through, as well
-            if (!object || !isObject(object) || object.nodeType || isWindow(object)) {
+            if (!isObject(object) || object.nodeType || isWindow(object)) {
                 return false;
             }
 
@@ -553,18 +561,14 @@
 
     // S
     S.mix({
+        rword: rword,
+
+        nextTick: global.setImmediate ? setImmediate.bind(global) : function(callback) {
+            setTimeout(callback, 0);
+        },
 
         isNotEmptyString: function(val) {
             return isString(val) && val !== EMPTY;
-        },
-
-        isEmptyObject: function(o) {
-            for (var p in o) {
-                if (p !== undefined) {
-                    return false;
-                }
-            }
-            return true;
         },
 
         isWindow: isWindow,
@@ -609,9 +613,9 @@
         },
 
         namespace: function() {
-            var args = makeArray(arguments),
-                o = this,
+            var args = arguments,
                 l = args.length,
+                o = this,
                 i, j, p;
 
             for (i = 0; i < l; i++) {
@@ -651,7 +655,7 @@
                 f,
                 r;
 
-            if (typeof fn === "string") {
+            if (isString(fn)) {
                 m = context[fn];
             }
 
@@ -686,9 +690,7 @@
             ms = ms || 150;
 
             if (ms === -1) {
-                return function() {
-                    fn.apply(context, arguments);
-                };
+                return fn.bind(context);
             }
 
             var last = Date.now();
@@ -706,10 +708,8 @@
             context = context || this;
             ms = ms || 150;
 
-            if(ms === -1) {
-                return function() {
-                    fn.apply(context, arguments);
-                };
+            if (ms === -1) {
+                return fn.bind(context);
             }
             var timer = null,
                 f = function() {
@@ -718,7 +718,7 @@
                 };
 
             f.stop = function() {
-                if(timer) {
+                if (timer) {
                     timer.cancel();
                     timer = 0;
                 }
@@ -732,13 +732,13 @@
          * based on Django, fix kissy, support BLANK -> {{ name }}, not only {{name}}
          */
         substitute: function(str, o, regexp) {
-            if (!S.isNotEmptyString(str)) {
+            if (!isString(str)) {
                 return str;
             }
             if (!(isPlainObject(o) || isArray(o))) {
                 return str;
             }
-            return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
+            return str.replace(regexp || rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
                 }

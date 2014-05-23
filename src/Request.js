@@ -4,7 +4,7 @@ define("request", ["jquery"], function($) {
         isPlainObject = S.isPlainObject;
 
     var generateToken = function() {
-        var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
+        var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
         cookie.set(S.tokenName, token, '', '', '/');
         return token;
     };

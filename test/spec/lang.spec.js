@@ -344,7 +344,7 @@ describe('lang', function() {
         });
     });
 
-    describe("isEmptyObject", function() {
+    xdescribe("isEmptyObject", function() {
         it("should tell if the object is empty", function() {
             expect(S.isEmptyObject({})).toBeTruthy();
             expect(S.isEmptyObject({

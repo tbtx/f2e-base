@@ -5,7 +5,9 @@
 
     var each = S.each,
         isString = S.isString,
-        makeArray = S.makeArray;
+        makeArray = S.makeArray,
+        log = S.log,
+        rword = S.rword;
 
     var EMPTY = "",
 
@@ -67,7 +69,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
+                        log(e + "decodeURIComponent error : " + val, "error", "unparam");
                     }
                 }
                 ret[key] = val;
@@ -167,7 +169,7 @@
 
 
     // from caja uri
-    var RE_URI = new RegExp([
+    var ruri = new RegExp([
             "^",
             "(?:",
                 "([^:/?#]+)", // scheme
@@ -183,7 +185,7 @@
             "$",
         ].join(EMPTY)),
 
-        REG_INFO = {
+        rinfo = {
             scheme: 1,
             credentials: 2,
             domain: 3,
@@ -209,7 +211,7 @@
                 try {
                     v = decode(v);
                 } catch (e) {
-                    S.log(e + "urlDecode error : " + v, "error", "Uri");
+                    log(e + "urlDecode error : " + v, "error", "Uri");
                 }
                 // need to decode to get data structure in memory
                 uri[key] = v;
@@ -274,15 +276,23 @@
         }
     };
 
+    var cacheComponents = {};
     Uri.getComponents = function (uri) {
         uri = uri || defaultUri;
 
-        var m = uri.match(RE_URI) || [],
+        var cache = cacheComponents[uri];
+        if (cache) {
+            return cache;
+        }
+
+        var m = uri.match(ruri) || [],
             ret = {};
 
-        each(REG_INFO, function(index, key) {
+        each(rinfo, function(index, key) {
             ret[key] = m[index] || EMPTY;
         });
+
+        cacheComponents[uri] = ret;
         return ret;
     };
 
@@ -295,7 +305,7 @@
 
     function isUri(val) {
         if (isString(val)) {
-            var match = RE_URI.exec(val);
+            var match = ruri.exec(val);
             return match && match[1];
         }
         return false;
@@ -305,7 +315,7 @@
      * get/set/remove/add QueryParam
      * uri, args... or args.., uri
      */
-    "add get remove set".split(" ").forEach(function(name) {
+    "add get remove set".replace(rword, function(name) {
         S[name + "QueryParam"] = function() {
             var args = makeArray(arguments),
                 length = args.length,

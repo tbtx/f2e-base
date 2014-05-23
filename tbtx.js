@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-22 5:22:55
+ * update: 2014-05-23 5:52:40
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -77,17 +77,26 @@
      * shim first
      */
     var global = S.global,
+
         AP = Array.prototype,
         OP = Object.prototype,
         SP = String.prototype,
         FP = Function.prototype,
+
         toString = OP.toString,
-        slice = AP.slice,
         hasOwn = OP.hasOwnProperty,
+        slice = AP.slice,
+
         hasOwnProperty = function(o, p) {
             return hasOwn.call(o, p);
         },
-        EMPTY = "";
+
+        EMPTY = "",
+
+        rtrim = /^\s+|\s+$/g,
+        //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
+        rword = /[^, ]+/g,
+        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g;
 
     /**
      * Object.keys
@@ -160,9 +169,8 @@
     S.Now = Date.now;
 
     if (!SP.trim) {
-        var RE_TRIM = /^\s+|\s+$/g;
         SP.trim = function() {
-            return this.replace(RE_TRIM, EMPTY);
+            return this.replace(rtrim, EMPTY);
         };
     }
     S.trim = function(str) {
@@ -322,7 +330,7 @@
         };
     }
 
-    "forEach map filter every some".split(" ").forEach(function(name) {
+    "forEach map filter every some".replace(rword, function(name) {
         /**
          * iter object and array
          * only use when you want to iter both array and object, if only array, please use [].map/filter..
@@ -332,8 +340,8 @@
          * @return {Boolean/Array}              the process result
          */
         S[name] = function(object, fn, context) {
-            if (object == null) {
-                return object;
+            if (!object) {
+                return;
             }
             // 处理arrayLike object
             if (object.length === +object.length) {
@@ -370,7 +378,7 @@
         };
     });
 
-    "reduce reduceRight".split(" ").forEach(function(name) {
+    "reduce reduceRight".replace(rword, function(name) {
         S[name] = function(array, fn, initialValue) {
             if (array.length === +array.length) {
                 array = makeArray(array);
@@ -382,7 +390,7 @@
         };
     });
 
-    "indexOf lastIndexOf".split(" ").forEach(function(name) {
+    "indexOf lastIndexOf".replace(rword, function(name) {
         S[name] = function(array, searchElement, fromIndex) {
             // indexOf对string能同样使用
             if (array.length === +array.length && !isString(array)) {
@@ -393,7 +401,7 @@
     });
 
     var class2type = {};
-    "Boolean Number String Function Array Date RegExp Object".split(" ").forEach(function(name, lc) {
+    "Boolean Number String Function Array Date RegExp Object".replace(rword, function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
         S["is" + name] = function(o) {
             return type(o) === lc;
@@ -408,8 +416,8 @@
     // return false终止循环
     // 原生every必须return true or false
     var each = S.each = function(object, fn, context) {
-        if (object == null) {
-            return object;
+        if (!object) {
+            return;
         }
 
         var i = 0,
@@ -462,14 +470,14 @@
         },
 
         isWindow = function(object) {
-            return object != null && object == object.window;
+            return object && object === object.window;
         },
 
         isPlainObject = function(object) {
             // Must be an Object.
             // Because of IE, we also have to check the presence of the constructor property.
             // Make sure that Dom nodes and window objects don't pass through, as well
-            if (!object || !isObject(object) || object.nodeType || isWindow(object)) {
+            if (!isObject(object) || object.nodeType || isWindow(object)) {
                 return false;
             }
 
@@ -623,18 +631,14 @@
 
     // S
     S.mix({
+        rword: rword,
+
+        nextTick: global.setImmediate ? setImmediate.bind(global) : function(callback) {
+            setTimeout(callback, 0);
+        },
 
         isNotEmptyString: function(val) {
             return isString(val) && val !== EMPTY;
-        },
-
-        isEmptyObject: function(o) {
-            for (var p in o) {
-                if (p !== undefined) {
-                    return false;
-                }
-            }
-            return true;
         },
 
         isWindow: isWindow,
@@ -679,9 +683,9 @@
         },
 
         namespace: function() {
-            var args = makeArray(arguments),
-                o = this,
+            var args = arguments,
                 l = args.length,
+                o = this,
                 i, j, p;
 
             for (i = 0; i < l; i++) {
@@ -721,7 +725,7 @@
                 f,
                 r;
 
-            if (typeof fn === "string") {
+            if (isString(fn)) {
                 m = context[fn];
             }
 
@@ -756,9 +760,7 @@
             ms = ms || 150;
 
             if (ms === -1) {
-                return function() {
-                    fn.apply(context, arguments);
-                };
+                return fn.bind(context);
             }
 
             var last = Date.now();
@@ -776,10 +778,8 @@
             context = context || this;
             ms = ms || 150;
 
-            if(ms === -1) {
-                return function() {
-                    fn.apply(context, arguments);
-                };
+            if (ms === -1) {
+                return fn.bind(context);
             }
             var timer = null,
                 f = function() {
@@ -788,7 +788,7 @@
                 };
 
             f.stop = function() {
-                if(timer) {
+                if (timer) {
                     timer.cancel();
                     timer = 0;
                 }
@@ -802,13 +802,13 @@
          * based on Django, fix kissy, support BLANK -> {{ name }}, not only {{name}}
          */
         substitute: function(str, o, regexp) {
-            if (!S.isNotEmptyString(str)) {
+            if (!isString(str)) {
                 return str;
             }
             if (!(isPlainObject(o) || isArray(o))) {
                 return str;
             }
-            return str.replace(regexp || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
+            return str.replace(regexp || rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
                 }
@@ -830,7 +830,9 @@
 
     var each = S.each,
         isString = S.isString,
-        makeArray = S.makeArray;
+        makeArray = S.makeArray,
+        log = S.log,
+        rword = S.rword;
 
     var EMPTY = "",
 
@@ -892,7 +894,7 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        S.log(e + "decodeURIComponent error : " + val, "error", "unparam");
+                        log(e + "decodeURIComponent error : " + val, "error", "unparam");
                     }
                 }
                 ret[key] = val;
@@ -992,7 +994,7 @@
 
 
     // from caja uri
-    var RE_URI = new RegExp([
+    var ruri = new RegExp([
             "^",
             "(?:",
                 "([^:/?#]+)", // scheme
@@ -1008,7 +1010,7 @@
             "$",
         ].join(EMPTY)),
 
-        REG_INFO = {
+        rinfo = {
             scheme: 1,
             credentials: 2,
             domain: 3,
@@ -1034,7 +1036,7 @@
                 try {
                     v = decode(v);
                 } catch (e) {
-                    S.log(e + "urlDecode error : " + v, "error", "Uri");
+                    log(e + "urlDecode error : " + v, "error", "Uri");
                 }
                 // need to decode to get data structure in memory
                 uri[key] = v;
@@ -1099,15 +1101,23 @@
         }
     };
 
+    var cacheComponents = {};
     Uri.getComponents = function (uri) {
         uri = uri || defaultUri;
 
-        var m = uri.match(RE_URI) || [],
+        var cache = cacheComponents[uri];
+        if (cache) {
+            return cache;
+        }
+
+        var m = uri.match(ruri) || [],
             ret = {};
 
-        each(REG_INFO, function(index, key) {
+        each(rinfo, function(index, key) {
             ret[key] = m[index] || EMPTY;
         });
+
+        cacheComponents[uri] = ret;
         return ret;
     };
 
@@ -1120,7 +1130,7 @@
 
     function isUri(val) {
         if (isString(val)) {
-            var match = RE_URI.exec(val);
+            var match = ruri.exec(val);
             return match && match[1];
         }
         return false;
@@ -1130,7 +1140,7 @@
      * get/set/remove/add QueryParam
      * uri, args... or args.., uri
      */
-    "add get remove set".split(" ").forEach(function(name) {
+    "add get remove set".replace(rword, function(name) {
         S[name + "QueryParam"] = function() {
             var args = makeArray(arguments),
                 length = args.length,
@@ -2454,12 +2464,14 @@
 
         style = element.style,
 
-        omPrefixes = 'Webkit Moz O ms',
+        spliter = " ",
 
-        cssomPrefixes = omPrefixes.split(' ');
+        omPrefixes = "Webkit Moz O ms",
+
+        cssomPrefixes = omPrefixes.split(spliter);
 
     var prefixed = function(prop) {
-            return testPropsAll(prop, 'pfx');
+            return testPropsAll(prop, "pfx");
         },
         testProps = function(props, prefixed) {
             var prop,
@@ -2467,15 +2479,15 @@
 
             for (i in props) {
                 prop = props[i];
-                if (prop.indexOf("-") === -1 && style[prop] !== undefined) {
-                    return prefixed == 'pfx' ? prop : true;
+                if (style[prop] !== undefined) {
+                    return prefixed == "pfx" ? prop : true;
                 }
             }
             return false;
         },
         testPropsAll = function (prop, prefixed) {
             var ucProp = ucfirst(prop),
-                props = (prop + ' ' + cssomPrefixes.join(ucProp + ' ') + ucProp).split(' ');
+                props = (prop + spliter + cssomPrefixes.join(ucProp + spliter) + ucProp).split(spliter);
 
             return testProps(props, prefixed);
         };
@@ -2484,7 +2496,7 @@
     // export
     var support = S.namespace("support");
 
-    "transition transform".split(" ").forEach(function(name) {
+    "transition transform".split(spliter).forEach(function(name) {
         support[name] = testPropsAll(name);
     });
 
@@ -2498,7 +2510,12 @@
 ;(function(S) {
 
     var isDate = S.isDate,
-        each = S.each;
+        each = S.each,
+        floor = Math.floor,
+        EMPTY = "",
+        rword = S.rword,
+        rdate = /number|object/,
+        rnewdate = /number|string/;
 
     /*
      * 将日期格式化成字符串
@@ -2518,9 +2535,11 @@
      *  @return：指定格式的字符串
      */
     function formatDate(format, date) {
-        if (typeof format === "number") {
+        // 交换参数
+        if (rdate.test(typeof format)) {
             date = [format, format = date][0];
         }
+
         format = format || "Y-m-d h:i:s";
 
         each(normalizeDate(date), function(v, k) {
@@ -2531,85 +2550,73 @@
 
     // date转对象
     function normalizeDate(date) {
-        date = toDate(date);
+        date = makeDate(date);
 
         var o = {
-            Y: date.getFullYear(),
-            M: date.getMonth() + 1,
-            D: date.getDate(),
-            H: date.getHours(),
-            I: date.getMinutes(),
-            S: date.getSeconds()
-        };
+                Y: date.getFullYear(),
+                M: date.getMonth() + 1,
+                D: date.getDate(),
+                H: date.getHours(),
+                I: date.getMinutes(),
+                S: date.getSeconds()
+            },
+            ret = {};
 
-        var ret = {},
-            key,
-            i;
+        each(o, function(v, k) {
+            v = EMPTY + v;
 
-        for(i in o) {
-            o[i] = String(o[i]);
-            ret[i] = o[i];
+            ret[k] = v;
 
-            key = i.toLowerCase();
-            if (key == "y") {
-                ret[key] = o[i].substring(2, 4);
-            } else {
-                ret[key] = padding2(o[i]);
-            }
-        }
+            k = k.toLowerCase();
+            ret[k] = k === "y" ? v.substring(2, 4) : padding2(v);
+        });
 
         return ret;
     }
 
-    function diffDate(v1, v2) {
-        v1 = toDate(v1);
-        v2 = toDate(v2);
+    var seconds = {
+        second: 1,
+        minute: 60,
+        hour: 60 * 60,
+        day: 60 * 60 * 24
+    };
+    function diffDate(d1, d2) {
+        d1 = makeDate(d1);
+        d2 = makeDate(d2);
 
-        var SECONDS = 60,
-            SECONDS_OF_HOUR = SECONDS * 60,
-            SECONDS_OF_DAY = SECONDS_OF_HOUR * 24,
+        // 相差的秒
+        var diff = Math.abs(d1 - d2) / 1000,
+            remain = diff,
+            ret = {};
 
-            // diff seconds
-            diff = Math.abs(v1.getTime() - v2.getTime()) / 1000,
-            remain = diff;
+        "day hour minute second".replace(rword, function(name) {
+            var s = seconds[name],
+                current = floor(remain / s);
 
-        var day, hour, minute, second;
-
-        day = Math.floor(remain / SECONDS_OF_DAY);
-        remain -= day * SECONDS_OF_DAY;
-        hour = Math.floor(remain / SECONDS_OF_HOUR);
-        remain -= hour * SECONDS_OF_HOUR;
-        minute = Math.floor(remain / SECONDS);
-        remain -= minute * SECONDS;
-        second = Math.floor(remain);
-
-        return {
-            day: day,
-            hour: hour,
-            minute: minute,
-            second: second
-        };
+            ret[name] = current;
+            remain -= s * current;
+        });
+        return ret;
     }
 
     // 字符串/数字 -> Date
-    function toDate(date) {
+    function makeDate(date) {
         if (isDate(date)) {
-            return date;
+            return new Date(+date);
         }
 
-        var type = typeof date;
-        return (type == "number" || type == "string") ? new Date(date) : new Date();
+        return rnewdate.test(typeof date) ? new Date(date) : new Date();
     }
 
     function padding2(str) {
-        str = String(str);
+        str = EMPTY + str;
         return str.length === 1 ? "0" + str : str;
     }
 
     S.mix({
         normalizeDate: normalizeDate,
         diffDate: diffDate,
-        toDate: toDate,
+        makeDate: makeDate,
         formatDate: formatDate
     });
 })(tbtx);
@@ -2621,7 +2628,7 @@
         isPlainObject = S.isPlainObject;
 
     var generateToken = function() {
-        var token = Math.random().toString().substr(2) + (new Date()).getTime().toString().substr(1) + Math.random().toString().substr(2);
+        var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
         cookie.set(S.tokenName, token, '', '', '/');
         return token;
     };
