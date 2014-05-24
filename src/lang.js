@@ -33,8 +33,8 @@
      */
     if (!Object.keys) {
         var hasEnumBug = !({
-                toString: 1
-            }.propertyIsEnumerable("toString")),
+            toString: 1
+        }.propertyIsEnumerable("toString")),
             enumProperties = [
                 "constructor",
                 "hasOwnProperty",
@@ -283,7 +283,7 @@
                 var keys = Object.keys(object),
                     ret = {};
 
-                if (S.inArray(["map", "filter"], name)){
+                if (S.inArray(["map", "filter"], name)) {
                     keys[name](function(key) {
                         var value = object[key],
                             item = fn.call(context, value, key, object);
@@ -384,11 +384,11 @@
      * @return {Function}
      */
     var singleton = function(fn, context) {
-            var result;
-            return function() {
-                return result || (result = fn.apply(context, arguments));
-            };
-        },
+        var result;
+        return function() {
+            return result || (result = fn.apply(context, arguments));
+        };
+    },
 
         /**
          * jQuery type()
@@ -444,7 +444,7 @@
                 lengthType = typeof length,
                 oType = typeof o;
 
-            if(lengthType !== "number" || typeof o.nodeName === "string" || isWindow(o) || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
+            if (lengthType !== "number" || typeof o.nodeName === "string" || isWindow(o) || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
                 return [o];
             }
             for (; i < length; i++) {
@@ -482,7 +482,7 @@
 
             for (; i < length; i++) {
                 // Only deal with non-null/undefined values
-                if ((options = arguments[i]) != null ) {
+                if ((options = arguments[i]) != null) {
                     // Extend the base object
                     for (name in options) {
                         src = target[name];
@@ -505,7 +505,7 @@
                             // Never move original objects, clone them
                             target[name] = extend(deep, clone, copy);
 
-                        // Don't bring in undefined values
+                            // Don't bring in undefined values
                         } else if (copy !== undefined) {
                             target[name] = copy;
                         }

@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-23 5:52:40
+ * update: 2014-05-24 1:40:56
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -103,8 +103,8 @@
      */
     if (!Object.keys) {
         var hasEnumBug = !({
-                toString: 1
-            }.propertyIsEnumerable("toString")),
+            toString: 1
+        }.propertyIsEnumerable("toString")),
             enumProperties = [
                 "constructor",
                 "hasOwnProperty",
@@ -353,7 +353,7 @@
                 var keys = Object.keys(object),
                     ret = {};
 
-                if (S.inArray(["map", "filter"], name)){
+                if (S.inArray(["map", "filter"], name)) {
                     keys[name](function(key) {
                         var value = object[key],
                             item = fn.call(context, value, key, object);
@@ -454,11 +454,11 @@
      * @return {Function}
      */
     var singleton = function(fn, context) {
-            var result;
-            return function() {
-                return result || (result = fn.apply(context, arguments));
-            };
-        },
+        var result;
+        return function() {
+            return result || (result = fn.apply(context, arguments));
+        };
+    },
 
         /**
          * jQuery type()
@@ -514,7 +514,7 @@
                 lengthType = typeof length,
                 oType = typeof o;
 
-            if(lengthType !== "number" || typeof o.nodeName === "string" || isWindow(o) || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
+            if (lengthType !== "number" || typeof o.nodeName === "string" || isWindow(o) || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
                 return [o];
             }
             for (; i < length; i++) {
@@ -552,7 +552,7 @@
 
             for (; i < length; i++) {
                 // Only deal with non-null/undefined values
-                if ((options = arguments[i]) != null ) {
+                if ((options = arguments[i]) != null) {
                     // Extend the base object
                     for (name in options) {
                         src = target[name];
@@ -575,7 +575,7 @@
                             // Never move original objects, clone them
                             target[name] = extend(deep, clone, copy);
 
-                        // Don't bring in undefined values
+                            // Don't bring in undefined values
                         } else if (copy !== undefined) {
                             target[name] = copy;
                         }
@@ -822,7 +822,6 @@
 
 })(tbtx);
 
-
 ;/**
  * Uri 相关
  */
@@ -836,11 +835,11 @@
 
     var EMPTY = "",
 
-        encode = function (s) {
+        encode = function(s) {
             return encodeURIComponent(String(s));
         },
 
-        decode = function (s) {
+        decode = function(s) {
             return decodeURIComponent(s.replace(/\+/g, " "));
         },
 
@@ -900,97 +899,75 @@
                 ret[key] = val;
             }
             return ret;
+        },
+
+        Query = S.Query = function(query) {
+            this._query = query || EMPTY;
+            this._map = unparam(this._query);
+        },
+
+        fn = Query.prototype = {
+
+            /**
+             * Return parameter value corresponding to current key
+             * @param {String} [key]
+             */
+            get: function(key) {
+                var _map = this._map;
+                return key ? _map[key] : _map;
+            },
+
+            /**
+             * Set parameter value corresponding to current key
+             * @param {String} key
+             * @param value
+             * @chainable
+             */
+            set: function(key, value) {
+                var query = this,
+                    _map = query._map;
+
+                if (isString(key)) {
+                    _map[key] = value;
+                } else {
+                    if (key instanceof Query) {
+                        key = key.get();
+                    }
+                    each(key, function(v, k) {
+                        _map[k] = v;
+                    });
+                }
+                return query;
+            },
+
+            /**
+             * Remove parameter with specified name.
+             * @param {String} key
+             * @chainable
+             */
+            remove: function(key) {
+                var query = this;
+
+                if (key) {
+                    key = makeArray(key);
+                    key.forEach(function(k) {
+                        delete query._map[k];
+                    });
+                } else {
+                    query._map = {};
+                }
+                return query;
+            },
+
+            /**
+             * Serialize query to string.
+             */
+            toString: function() {
+                return param(this._map);
+            }
         };
 
-    var Query = S.Query = function(query) {
-        this._query = query || EMPTY;
-        this._map = unparam(this._query);
-    };
-
-    Query.prototype = {
-
-        /**
-         * Return parameter value corresponding to current key
-         * @param {String} [key]
-         */
-        get: function (key) {
-            var _map = this._map;
-            return key ? _map[key] : _map;
-        },
-
-        /**
-         * Set parameter value corresponding to current key
-         * @param {String} key
-         * @param value
-         * @chainable
-         */
-        set: function (key, value) {
-            var query = this,
-                _map = query._map;
-
-            if (isString(key)) {
-                _map[key] = value;
-            } else {
-                if (key instanceof Query) {
-                    key = key.get();
-                }
-                each(key, function (v, k) {
-                    _map[k] = v;
-                });
-            }
-            return query;
-        },
-
-        /**
-         * Remove parameter with specified name.
-         * @param {String} key
-         * @chainable
-         */
-        remove: function (keys) {
-            var query = this;
-
-            if (keys) {
-                keys = makeArray(keys);
-                keys.forEach(function(key) {
-                    delete query._map[key];
-                });
-            } else {
-                query._map = {};
-            }
-            return query;
-        },
-
-        /**
-         * Add parameter value corresponding to current key
-         * @param {String} key
-         * @param value
-         * @chainable
-         */
-        add: function (key, value) {
-            var query = this,
-                _map = query._map;
-
-            if (isString(key)) {
-                _map[key] = value;
-            } else {
-                if (key instanceof Query) {
-                    key = key.get();
-                }
-
-                each(key, function(v, k) {
-                    query.set(k, v);
-                });
-            }
-            return query;
-        },
-
-        /**
-         * Serialize query to string.
-         */
-        toString: function () {
-            return param(this._map);
-        }
-    };
+    fn.add = fn.set;
 
 
     // from caja uri
@@ -1022,38 +999,38 @@
 
         defaultUri = location.href;
 
-    var Uri = S.Uri = function(uriStr) {
-        var uri = this,
-            components = Uri.getComponents(uriStr);
+        Uri = S.Uri = function(uriStr) {
+            var uri = this,
+                components = Uri.getComponents(uriStr);
 
-        each(components, function (v, key) {
+            each(components, function(v, key) {
 
-            if (key === "query") {
-                // need encoded content
-                uri.query = new Query(v);
-            } else {
-                // https://github.com/kissyteam/kissy/issues/298
-                try {
-                    v = decode(v);
-                } catch (e) {
-                    log(e + "urlDecode error : " + v, "error", "Uri");
+                if (key === "query") {
+                    // need encoded content
+                    uri.query = new Query(v);
+                } else {
+                    // https://github.com/kissyteam/kissy/issues/298
+                    try {
+                        v = decode(v);
+                    } catch (e) {
+                        log(e + "urlDecode error : " + v, "error", "Uri");
+                    }
+                    // need to decode to get data structure in memory
+                    uri[key] = v;
                 }
-                // need to decode to get data structure in memory
-                uri[key] = v;
-            }
-        });
+            });
 
-        return uri;
-    };
+            return uri;
+        };
 
     Uri.prototype = {
 
-        getFragment: function () {
+        getFragment: function() {
             return this.fragment;
         },
 
-        toString: function () {
-            var out = [],
+        toString: function() {
+            var ret = [],
                 uri = this,
                 scheme = uri.scheme,
                 domain = uri.domain,
@@ -1064,45 +1041,45 @@
                 credentials = uri.credentials;
 
             if (scheme) {
-                out.push(scheme);
-                out.push(":");
+                ret.push(scheme);
+                ret.push(":");
             }
 
             if (domain) {
-                out.push("//");
+                ret.push("//");
                 if (credentials) {
-                    out.push(credentials);
-                    out.push("@");
+                    ret.push(credentials);
+                    ret.push("@");
                 }
 
-                out.push(encode(domain));
+                ret.push(encode(domain));
 
                 if (port) {
-                    out.push(":");
-                    out.push(port);
+                    ret.push(":");
+                    ret.push(port);
                 }
             }
 
             if (path) {
-                out.push(path);
+                ret.push(path);
             }
 
             if (query) {
-                out.push("?");
-                out.push(query);
+                ret.push("?");
+                ret.push(query);
             }
 
             if (fragment) {
-                out.push("#");
-                out.push(fragment);
+                ret.push("#");
+                ret.push(fragment);
             }
 
-            return out.join(EMPTY);
+            return ret.join(EMPTY);
         }
     };
 
     var cacheComponents = {};
-    Uri.getComponents = function (uri) {
+    Uri.getComponents = function(uri) {
         uri = uri || defaultUri;
 
         var cache = cacheComponents[uri];
@@ -1131,7 +1108,8 @@
     function isUri(val) {
         if (isString(val)) {
             var match = ruri.exec(val);
-            return match && match[1];
+            // scheme + domain
+            return match && match[1] && match[3];
         }
         return false;
     }
