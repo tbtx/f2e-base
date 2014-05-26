@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-24 1:40:56
+ * update: 2014-05-26 9:30:13
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1108,8 +1108,9 @@
     function isUri(val) {
         if (isString(val)) {
             var match = ruri.exec(val);
-            // scheme + domain
-            return match && match[1] && match[3];
+            // scheme
+            // file:/// -> no domain
+            return match && match[1];
         }
         return false;
     }
@@ -2492,6 +2493,7 @@
         floor = Math.floor,
         EMPTY = "",
         rword = S.rword,
+        rformat = /y|m|d|h|i|s/gi,
         rdate = /number|object/,
         rnewdate = /number|string/;
 
@@ -2519,11 +2521,11 @@
         }
 
         format = format || "Y-m-d h:i:s";
+        date = normalizeDate(date);
 
-        each(normalizeDate(date), function(v, k) {
-            format = format.replace(k, v);
+        return format.replace(rformat, function(k) {
+            return date[k];
         });
-        return format;
     }
 
     // date转对象

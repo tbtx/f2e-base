@@ -284,8 +284,9 @@
     function isUri(val) {
         if (isString(val)) {
             var match = ruri.exec(val);
-            // scheme + domain
-            return match && match[1] && match[3];
+            // scheme
+            // file:/// -> no domain
+            return match && match[1];
         }
         return false;
     }

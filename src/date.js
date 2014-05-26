@@ -5,6 +5,7 @@
         floor = Math.floor,
         EMPTY = "",
         rword = S.rword,
+        rformat = /y|m|d|h|i|s/gi,
         rdate = /number|object/,
         rnewdate = /number|string/;
 
@@ -32,11 +33,11 @@
         }
 
         format = format || "Y-m-d h:i:s";
+        date = normalizeDate(date);
 
-        each(normalizeDate(date), function(v, k) {
-            format = format.replace(k, v);
+        return format.replace(rformat, function(k) {
+            return date[k];
         });
-        return format;
     }
 
     // date转对象
