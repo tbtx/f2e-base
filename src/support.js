@@ -1,4 +1,4 @@
-(function(S) {
+(function(S, document) {
 
     var ucfirst = S.ucfirst;
 
@@ -39,12 +39,21 @@
     // export
     var support = S.namespace("support");
 
+    support.add = function(name, fn) {
+        support[name] = fn.call(support);
+    };
+
     "transition transform".split(spliter).forEach(function(name) {
         support[name] = testPropsAll(name);
+    });
+
+    support.add("canvas", function() {
+        var elem = document.createElement('canvas');
+        return !!(elem.getContext && elem.getContext('2d'));
     });
 
     S.mix({
         testPropsAll: testPropsAll,
         prefixed: prefixed
     });
-})(tbtx);
+})(tbtx, document);

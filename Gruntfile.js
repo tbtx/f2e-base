@@ -41,8 +41,12 @@ module.exports = function(grunt) {
                 dest: "dist/sitenav.js"
             },
             router: {
-                src: ["src/router.js"],
+                src: ["src/dist/router.js"],
                 dest: "dist/router.js"
+            },
+            rotate: {
+                src: ["src/dist/rotate.js"],
+                dest: "dist/rotate.js"
             },
 
             class: {
@@ -135,7 +139,7 @@ module.exports = function(grunt) {
         // Tasks being executed with 'grunt watch'
         watch: {
             js: {
-                files: ['src/*.js'],
+                files: ['src/*.js', "src/dist/*.js"],
                 tasks: ['jshint', 'concat', 'uglify']
             }
         }

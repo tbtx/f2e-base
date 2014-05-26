@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-26 10:00:08
+ * update: 2014-05-26 10:59:13
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -2434,7 +2434,7 @@
 });
 
 
-;(function(S) {
+;(function(S, document) {
 
     var ucfirst = S.ucfirst;
 
@@ -2475,15 +2475,24 @@
     // export
     var support = S.namespace("support");
 
+    support.add = function(name, fn) {
+        support[name] = fn.call(support);
+    };
+
     "transition transform".split(spliter).forEach(function(name) {
         support[name] = testPropsAll(name);
+    });
+
+    support.add("canvas", function() {
+        var elem = document.createElement('canvas');
+        return !!(elem.getContext && elem.getContext('2d'));
     });
 
     S.mix({
         testPropsAll: testPropsAll,
         prefixed: prefixed
     });
-})(tbtx);
+})(tbtx, document);
 
 
 ;(function(S) {
