@@ -33,11 +33,11 @@ module.exports = function(grunt) {
             },
 
             wangwang: {
-                src: ["src/wangwang.js"],
+                src: ["src/dist/wangwang.js"],
                 dest: "dist/wangwang.js"
             },
             sitenav: {
-                src: ["src/sitenav.js"],
+                src: ["src/dist/sitenav.js"],
                 dest: "dist/sitenav.js"
             },
             router: {
