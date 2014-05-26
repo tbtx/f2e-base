@@ -749,8 +749,25 @@
             return (str + EMPTY).replace(rtags, EMPTY);
         },
 
-        stripScripts: function(str) {
-            return (str + EMPTY).replace(rscripts, EMPTY);
+        stripScripts: function(str, blacklist) {
+            var scripts, pattern;
+
+            if (blacklist) {
+
+                blacklist = makeArray(blacklist);
+                scripts = "(" + blacklist.join("|") + ")";
+
+                pattern = new RegExp([
+                    "<",
+                    scripts,
+                    "[^>]*([\\S\\s]*?)<\\/",
+                    scripts,
+                    ">"
+                ].join(EMPTY), "img");
+
+            }
+
+            return (str + EMPTY).replace(pattern || rscripts, EMPTY);
         },
 
         escapeHtml: escapeHtml,

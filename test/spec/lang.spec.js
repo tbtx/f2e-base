@@ -534,6 +534,12 @@ describe('lang', function() {
             expect(S.stripScripts('a<script>var a = 123;</script>b')).toEqual("ab");
 
             expect(S.stripScripts('a<script type="text/template">var a = 123;</script>b')).toEqual("ab");
+
+            expect(S.stripScripts('a<script type="text/template">var a = 123;</script>b', "style")).toEqual('a<script type="text/template">var a = 123;</script>b');
+
+            expect(S.stripScripts('a<style type="text/css">var a = 123;</style>b', "style")).toEqual('ab');
+
+            expect(S.stripScripts('a<style type="text/css">var a = 123;</style>b<script>var a = 123;</script>c', ["style", "script"])).toEqual('abc');
         });
     });
 });

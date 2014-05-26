@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-26 1:09:56
+ * update: 2014-05-26 2:51:17
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -819,8 +819,25 @@
             return (str + EMPTY).replace(rtags, EMPTY);
         },
 
-        stripScripts: function(str) {
-            return (str + EMPTY).replace(rscripts, EMPTY);
+        stripScripts: function(str, blacklist) {
+            var scripts, pattern;
+
+            if (blacklist) {
+
+                blacklist = makeArray(blacklist);
+                scripts = "(" + blacklist.join("|") + ")";
+
+                pattern = new RegExp([
+                    "<",
+                    scripts,
+                    "[^>]*([\\S\\s]*?)<\\/",
+                    scripts,
+                    ">"
+                ].join(EMPTY), "img");
+
+            }
+
+            return (str + EMPTY).replace(pattern || rscripts, EMPTY);
         },
 
         escapeHtml: escapeHtml,
