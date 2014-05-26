@@ -522,4 +522,18 @@ describe('lang', function() {
             expect(S.unEscapeHtml("&lt;&gt;")).toEqual("<>");
         });
     });
+
+    describe("strip", function() {
+        it("should strip the tags from a str", function() {
+            expect(S.stripTags('a<p>123</p>b')).toEqual("a123b");
+        });
+
+        it("should strip the scripts from a str", function() {
+            expect(S.stripTags('a<script src="a.js"></script>b')).toEqual("ab");
+
+            expect(S.stripScripts('a<script>var a = 123;</script>b')).toEqual("ab");
+
+            expect(S.stripScripts('a<script type="text/template">var a = 123;</script>b')).toEqual("ab");
+        });
+    });
 });

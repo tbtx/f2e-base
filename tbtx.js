@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-26 10:59:13
+ * update: 2014-05-26 1:09:56
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -96,7 +96,9 @@
         rtrim = /^\s+|\s+$/g,
         //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
         rword = /[^, ]+/g,
-        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g;
+        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
+        rtags = /<[^>]+>/g,
+        rscripts = /<script[^>]*>([\S\s]*?)<\/script>/img;
 
     /**
      * Object.keys
@@ -652,15 +654,11 @@
         },
 
         erase: function(target, array) {
-            var i = 0,
-                length = array.length;
-
-            for (; i < length; i++) {
-                if (target === array[i]) {
-                    array.splice(i, 1);
-                    return array;
-                }
+            var index = array.indexOf(target);
+            if (index > -1) {
+                array.splice(index, 1);
             }
+            return array;
         },
 
         type: type,
@@ -814,6 +812,15 @@
                 }
                 return (o[name] === undefined) ? EMPTY : o[name];
             });
+        },
+
+        // 去除字符串中的html标签
+        stripTags: function(str) {
+            return (str + EMPTY).replace(rtags, EMPTY);
+        },
+
+        stripScripts: function(str) {
+            return (str + EMPTY).replace(rscripts, EMPTY);
         },
 
         escapeHtml: escapeHtml,
