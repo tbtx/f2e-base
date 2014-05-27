@@ -5,6 +5,11 @@ describe('date', function() {
             var date = new Date(1383272557027);
             expect(S
                 .formatDate("Y-m-d", date)).toEqual("2013-11-01");
+            expect(S
+                .formatDate(date, "Y-m-d")).toEqual("2013-11-01");
+            expect(S
+                .formatDate(1383272557027, "Y-m-d")).toEqual("2013-11-01");
+
         });
     });
 

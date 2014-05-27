@@ -770,6 +770,16 @@
             return (str + EMPTY).replace(pattern || rscripts, EMPTY);
         },
 
+        /**
+         * 对字符串进行截断处理
+         */
+        truncate: function(str, length, truncation) {
+            str = str + EMPTY;
+            truncation = truncation || "...";
+
+            return str.length > length ? str.slice(0, length - truncation.length) + truncation : str;
+        },
+
         escapeHtml: escapeHtml,
         unEscapeHtml: unEscapeHtml
     });

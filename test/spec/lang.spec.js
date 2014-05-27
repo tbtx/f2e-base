@@ -542,4 +542,11 @@ describe('lang', function() {
             expect(S.stripScripts('a<style type="text/css">var a = 123;</style>b<script>var a = 123;</script>c', ["style", "script"])).toEqual('abc');
         });
     });
+
+    describe("truncate", function() {
+        it("should truncate a string", function() {
+            expect(S.truncate("abcdefghi", 8)).toEqual("abcde...");
+            expect(S.truncate("abcdefghi", 8, "xxx")).toEqual("abcdexxx");
+        });
+    });
 });

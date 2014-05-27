@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-26 2:51:17
+ * update: 2014-05-27 2:52:05
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -838,6 +838,16 @@
             }
 
             return (str + EMPTY).replace(pattern || rscripts, EMPTY);
+        },
+
+        /**
+         * 对字符串进行截断处理
+         */
+        truncate: function(str, length, truncation) {
+            str = str + EMPTY;
+            truncation = truncation || "...";
+
+            return str.length > length ? str.slice(0, length - truncation.length) + truncation : str;
         },
 
         escapeHtml: escapeHtml,
