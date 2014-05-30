@@ -474,9 +474,11 @@ define("arale/widget/1.1.1/widget", [ "arale/base/1.1.1/base", "arale/class/1.1.
         return o == null || o === undefined;
     }
 
-    tbtx.createWidget = function(properties, parent) {
+    var S = tbtx;
+    S.createWidget = function(properties, parent) {
         parent = parent || Widget;
         return parent.extend(properties);
     };
+    S.Widget = Widget;
     return Widget;
 });

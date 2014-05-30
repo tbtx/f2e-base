@@ -85,6 +85,11 @@ module.exports = function(grunt) {
                 src: ["src/arale/dnd/1.0.0/dnd.js"],
                 dest: "dist/arale/dnd/1.0.0/dnd.js"
             },
+            sticky: {
+                src: ["src/arale/sticky/1.4.0/sticky.js"],
+                dest: "dist/arale/sticky/1.4.0/sticky.js"
+            },
+
 
             // component
             overlay: {

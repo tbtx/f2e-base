@@ -29,6 +29,8 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
 
             self.element.html(val);
             self.set("visible", true);
+            self.pin();
+
             if (duration > 0) {
                 self.timer = S.later(function() {
                     self.set("visible", false);
@@ -37,20 +39,22 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
             }
         },
 
-        _onRenderDirection: function(val) {
-            var element = this.element;
+        pin: function() {
+            var instance = this,
+                element = instance.element,
+                direction = instance.get("direction");
 
-            if (val === "center") {
+            if (direction === "center") {
                 Position.center(element);
             } else {
                 Position.pin({
                     element: element,
                     x: "50%",
-                    y: val === "top" ? -60 : "100%+60"
+                    y: direction === "top" ? -60 : "100%+60"
                 }, {
                     element: Position.VIEWPORT,
                     x: "50%",
-                    y: val === "top" ? 0 : "100%"
+                    y: direction === "top" ? 0 : "100%"
                 });
             }
         }
@@ -66,8 +70,8 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
         if (duration) {
             instance.set("duration", duration);
         }
-        instance.set("direction", direction || "center");
         instance.set("msg", msg);
+        instance.set("direction", direction || "center");
         return S;
     };
 });

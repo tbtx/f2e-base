@@ -283,6 +283,9 @@
 
     function isUri(val) {
         if (isString(val)) {
+            if (val.charAt(0) === "/") {
+                return true;
+            }
             var match = ruri.exec(val);
             // scheme
             // file:/// -> no domain

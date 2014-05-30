@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-05-27 2:52:05
+ * update: 2014-05-30 5:37:43
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1141,6 +1141,9 @@
 
     function isUri(val) {
         if (isString(val)) {
+            if (val.charAt(0) === "/") {
+                return true;
+            }
             var match = ruri.exec(val);
             // scheme
             // file:/// -> no domain
@@ -2751,6 +2754,8 @@
 
             self.element.html(val);
             self.set("visible", true);
+            self.pin();
+
             if (duration > 0) {
                 self.timer = S.later(function() {
                     self.set("visible", false);
@@ -2759,20 +2764,22 @@
             }
         },
 
-        _onRenderDirection: function(val) {
-            var element = this.element;
+        pin: function() {
+            var instance = this,
+                element = instance.element,
+                direction = instance.get("direction");
 
-            if (val === "center") {
+            if (direction === "center") {
                 Position.center(element);
             } else {
                 Position.pin({
                     element: element,
                     x: "50%",
-                    y: val === "top" ? -60 : "100%+60"
+                    y: direction === "top" ? -60 : "100%+60"
                 }, {
                     element: Position.VIEWPORT,
                     x: "50%",
-                    y: val === "top" ? 0 : "100%"
+                    y: direction === "top" ? 0 : "100%"
                 });
             }
         }
@@ -2788,8 +2795,8 @@
         if (duration) {
             instance.set("duration", duration);
         }
-        instance.set("direction", direction || "center");
         instance.set("msg", msg);
+        instance.set("direction", direction || "center");
         return S;
     };
 });
