@@ -776,7 +776,7 @@
 
         // Don't share styleNode when id is spectied
         if (!styleNode || id) {
-            element = doc.createElement('style');
+            element = doc.createElement("style");
             if (id) {
                 element.id = id;
             }
@@ -791,8 +791,8 @@
         if (element.styleSheet !== undefined) {
 
             // http://support.microsoft.com/kb/262161
-            if (doc.getElementsByTagName('style').length > 31) {
-                S.error('Exceed the maximal count of style tags in IE');
+            if (doc.getElementsByTagName("style").length > 31) {
+                S.error("Exceed the maximal count of style tags in IE");
             }
 
             element.styleSheet.cssText += cssText;
