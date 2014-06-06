@@ -117,6 +117,11 @@ module.exports = function(grunt) {
                 dest: "component/countDown/1.0.0/countDown.js"
             },
 
+            countDown: {
+                src: ["src/component/born/1.0.0/born.js"],
+                dest: "component/born/1.0.0/born.js"
+            },
+
             pagination: {
                 src: ["src/component/pagination/1.0.0/pagination.js"],
                 dest: "component/pagination/1.0.0/pagination.js"
