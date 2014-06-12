@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-06-05 6:22:21
+ * update: 2014-06-13 1:16:13
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -456,11 +456,11 @@
      * @return {Function}
      */
     var singleton = function(fn, context) {
-        var result;
-        return function() {
-            return result || (result = fn.apply(context, arguments));
-        };
-    },
+            var result;
+            return function() {
+                return result || (result = fn.apply(context, arguments));
+            };
+        },
 
         /**
          * jQuery type()
@@ -631,9 +631,14 @@
         reverseEntities[entity] = k;
     });
 
+    var cidCounter = 0;
     // S
     S.mix({
         rword: rword,
+
+        uniqueCid: function() {
+            return cidCounter++;
+        },
 
         nextTick: global.setImmediate ? setImmediate.bind(global) : function(callback) {
             setTimeout(callback, 0);
@@ -2832,14 +2837,14 @@
             }
         }
     });
-    var init = S.singleton(function() {
-        return new BroadcastWidget({
+
+    var instance;
+
+    var broadcast = function(msg, direction, duration) {
+        instance = instance || new BroadcastWidget({
             className: "tbtx-broadcast"
         }).render();
-    });
 
-    S.broadcast = function(msg, direction, duration) {
-        var instance = init();
         if (duration) {
             instance.set("duration", duration);
         }
@@ -2847,6 +2852,9 @@
         instance.set("direction", direction || "center");
         return S;
     };
+
+    S.broadcast = broadcast;
+    return broadcast;
 });
 
 ;(function(S){
@@ -2868,12 +2876,31 @@
     if ($) {
         register("jquery", $);
         register("$", $);
-
-        S.require("request");
     }
 
+    // events
     S.require("events", function(Events) {
         S.Events = Events;
         Events.mixTo(S);
+    });
+
+    // msg
+    S.broadcast = function() {
+        var args = arguments;
+
+        S.require("msg", function(broadcast) {
+            broadcast.apply(S, args);
+        });
+    };
+
+    // Position
+    ["pin", "center"].forEach(function(name) {
+        S[name] = function() {
+            var args = arguments;
+            S.require("position", function(Position) {
+                Position[name].apply(S, args);
+                S[name] = Position[name];
+            });
+        };
     });
 })(tbtx);

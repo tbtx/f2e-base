@@ -59,14 +59,14 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
             }
         }
     });
-    var init = S.singleton(function() {
-        return new BroadcastWidget({
+
+    var instance;
+
+    var broadcast = function(msg, direction, duration) {
+        instance = instance || new BroadcastWidget({
             className: "tbtx-broadcast"
         }).render();
-    });
 
-    S.broadcast = function(msg, direction, duration) {
-        var instance = init();
         if (duration) {
             instance.set("duration", duration);
         }
@@ -74,4 +74,7 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
         instance.set("direction", direction || "center");
         return S;
     };
+
+    S.broadcast = broadcast;
+    return broadcast;
 });

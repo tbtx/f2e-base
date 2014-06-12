@@ -386,11 +386,11 @@
      * @return {Function}
      */
     var singleton = function(fn, context) {
-        var result;
-        return function() {
-            return result || (result = fn.apply(context, arguments));
-        };
-    },
+            var result;
+            return function() {
+                return result || (result = fn.apply(context, arguments));
+            };
+        },
 
         /**
          * jQuery type()
@@ -561,9 +561,14 @@
         reverseEntities[entity] = k;
     });
 
+    var cidCounter = 0;
     // S
     S.mix({
         rword: rword,
+
+        uniqueCid: function() {
+            return cidCounter++;
+        },
 
         nextTick: global.setImmediate ? setImmediate.bind(global) : function(callback) {
             setTimeout(callback, 0);
