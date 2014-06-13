@@ -633,7 +633,7 @@ define("component/switchable/1.0.3/plugins/autoplay", [ "jquery" ], function($) 
 define("component/switchable/1.0.3/plugins/circular", [ "jquery", "component/switchable/1.0.3/plugins/effects", "easing" ], function($, Effects) {
     var SCROLLX = "scrollx";
     var SCROLLY = "scrolly";
-    var Effects = Effects.Effects;
+    Effects = Effects.Effects;
     // 无缝循环滚动插件
     var exports = {
         // 仅在开启滚动效果时需要

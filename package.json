@@ -1,13 +1,18 @@
 {
-    "name": "tbtx-base-js",
-    "author": "shiyi_tbtx",
-    "email": "tb_dongshuang.xiao@taobao.com",
-    "version": "0.2.0",
-    "devDependencies": {
-        "grunt": "~0.4.1",
-        "grunt-contrib-uglify": "~0.4.0",
-        "grunt-contrib-jshint": "~0.10.0",
-        "grunt-contrib-concat": "~0.4.0",
-        "grunt-contrib-watch": "~0.6.1"
-    }
+  "name": "tbtx-base-js",
+  "author": "shiyi_tbtx",
+  "email": "tb_dongshuang.xiao@taobao.com",
+  "version": "0.2.0",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-uglify": "~0.4.0",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-concat": "~0.4.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "gulp-concat": "^2.2.0",
+    "gulp-uglify": "^0.3.0",
+    "gulp-jshint": "^1.6.2",
+    "gulp": "^3.8.0",
+    "gulp-ignore": "^1.1.0"
+  }
 }

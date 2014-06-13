@@ -1,9 +1,3 @@
-/*
- * tbtx-base-js
- * update: 2014-06-13 1:16:13
- * shiyi_tbtx
- * tb_dongshuang.xiao@taobao.com
- */
 (function(global, S) {
 
     var isSupportConsole = global.console && console.log,
@@ -67,8 +61,7 @@
 
 })(this, "tbtx");
 
-
-;/**
+/**
  * 语言扩展
  */
 (function(S, undefined) {
@@ -860,8 +853,7 @@
     });
 
 })(tbtx);
-
-;/**
+/**
  * Uri 相关
  */
 (function(S, undefined) {
@@ -1207,8 +1199,7 @@
     S.parseUrl = S.parseUri;
 
 })(tbtx);
-
-;/**
+/**
  * an amd loader
  * thanks seajs
  * 尽量减少对seajs代码的修改
@@ -2024,8 +2015,7 @@
     });
 })(tbtx);
 
-
-;(function(S) {
+(function(S) {
     var realpath = S.realpath,
         Loader = S.Loader,
         loaderDir = Loader.data.dir,
@@ -2079,8 +2069,7 @@
 
     });
 })(tbtx);
-
-;(function(S) {
+(function(S) {
 
     var isNotEmptyString = S.isNotEmptyString;
 
@@ -2151,8 +2140,7 @@
     S.cookie = cookie;
 })(tbtx);
 
-
-;define("arale/events/1.1.0/events", [], function() {
+define("arale/events/1.1.0/events", [], function() {
     // Events
     // -----------------
     // Thanks to:
@@ -2266,8 +2254,7 @@
 
     return Events;
 });
-
-;define("arale/position/1.0.1/position", ["jquery"], function($) {
+define("arale/position/1.0.1/position", ["jquery"], function($) {
 
     var Position = {},
         VIEWPORT = {
@@ -2523,8 +2510,7 @@
     return Position;
 });
 
-
-;(function(S, document) {
+(function(S, document) {
 
     var ucfirst = S.ucfirst;
 
@@ -2584,8 +2570,7 @@
     });
 })(tbtx, document);
 
-
-;(function(S) {
+(function(S) {
 
     var isDate = S.isDate,
         each = S.each,
@@ -2700,8 +2685,7 @@
     });
 })(tbtx);
 
-
-;define("request", ["jquery"], function($) {
+define("request", ["jquery"], function($) {
     var S = tbtx,
         cookie = S.cookie,
         isPlainObject = S.isPlainObject;
@@ -2775,8 +2759,7 @@
 
     return request;
 });
-
-;define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, Position) {
+define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, Position) {
     var S = tbtx;
 
     var BroadcastWidget = Widget.extend({
@@ -2856,8 +2839,7 @@
     S.broadcast = broadcast;
     return broadcast;
 });
-
-;(function(S){
+(function(S){
 
     var global = S.global,
         register = S.register;
