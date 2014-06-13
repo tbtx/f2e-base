@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-06-13 1:16:13
+ * update: 2014-06-13 2:54:17
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1152,7 +1152,7 @@
             var match = ruri.exec(val);
             // scheme
             // file:/// -> no domain
-            return match && match[1];
+            return match && !!match[1];
         }
         return false;
     }

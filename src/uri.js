@@ -289,7 +289,7 @@
             var match = ruri.exec(val);
             // scheme
             // file:/// -> no domain
-            return match && match[1];
+            return match && !!match[1];
         }
         return false;
     }
