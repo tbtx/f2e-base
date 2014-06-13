@@ -1,4 +1,4 @@
-var gulp = require('gulp');
+var gulp = require("gulp");
 
 // npm install gulp gulp-jshint gulp-concat gulp-uglify --save-dev
 
@@ -9,35 +9,40 @@ var gulp = require('gulp');
 // src
 // dest
 
-var jshint = require('gulp-jshint');
-var concat = require('gulp-concat');
-var uglify = require('gulp-uglify');
+var jshint = require("gulp-jshint");
+var concat = require("gulp-concat");
+var uglify = require("gulp-uglify");
 
-var paths = {
-    src: ['src/*.js', 'src/dist/*.js', 'src/component/*/*/*.js'],
-    ignore: ['!src/component/validator/*/*.js']
-};
-paths.scripts = paths.src.concat(paths.ignore);
+var sourceFiles =[
+    "src/*.js",
+    "src/dist/*.js",
+    "src/component/*/*/*.js",
 
-gulp.task('jshint', function() {
-    gulp.src(paths.scripts)
+    // ignores
+    "!src/component/validator/*/*.js"
+];
+
+
+gulp.task("jshint", function() {
+    gulp.src(sourceFiles)
         .pipe(jshint())
-        .pipe(jshint.reporter('default'));
+        .pipe(jshint.reporter("default"));
 });
 
-gulp.task('concat', function() {
+gulp.task("concat", function() {
 
     // tbtx
-    gulp.src(['src/seed.js', 'src/lang.js', 'src/uri.js', 'src/loader.js', 'src/config.js', 'src/cookie.js', 'src/arale/events/1.1.0/events.js', 'src/arale/position/1.0.1/position.js', 'src/support.js', 'src/date.js', 'src/request.js', 'src/msg.js', 'src/register.js'])
-        .pipe(concat('tbtx.js'))
-        .pipe(gulp.dest('./'));
+    gulp.src(["src/seed.js", "src/lang.js", "src/uri.js", "src/loader.js", "src/config.js", "src/cookie.js", "src/arale/events/1.1.0/events.js", "src/arale/position/1.0.1/position.js", "src/support.js", "src/date.js", "src/request.js", "src/msg.js", "src/register.js"])
+        .pipe(concat("tbtx.js"))
+        .pipe(gulp.dest("./"));
 
     // dist
     ["wangwang.js", "sitenav.js", "router.js"].forEach(function(name) {
-        // wangwang
+
         gulp.src("src/dist/" + name)
             .pipe(concat(name))
             .pipe(gulp.dest("./dist/"));
+
     });
 
 
@@ -77,11 +82,14 @@ gulp.task('concat', function() {
     };
 
     // 生成src和dist
-    Object.keys(araleConfig).forEach(function(key) {
-        var item = araleConfig[key];
+    each(araleConfig, function(item, name) {
 
         var version = item.version;
-        var src = "src/arale/" + key + "/" + version + "/" + key + ".js";
+        var src = substitute("src/arale/{{ name }}/{{ version }}/{{ name }}.js", {
+            name: name,
+            version: version
+        });
+
         var dest = src.replace("src", "dist");
 
         item.src = src;
@@ -89,8 +97,22 @@ gulp.task('concat', function() {
     });
 
     // 合并依赖src
-    Object.keys(araleConfig).forEach(function(key) {
-        var item = araleConfig[key];
+    each(araleConfig, function(item, name, array) {
+
+        var deps = item.deps;
+        if (deps) {
+            deps = deps.map(function(dep) {
+                return array[dep].src;
+            });
+
+            deps.push(item.src);
+
+            item.depsSrc = deps;
+        }
+    });
+
+    // 写入
+    each(araleConfig, function(item, key) {
 
         var src = item.depsSrc || item.src;
 
@@ -100,22 +122,91 @@ gulp.task('concat', function() {
     });
 
 
-    Object.keys(araleConfig).forEach(function(key) {
-        var item = araleConfig[key];
-
-        var deps = item.deps;
-        if (deps) {
-            deps = deps.map(function(dep) {
-                return araleConfig[dep].src;
-            });
-
-            deps.push(item.src);
-
-            item.depsSrc = deps;
+    var componentConfig = {
+        overlay: {
+            version: "1.1.4"
+        },
+        popup: {
+            version: "1.0.0"
+        },
+        switchable: {
+            version: "1.0.3"
+        },
+        validator: {
+            version: "0.9.7"
+        },
+        countDown: {
+            version: "1.0.0"
+        },
+        pagination: {
+            version: "1.0.0"
         }
+    };
+
+    each(componentConfig, function(item, name) {
+
+        var version = item.version;
+        var src = substitute("src/component/{{ name }}/{{ version }}/{{ name }}.js", {
+            name: name,
+            version: version
+        });
+
+        var dest = src.replace("src/", "");
+
+        item.src = src;
+        item.dest = dest;
     });
-    console.log(araleConfig);
+
+    componentConfig.overlay.src = [araleConfig.iframeShim.src, componentConfig.overlay.src];
+
+    componentConfig.popup.src = componentConfig.overlay.src.concat([componentConfig.popup.src]);
+
+    each(componentConfig, function(item, key) {
+
+        var src = item.src;
+
+        gulp.src(src)
+            .pipe(concat(item.dest))
+            .pipe(gulp.dest("."));
+    });
 
 });
 // The default task (called when you run `gulp` from cli)
-gulp.task('default', ['jshint', 'concat']);
+gulp.task("default", ["jshint", "concat"]);
+
+
+function each(object, fn, context) {
+    var i = 0,
+        key,
+        keys,
+        length = object.length;
+
+    context = context || null;
+
+    if (length === +length) {
+        for (; i < length; i++) {
+            if (fn.call(context, object[i], i, object) === false) {
+                break;
+            }
+        }
+    } else {
+        keys = Object.keys(object);
+        length = keys.length;
+        for (; i < length; i++) {
+            key = keys[i];
+            // can not use hasOwnProperty
+            if (fn.call(context, object[key], key, object) === false) {
+                break;
+            }
+        }
+    }
+}
+
+function substitute(str, o) {
+    return str.replace(/\\?\{\{\s*([^{}\s]+)\s*\}\}/g, function(match, name) {
+        if (match.charAt(0) === "\\") {
+            return match.slice(1);
+        }
+        return (o[name] === undefined) ? "" : o[name];
+    });
+}

@@ -1,4 +1,4 @@
-xdefine("arale/class/1.1.0/class", [], function() {
+define("arale/class/1.1.0/class", [], function() {
     // Class
     // -----------------
     // Thanks to:
