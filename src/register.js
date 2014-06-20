@@ -25,22 +25,28 @@
         Events.mixTo(S);
     });
 
-    // msg
-    S.broadcast = function() {
-        var args = arguments;
-
-        S.require("msg", function(broadcast) {
-            broadcast.apply(S, args);
-        });
+    var preloadConfig = {
+        broadcast: {
+            module: "msg"
+        },
+        pin: {
+            module: "position"
+        },
+        center: {
+            module: "position"
+        }
     };
 
-    // Position
-    ["pin", "center"].forEach(function(name) {
+    // 某些没有return的模块接口可以提前写入
+    S.each(preloadConfig, function(config, name) {
+        var module = config.module || name;
+
         S[name] = function() {
             var args = arguments;
-            S.require("position", function(Position) {
-                Position[name].apply(S, args);
-                S[name] = Position[name];
+
+            S.require(module, function(exports) {
+                var fn = exports[name] || exports;
+                fn.apply(S, args);
             });
         };
     });
