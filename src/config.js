@@ -48,7 +48,11 @@
             "kissy": "http://g.tbcdn.cn/kissy/k/1.4.0/seed-min.js"
         },
 
-        paths: paths
+        paths: paths,
 
+        // 每小时更新时间戳
+        map: [
+            [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
+        ]
     });
 })(tbtx);

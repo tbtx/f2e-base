@@ -1,3 +1,9 @@
+/**
+ * formate格式只有2014/07/12 12:34:35的格式可以跨平台
+ * new Date()
+ * new Date(时间戳)
+ * new Date(year, month, day[, hour[, minute[, second[, millisecond]]]])
+ */
 (function(S) {
 
     var isDate = S.isDate,

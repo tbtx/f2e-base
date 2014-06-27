@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-06-20 5:53:14
+ * update: 2014-06-27 2:36:04
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -472,7 +472,7 @@
         },
 
         isWindow = function(object) {
-            return object && object === object.window;
+            return object != null && object === object.window;
         },
 
         isPlainObject = function(object) {
@@ -2075,8 +2075,12 @@
             "kissy": "http://g.tbcdn.cn/kissy/k/1.4.0/seed-min.js"
         },
 
-        paths: paths
+        paths: paths,
 
+        // 每小时更新时间戳
+        map: [
+            [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
+        ]
     });
 })(tbtx);
 
@@ -2585,7 +2589,13 @@
 })(tbtx, document);
 
 
-;(function(S) {
+;/**
+ * formate格式只有2014/07/12 12:34:35的格式可以跨平台
+ * new Date()
+ * new Date(时间戳)
+ * new Date(year, month, day[, hour[, minute[, second[, millisecond]]]])
+ */
+(function(S) {
 
     var isDate = S.isDate,
         each = S.each,
