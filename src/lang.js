@@ -402,7 +402,7 @@
         },
 
         isWindow = function(object) {
-            return object != null && object === object.window;
+            return object != null && object == object.window;
         },
 
         isPlainObject = function(object) {

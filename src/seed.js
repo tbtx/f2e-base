@@ -1,4 +1,4 @@
-(function(global, S) {
+(function(global, S, undefined) {
 
     var isSupportConsole = global.console && console.log,
         noop = function() {};
@@ -40,6 +40,44 @@
          * 空函数，在需要使用空函数作为参数时使用
          */
         noop: noop,
+
+        Config: {
+            debug: location.search.indexOf("debug") !== -1 ? true : false,
+            fns: {}
+        },
+
+        config: function(name, value) {
+            var self = this,
+                Config = self.Config,
+                fns = Config.fns,
+                cfg,
+                ret;
+
+            if (typeof name === "string") {
+                cfg = fns[name];
+                // get config
+                if (value === undefined) {
+                    ret = cfg ? cfg.call(self) : Config[name];
+                } else { // set config
+                    if (cfg) {
+                        ret = cfg.call(self, value);
+                    } else {
+                        Config[name] = value;
+                    }
+                }
+            } else {
+                // Object Config
+                S.each(name, function(v, k) {
+                    var fn = fns[k];
+                    if (fn) {
+                        fn.call(self, v);
+                    } else {
+                        Config[k] = v;
+                    }
+                });
+            }
+            return ret;
+        },
 
         mix: mix
 

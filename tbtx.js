@@ -1,10 +1,10 @@
 /*
  * tbtx-base-js
- * update: 2014-06-27 2:36:04
+ * update: 2014-06-30 10:34:54
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
-(function(global, S) {
+(function(global, S, undefined) {
 
     var isSupportConsole = global.console && console.log,
         noop = function() {};
@@ -46,6 +46,44 @@
          * 空函数，在需要使用空函数作为参数时使用
          */
         noop: noop,
+
+        Config: {
+            debug: location.search.indexOf("debug") !== -1 ? true : false,
+            fns: {}
+        },
+
+        config: function(name, value) {
+            var self = this,
+                Config = self.Config,
+                fns = Config.fns,
+                cfg,
+                ret;
+
+            if (typeof name === "string") {
+                cfg = fns[name];
+                // get config
+                if (value === undefined) {
+                    ret = cfg ? cfg.call(self) : Config[name];
+                } else { // set config
+                    if (cfg) {
+                        ret = cfg.call(self, value);
+                    } else {
+                        Config[name] = value;
+                    }
+                }
+            } else {
+                // Object Config
+                S.each(name, function(v, k) {
+                    var fn = fns[k];
+                    if (fn) {
+                        fn.call(self, v);
+                    } else {
+                        Config[k] = v;
+                    }
+                });
+            }
+            return ret;
+        },
 
         mix: mix
 
@@ -472,7 +510,7 @@
         },
 
         isWindow = function(object) {
-            return object != null && object === object.window;
+            return object != null && object == object.window;
         },
 
         isPlainObject = function(object) {
