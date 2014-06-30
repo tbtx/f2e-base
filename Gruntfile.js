@@ -36,17 +36,9 @@ module.exports = function(grunt) {
                 src: ["src/dist/wangwang.js"],
                 dest: "dist/wangwang.js"
             },
-            sitenav: {
-                src: ["src/dist/sitenav.js"],
-                dest: "dist/sitenav.js"
-            },
             router: {
                 src: ["src/dist/router.js"],
                 dest: "dist/router.js"
-            },
-            rotate: {
-                src: ["src/dist/rotate.js"],
-                dest: "dist/rotate.js"
             },
 
             class: {

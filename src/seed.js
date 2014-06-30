@@ -47,7 +47,7 @@
         },
 
         config: function(name, value) {
-            var self = this,
+            var self = S,
                 Config = self.Config,
                 fns = Config.fns,
                 cfg,
@@ -89,7 +89,7 @@
     function mix(to, from) {
         if (!from) {
             from = to;
-            to = this;
+            to = S;
         }
         for (var i in from) {
             to[i] = from[i];

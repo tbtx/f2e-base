@@ -60,12 +60,14 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
         }
     });
 
-    var instance;
-
-    var broadcast = function(msg, direction, duration) {
-        instance = instance || new BroadcastWidget({
+    var getInstance = S.singleton(function() {
+        return new BroadcastWidget({
             className: "tbtx-broadcast"
         }).render();
+    });
+
+    var broadcast = function(msg, direction, duration) {
+        var instance = getInstance();
 
         if (duration) {
             instance.set("duration", duration);

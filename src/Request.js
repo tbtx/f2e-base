@@ -1,38 +1,42 @@
 define("request", ["jquery"], function($) {
     var S = tbtx,
         cookie = S.cookie,
-        isPlainObject = S.isPlainObject;
+        isPlainObject = S.isPlainObject,
+        config = S.config;
 
-    var generateToken = function() {
+    var generateToken = S.generateToken = function() {
         var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
-        cookie.set(S.tokenName, token, '', '', '/');
+        cookie.set(config("tokenName"), token, '', '', '/');
         return token;
     };
-    // 默认蜜儿
-    S.tokenName = "MIIEE_JTOKEN";
 
-    var requestFailCode = -1,
-        requestFailResponse = {
-            code: requestFailCode,
-            msg: "请求失败！请检查网络连接！"
-        },
-        requestingCode = -2,
-        requestMap = {},
-        /**
-         * 适用于用到jtoken的请求
-         */
+    if (!config("tokenName")) {
+        // 默认蜜儿
+        config("tokenName", "MIIEE_JTOKEN");
+    }
+
+    config({
+        requestFailCode: -1,
+        requestFailMsg: "请求失败！请检查网络连接！",
+
+        // 正在请求中，state === "pending"
+        requestingCode: -2,
+        requestSuccessCode: 100
+    });
+
+    var deferredMap = {},
+
         request = function(url, data, successCode) {
-            var config;
+            var settings;
 
             if (isPlainObject(url)) {
-                config = url;
+                settings = url;
                 successCode = data;
+                url = settings.url;
+                data = settings.data;
             } else {
                 data = data || {};
-                if (isPlainObject(data) && !data.jtoken) {
-                    data.jtoken = generateToken();
-                }
-                config = {
+                settings = {
                     url: url,
                     data: data,
                     type: "post",
@@ -40,18 +44,22 @@ define("request", ["jquery"], function($) {
                     timeout: 10000
                 };
             }
+            if (isPlainObject(data) && !data.jtoken) {
+                data.jtoken = generateToken();
+            }
 
-            successCode = successCode || 100;
+            successCode = successCode || config("requestSuccessCode");
 
-            var deferred = requestMap[url];
+            var deferred = deferredMap[url];
             // 正在处理中
             if (deferred && deferred.state() === "pending") {
-                deferred.notify(requestingCode);
+                deferred.notify(config("requestingCode"));
                 return deferred.promise();
             }
 
-            deferred = requestMap[url] = $.Deferred();
-            $.ajax(config)
+            deferred = deferredMap[url] = $.Deferred();
+
+            $.ajax(settings)
             .done(function(response) {
                 var code = response && response.code;
                 if (code === successCode) {
@@ -61,7 +69,10 @@ define("request", ["jquery"], function($) {
                 }
             })
             .fail(function() {
-                deferred.reject(requestFailCode, requestFailResponse);
+                deferred.reject(config("requestFailCode"), {
+                    code: config("requestFailCode"),
+                    msg: config("requestFailMsg")
+                });
             });
 
             return deferred.promise();

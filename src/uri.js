@@ -7,9 +7,9 @@
         isString = S.isString,
         makeArray = S.makeArray,
         log = S.log,
-        rword = S.rword;
+        rword = S.rword,
 
-    var EMPTY = "",
+        EMPTY = "",
 
         encode = function(s) {
             return encodeURIComponent(String(s));
