@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-07-01 3:27:10
+ * update: 2014-07-01 3:48:16
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -2819,13 +2819,18 @@
 
             $.ajax(settings)
             .done(function(response) {
-                var code = response && response.code;
+                var code, result;
+                if (response) {
+                    code = response.code;
+                    result = response.result;
+                }
+
                 if (code === successCode) {
                     // 有result返回result，没有result返回response
                     // 返回result时加一层result来兼容之前的写法
-                    if (response.result) {
-                        response = response.result;
-                        response.result = S.extend({}, response);
+                    if (result) {
+                        response = result;
+                        response.result = S.extend(Array.isArray(response) ? [] : {}, response);
                     }
                     deferred.resolve(response);
                 } else {

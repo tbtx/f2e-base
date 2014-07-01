@@ -61,13 +61,18 @@ define("request", ["jquery"], function($) {
 
             $.ajax(settings)
             .done(function(response) {
-                var code = response && response.code;
+                var code, result;
+                if (response) {
+                    code = response.code;
+                    result = response.result;
+                }
+
                 if (code === successCode) {
                     // 有result返回result，没有result返回response
                     // 返回result时加一层result来兼容之前的写法
-                    if (response.result) {
-                        response = response.result;
-                        response.result = S.extend({}, response);
+                    if (result) {
+                        response = result;
+                        response.result = S.extend(Array.isArray(response) ? [] : {}, response);
                     }
                     deferred.resolve(response);
                 } else {
