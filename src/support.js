@@ -1,6 +1,7 @@
 (function(S, document) {
 
-    var ucfirst = S.ucfirst;
+    var ucfirst = S.ucfirst,
+        ua = navigator.userAgent;
 
     // thanks modernizr
     var element = document.createElement("tbtx"),
@@ -41,6 +42,7 @@
 
     support.add = function(name, fn) {
         support[name] = fn.call(support);
+        return this;
     };
 
     "transition transform".split(spliter).forEach(function(name) {
@@ -50,6 +52,11 @@
     support.add("canvas", function() {
         var elem = document.createElement('canvas');
         return !!(elem.getContext && elem.getContext('2d'));
+    }).add("mobile", function() {
+        // 是否是移动设备，包含pad
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in document.documentElement;
+    }).add("pad", function() {
+        return !!ua.match(/iPad/i);
     });
 
     S.mix({
