@@ -63,6 +63,12 @@ define("request", ["jquery"], function($) {
             .done(function(response) {
                 var code = response && response.code;
                 if (code === successCode) {
+                    // 有result返回result，没有result返回response
+                    // 返回result时加一层result来兼容之前的写法
+                    if (response.result) {
+                        response = response.result;
+                        response.result = S.extend({}, response);
+                    }
                     deferred.resolve(response);
                 } else {
                     deferred.reject(code, response);
