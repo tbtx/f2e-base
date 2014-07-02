@@ -50,8 +50,8 @@
     });
 
     support.add("canvas", function() {
-        var elem = document.createElement('canvas');
-        return !!(elem.getContext && elem.getContext('2d'));
+        var elem = document.createElement("canvas");
+        return !!(elem.getContext && elem.getContext("2d"));
     }).add("mobile", function() {
         // 是否是移动设备，包含pad
         return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in document.documentElement;

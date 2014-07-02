@@ -109,7 +109,7 @@ module.exports = function(grunt) {
                 dest: "component/countDown/1.0.0/countDown.js"
             },
 
-            countDown: {
+            born: {
                 src: ["src/component/born/1.0.0/born.js"],
                 dest: "component/born/1.0.0/born.js"
             },
@@ -117,6 +117,10 @@ module.exports = function(grunt) {
             pagination: {
                 src: ["src/component/pagination/1.0.0/pagination.js"],
                 dest: "component/pagination/1.0.0/pagination.js"
+            },
+            qrcode: {
+                src: ["src/component/qrcode/1.1.0/qrcode.js"],
+                dest: "component/qrcode/1.1.0/qrcode.js"
             }
         },
 

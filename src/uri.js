@@ -12,7 +12,7 @@
         EMPTY = "",
 
         encode = function(s) {
-            return encodeURIComponent(String(s));
+            return encodeURIComponent(s + EMPTY);
         },
 
         decode = function(s) {

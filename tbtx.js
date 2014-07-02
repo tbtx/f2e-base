@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-07-01 3:48:16
+ * update: 2014-07-02 1:48:39
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -11,7 +11,7 @@
 
     S = global[S] = global[S] || {};
 
-    mix(S, {
+    mix({
 
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
@@ -655,12 +655,12 @@
             return new RegExp(str, "g");
         }),
         escapeHtml = function(text) {
-            return String(text).replace(getEscapeReg(), function(all) {
+            return (text + EMPTY).replace(getEscapeReg(), function(all) {
                 return reverseEntities[all];
             });
         },
         unEscapeHtml = function(text) {
-            return String(text).replace(getUnEscapeReg(), function(all) {
+            return (text + EMPTY).replace(getUnEscapeReg(), function(all) {
                 return htmlEntities[all];
             });
         };
@@ -771,7 +771,7 @@
             }
 
             if (!m) {
-                S.log("method undefined", "error", "later");
+                S.error("later: method undefined");
             }
 
             f = function() {
@@ -913,7 +913,7 @@
         EMPTY = "",
 
         encode = function(s) {
-            return encodeURIComponent(String(s));
+            return encodeURIComponent(s + EMPTY);
         },
 
         decode = function(s) {
@@ -2618,8 +2618,8 @@
     });
 
     support.add("canvas", function() {
-        var elem = document.createElement('canvas');
-        return !!(elem.getContext && elem.getContext('2d'));
+        var elem = document.createElement("canvas");
+        return !!(elem.getContext && elem.getContext("2d"));
     }).add("mobile", function() {
         // 是否是移动设备，包含pad
         return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in document.documentElement;

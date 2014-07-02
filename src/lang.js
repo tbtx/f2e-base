@@ -547,12 +547,12 @@
             return new RegExp(str, "g");
         }),
         escapeHtml = function(text) {
-            return String(text).replace(getEscapeReg(), function(all) {
+            return (text + EMPTY).replace(getEscapeReg(), function(all) {
                 return reverseEntities[all];
             });
         },
         unEscapeHtml = function(text) {
-            return String(text).replace(getUnEscapeReg(), function(all) {
+            return (text + EMPTY).replace(getUnEscapeReg(), function(all) {
                 return htmlEntities[all];
             });
         };
@@ -663,7 +663,7 @@
             }
 
             if (!m) {
-                S.log("method undefined", "error", "later");
+                S.error("later: method undefined");
             }
 
             f = function() {

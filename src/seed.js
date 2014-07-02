@@ -5,7 +5,7 @@
 
     S = global[S] = global[S] || {};
 
-    mix(S, {
+    mix({
 
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
