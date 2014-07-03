@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-07-02 1:48:39
+ * update: 2014-07-02 4:52:41
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -2866,8 +2866,17 @@
             direction: "center"
         },
 
+        events: {
+            "click": "clear"
+        },
+
         _onRenderVisible: function(val) {
             this.element[val ? "fadeIn" : "fadeOut"]();
+        },
+
+        clear: function() {
+            var self = this;
+            self.set("msg", "");
         },
 
         _onRenderMsg: function(val) {
@@ -2887,10 +2896,7 @@
             self.pin();
 
             if (duration > 0) {
-                self.timer = S.later(function() {
-                    self.set("visible", false);
-                    self.set("msg", "");    // 清空消息
-                }, duration, false);
+                self.timer = S.later(self.clear, duration, false, self);
             }
         },
 

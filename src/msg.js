@@ -11,8 +11,17 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
             direction: "center"
         },
 
+        events: {
+            "click": "clear"
+        },
+
         _onRenderVisible: function(val) {
             this.element[val ? "fadeIn" : "fadeOut"]();
+        },
+
+        clear: function() {
+            var self = this;
+            self.set("msg", "");
         },
 
         _onRenderMsg: function(val) {
@@ -32,10 +41,7 @@ define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, P
             self.pin();
 
             if (duration > 0) {
-                self.timer = S.later(function() {
-                    self.set("visible", false);
-                    self.set("msg", "");    // 清空消息
-                }, duration, false);
+                self.timer = S.later(self.clear, duration, false, self);
             }
         },
 
