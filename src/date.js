@@ -69,6 +69,7 @@
             ret[k] = k === "y" ? v.substring(2, 4) : padding2(v);
         });
 
+        ret.origin = date;
         return ret;
     }
 

@@ -57,6 +57,8 @@
         return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in document.documentElement;
     }).add("pad", function() {
         return !!ua.match(/iPad/i);
+    }).add("phone", function() {
+        return this.mobile && !this.pad;
     });
 
     S.mix({

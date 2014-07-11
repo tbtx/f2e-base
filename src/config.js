@@ -7,18 +7,8 @@
     /**
      * paths config
      */
-    var paths = {};
-
-    ["dist", "plugin", "gallery", "component"].forEach(function(name) {
-        paths[name] = loaderDir + name;
-    });
-
-    paths.arale = loaderDir + "dist/arale";
-
-    Loader.config({
-        base: staticUrl,
-
-        alias: {
+    var paths = {},
+        alias = {
             // arale
             "events": "arale/events/1.1.0/events",
             "class": "arale/class/1.1.0/class",
@@ -37,16 +27,32 @@
             "validator": "component/validator/0.9.7/validator",
 
             // gallery
-            "jquery": "gallery/jquery/1.8.3/jquery.min",
+            "jquery": S.support.phone ? "gallery/jquery/2.1.1/jquery.min" : "gallery/jquery/1.8.3/jquery.min",
             "zepto": "gallery/zepto/1.1.2/zepto.min",
             "handlebars": "gallery/handlebars/1.3.0/handlebars",
             "json": "gallery/json2/json2",
+
+            // 2.1.5不支持IE8
+            "clipboard": "gallery/zeroclipboard/1.3.5/ZeroClipboard.min",
 
             // plugin
             "easing": "plugin/jquery.easing.1.3",
 
             "kissy": "http://g.tbcdn.cn/kissy/k/1.4.0/seed-min.js"
-        },
+        };
+
+    ["dist", "plugin", "gallery", "component"].forEach(function(name) {
+        paths[name] = loaderDir + name;
+    });
+
+    paths.arale = loaderDir + "dist/arale";
+
+    alias.$ = alias.jquery;
+
+    Loader.config({
+        base: staticUrl,
+
+        alias: alias,
 
         paths: paths,
 

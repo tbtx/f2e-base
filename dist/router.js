@@ -6,7 +6,7 @@
 // and URL fragments. If the browser supports neither (old IE, natch),
 // falls back to polling.
 
-define("dist/history", ["$", "arale/events/1.1.0/events"], function($, Events) {
+define("dist/history", ["jquery", "arale/events/1.1.0/events"], function($, Events) {
     var S = tbtx;
     var History = function() {
         this.handlers = [];
@@ -250,7 +250,7 @@ define("dist/history", ["$", "arale/events/1.1.0/events"], function($, Events) {
     return new History();
 });
 
-define("dist/router", ["$", "dist/history", "arale/events/1.1.0/events"], function($, history, Events) {
+define("dist/router", ["jquery", "dist/history", "arale/events/1.1.0/events"], function($, history, Events) {
     var S = tbtx;
     var result = function(object, property) {
         if (object == null) return void 0;

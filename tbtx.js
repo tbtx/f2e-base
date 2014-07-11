@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-07-02 4:52:41
+ * update: 2014-07-11 4:19:22
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1246,6 +1246,76 @@
 
 })(tbtx);
 
+;(function(S, document) {
+
+    var ucfirst = S.ucfirst,
+        ua = navigator.userAgent;
+
+    // thanks modernizr
+    var element = document.createElement("tbtx"),
+
+        style = element.style,
+
+        spliter = " ",
+
+        omPrefixes = "Webkit Moz O ms",
+
+        cssomPrefixes = omPrefixes.split(spliter);
+
+    var prefixed = function(prop) {
+            return testPropsAll(prop, "pfx");
+        },
+        testProps = function(props, prefixed) {
+            var prop,
+                i;
+
+            for (i in props) {
+                prop = props[i];
+                if (style[prop] !== undefined) {
+                    return prefixed == "pfx" ? prop : true;
+                }
+            }
+            return false;
+        },
+        testPropsAll = function (prop, prefixed) {
+            var ucProp = ucfirst(prop),
+                props = (prop + spliter + cssomPrefixes.join(ucProp + spliter) + ucProp).split(spliter);
+
+            return testProps(props, prefixed);
+        };
+
+
+    // export
+    var support = S.namespace("support");
+
+    support.add = function(name, fn) {
+        support[name] = fn.call(support);
+        return this;
+    };
+
+    "transition transform".split(spliter).forEach(function(name) {
+        support[name] = testPropsAll(name);
+    });
+
+    support.add("canvas", function() {
+        var elem = document.createElement("canvas");
+        return !!(elem.getContext && elem.getContext("2d"));
+    }).add("mobile", function() {
+        // 是否是移动设备，包含pad
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in document.documentElement;
+    }).add("pad", function() {
+        return !!ua.match(/iPad/i);
+    }).add("phone", function() {
+        return this.mobile && !this.pad;
+    });
+
+    S.mix({
+        testPropsAll: testPropsAll,
+        prefixed: prefixed
+    });
+})(tbtx, document);
+
+
 ;/**
  * an amd loader
  * thanks seajs
@@ -2072,18 +2142,8 @@
     /**
      * paths config
      */
-    var paths = {};
-
-    ["dist", "plugin", "gallery", "component"].forEach(function(name) {
-        paths[name] = loaderDir + name;
-    });
-
-    paths.arale = loaderDir + "dist/arale";
-
-    Loader.config({
-        base: staticUrl,
-
-        alias: {
+    var paths = {},
+        alias = {
             // arale
             "events": "arale/events/1.1.0/events",
             "class": "arale/class/1.1.0/class",
@@ -2102,16 +2162,32 @@
             "validator": "component/validator/0.9.7/validator",
 
             // gallery
-            "jquery": "gallery/jquery/1.8.3/jquery.min",
+            "jquery": S.support.phone ? "gallery/jquery/2.1.1/jquery.min" : "gallery/jquery/1.8.3/jquery.min",
             "zepto": "gallery/zepto/1.1.2/zepto.min",
             "handlebars": "gallery/handlebars/1.3.0/handlebars",
             "json": "gallery/json2/json2",
+
+            // 2.1.5不支持IE8
+            "clipboard": "gallery/zeroclipboard/1.3.5/ZeroClipboard.min",
 
             // plugin
             "easing": "plugin/jquery.easing.1.3",
 
             "kissy": "http://g.tbcdn.cn/kissy/k/1.4.0/seed-min.js"
-        },
+        };
+
+    ["dist", "plugin", "gallery", "component"].forEach(function(name) {
+        paths[name] = loaderDir + name;
+    });
+
+    paths.arale = loaderDir + "dist/arale";
+
+    alias.$ = alias.jquery;
+
+    Loader.config({
+        base: staticUrl,
+
+        alias: alias,
 
         paths: paths,
 
@@ -2566,74 +2642,6 @@
 });
 
 
-;(function(S, document) {
-
-    var ucfirst = S.ucfirst,
-        ua = navigator.userAgent;
-
-    // thanks modernizr
-    var element = document.createElement("tbtx"),
-
-        style = element.style,
-
-        spliter = " ",
-
-        omPrefixes = "Webkit Moz O ms",
-
-        cssomPrefixes = omPrefixes.split(spliter);
-
-    var prefixed = function(prop) {
-            return testPropsAll(prop, "pfx");
-        },
-        testProps = function(props, prefixed) {
-            var prop,
-                i;
-
-            for (i in props) {
-                prop = props[i];
-                if (style[prop] !== undefined) {
-                    return prefixed == "pfx" ? prop : true;
-                }
-            }
-            return false;
-        },
-        testPropsAll = function (prop, prefixed) {
-            var ucProp = ucfirst(prop),
-                props = (prop + spliter + cssomPrefixes.join(ucProp + spliter) + ucProp).split(spliter);
-
-            return testProps(props, prefixed);
-        };
-
-
-    // export
-    var support = S.namespace("support");
-
-    support.add = function(name, fn) {
-        support[name] = fn.call(support);
-        return this;
-    };
-
-    "transition transform".split(spliter).forEach(function(name) {
-        support[name] = testPropsAll(name);
-    });
-
-    support.add("canvas", function() {
-        var elem = document.createElement("canvas");
-        return !!(elem.getContext && elem.getContext("2d"));
-    }).add("mobile", function() {
-        // 是否是移动设备，包含pad
-        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in document.documentElement;
-    }).add("pad", function() {
-        return !!ua.match(/iPad/i);
-    });
-
-    S.mix({
-        testPropsAll: testPropsAll,
-        prefixed: prefixed
-    });
-})(tbtx, document);
-
-
 ;/**
  * formate格式只有2014/07/12 12:34:35的格式可以跨平台
  * new Date()
@@ -2705,6 +2713,7 @@
             ret[k] = k === "y" ? v.substring(2, 4) : padding2(v);
         });
 
+        ret.origin = date;
         return ret;
     }
 
