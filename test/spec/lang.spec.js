@@ -352,6 +352,24 @@ describe('lang', function() {
             })).toBeFalsy();
         });
     });
+
+    xdescribe("isEmptyValue", function() {
+        it("should tell if the valye is empty", function() {
+            expect(S.isEmptyValue({})).toBeTruthy();
+            expect(S.isEmptyValue([])).toBeTruthy();
+            expect(S.isEmptyValue("")).toBeTruthy();
+            expect(S.isEmptyValue(null)).toBeTruthy();
+            expect(S.isEmptyValue()).toBeTruthy();
+
+            expect(S.isEmptyValue("abc")).toBeFalsy();
+            expect(S.isEmptyValue({
+                a: 1
+            })).toBeFalsy();
+            expect(S.isEmptyValue([1, 2])).toBeFalsy();
+
+        });
+    });
+
     describe('isNotEmptyString', function() {
         it("should be true if the param is string and is not empty", function() {
             expect(S.isNotEmptyString('abc')).toBeTruthy();

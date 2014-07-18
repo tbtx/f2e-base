@@ -732,20 +732,21 @@
         /**
          * {{ name }} -> {{ o[name] }}
          * \{{}} -> \{{}}
-         * based on Django, fix kissy, support BLANK -> {{ name }}, not only {{name}}
+         * blank 是否处理空
+         * 默认没有替换为空
          */
-        substitute: function(str, o, regexp) {
+        substitute: function(str, o, blank) {
             if (!isString(str)) {
                 return str;
             }
             if (!(isPlainObject(o) || isArray(o))) {
                 return str;
             }
-            return str.replace(regexp || rsubstitute, function(match, name) {
+            return str.replace(rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
                 }
-                return (o[name] === undefined) ? EMPTY : o[name];
+                return (o[name] === undefined) ? blank ? match : EMPTY : o[name];
             });
         },
 

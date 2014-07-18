@@ -16,8 +16,12 @@ describe('date', function() {
     describe("normalizeDate", function() {
         it("should get the object of a date", function() {
             var date = new Date(1383272557027);
-            expect(S
-                .normalizeDate(date)).toEqual({
+            var normalizedDate = S
+                .normalizeDate(date);
+
+            delete normalizedDate.origin;
+
+            expect(normalizedDate).toEqual({
                     D: "1",
                     H: "10",
                     I: "22",

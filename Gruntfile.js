@@ -115,8 +115,8 @@ module.exports = function(grunt) {
             },
 
             pagination: {
-                src: ["src/component/pagination/1.0.0/pagination.js"],
-                dest: "component/pagination/1.0.0/pagination.js"
+                src: ["src/component/pagination/2.0.0/pagination.js"],
+                dest: "component/pagination/2.0.0/pagination.js"
             },
             qrcode: {
                 src: ["src/component/qrcode/1.1.0/qrcode.js"],
@@ -145,7 +145,7 @@ module.exports = function(grunt) {
         // Tasks being executed with 'grunt watch'
         watch: {
             js: {
-                files: ['src/*.js', "src/dist/*.js"],
+                files: ['src/*.js', "src/dist/*.js", "src/component/*/*/*.js"],
                 tasks: ['jshint', 'concat', 'uglify']
             }
         }

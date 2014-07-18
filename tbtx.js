@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-07-11 4:19:22
+ * update: 2014-07-18 3:45:35
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -840,20 +840,21 @@
         /**
          * {{ name }} -> {{ o[name] }}
          * \{{}} -> \{{}}
-         * based on Django, fix kissy, support BLANK -> {{ name }}, not only {{name}}
+         * blank 是否处理空
+         * 默认没有替换为空
          */
-        substitute: function(str, o, regexp) {
+        substitute: function(str, o, blank) {
             if (!isString(str)) {
                 return str;
             }
             if (!(isPlainObject(o) || isArray(o))) {
                 return str;
             }
-            return str.replace(regexp || rsubstitute, function(match, name) {
+            return str.replace(rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
                 }
-                return (o[name] === undefined) ? EMPTY : o[name];
+                return (o[name] === undefined) ? blank ? match : EMPTY : o[name];
             });
         },
 
@@ -1307,6 +1308,8 @@
         return !!ua.match(/iPad/i);
     }).add("phone", function() {
         return this.mobile && !this.pad;
+    }).add("placeholder", function() {
+        return "placeholder" in document.createElement("input");
     });
 
     S.mix({
@@ -2191,11 +2194,16 @@
 
         paths: paths,
 
-        // 每小时更新时间戳
-        map: [
-            [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
-        ]
     });
+
+    if (!S.config("debug")) {
+        Loader.config({
+            // 每小时更新时间戳
+            map: [
+                [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
+            ]
+        });
+    }
 })(tbtx);
 
 ;(function(S) {
@@ -2765,7 +2773,7 @@
 })(tbtx);
 
 
-;define("request", ["jquery"], function($) {
+;define("request", ["jquery", "json"], function($) {
     var S = tbtx,
         cookie = S.cookie,
         isPlainObject = S.isPlainObject,
@@ -2792,39 +2800,51 @@
     });
 
     var deferredMap = {},
+        requestData = {},
 
-        request = function(url, data, successCode) {
-            var settings;
+        request = function(url, data, successCode, nocache) {
+            var settings = {
+                type: "post",
+                dataType: "json",
+                timeout: 10000
+            };
 
             if (isPlainObject(url)) {
-                settings = url;
+                settings = S.extend(settings, url);
+                nocache = successCode;
                 successCode = data;
-                url = settings.url;
-                data = settings.data;
             } else {
                 data = data || {};
-                settings = {
-                    url: url,
-                    data: data,
-                    type: "post",
-                    dataType: "json",
-                    timeout: 10000
-                };
+                settings.url = url;
+                settings.data = data;
             }
+
+            url = settings.url.trim();
+            data = settings.data;
+            if (typeof successCode === "boolean") {
+                nocache = successCode;
+                successCode = 0;
+            }
+            successCode = successCode || config("requestSuccessCode");
+
+
+            var deferred = deferredMap[url];
+            if (!nocache && deferred && deferred.state() === "pending") {
+                if (isEqual(data, requestData[url])) {
+                    deferred.notify(config("requestingCode"));
+                    return deferred.promise();
+                }
+            }
+
+
+            deferred = deferredMap[url] = $.Deferred();
+            requestData[url] = data;
+
             if (isPlainObject(data) && !data.jtoken) {
                 data.jtoken = generateToken();
             }
-
-            successCode = successCode || config("requestSuccessCode");
-
-            var deferred = deferredMap[url];
-            // 正在处理中
-            if (deferred && deferred.state() === "pending") {
-                deferred.notify(config("requestingCode"));
-                return deferred.promise();
-            }
-
-            deferred = deferredMap[url] = $.Deferred();
+            // url 加上时间戳
+            settings.url = S.addQueryParam(url, "_", String(Math.random()).replace(/\D/g, ""));
 
             $.ajax(settings)
             .done(function(response) {
@@ -2858,6 +2878,11 @@
 
     // 大写兼容之前的用法
     S.Request = S.request = request;
+
+
+    function isEqual(a, b) {
+        return JSON.stringify(a) == JSON.stringify(b);
+    }
 
     return request;
 });

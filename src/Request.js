@@ -1,4 +1,4 @@
-define("request", ["jquery"], function($) {
+define("request", ["jquery", "json"], function($) {
     var S = tbtx,
         cookie = S.cookie,
         isPlainObject = S.isPlainObject,
@@ -25,39 +25,51 @@ define("request", ["jquery"], function($) {
     });
 
     var deferredMap = {},
+        requestData = {},
 
-        request = function(url, data, successCode) {
-            var settings;
+        request = function(url, data, successCode, nocache) {
+            var settings = {
+                type: "post",
+                dataType: "json",
+                timeout: 10000
+            };
 
             if (isPlainObject(url)) {
-                settings = url;
+                settings = S.extend(settings, url);
+                nocache = successCode;
                 successCode = data;
-                url = settings.url;
-                data = settings.data;
             } else {
                 data = data || {};
-                settings = {
-                    url: url,
-                    data: data,
-                    type: "post",
-                    dataType: "json",
-                    timeout: 10000
-                };
+                settings.url = url;
+                settings.data = data;
             }
+
+            url = settings.url.trim();
+            data = settings.data;
+            if (typeof successCode === "boolean") {
+                nocache = successCode;
+                successCode = 0;
+            }
+            successCode = successCode || config("requestSuccessCode");
+
+
+            var deferred = deferredMap[url];
+            if (!nocache && deferred && deferred.state() === "pending") {
+                if (isEqual(data, requestData[url])) {
+                    deferred.notify(config("requestingCode"));
+                    return deferred.promise();
+                }
+            }
+
+
+            deferred = deferredMap[url] = $.Deferred();
+            requestData[url] = data;
+
             if (isPlainObject(data) && !data.jtoken) {
                 data.jtoken = generateToken();
             }
-
-            successCode = successCode || config("requestSuccessCode");
-
-            var deferred = deferredMap[url];
-            // 正在处理中
-            if (deferred && deferred.state() === "pending") {
-                deferred.notify(config("requestingCode"));
-                return deferred.promise();
-            }
-
-            deferred = deferredMap[url] = $.Deferred();
+            // url 加上时间戳
+            settings.url = S.addQueryParam(url, "_", String(Math.random()).replace(/\D/g, ""));
 
             $.ajax(settings)
             .done(function(response) {
@@ -91,6 +103,11 @@ define("request", ["jquery"], function($) {
 
     // 大写兼容之前的用法
     S.Request = S.request = request;
+
+
+    function isEqual(a, b) {
+        return JSON.stringify(a) == JSON.stringify(b);
+    }
 
     return request;
 });

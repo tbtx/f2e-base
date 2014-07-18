@@ -56,9 +56,14 @@
 
         paths: paths,
 
-        // 每小时更新时间戳
-        map: [
-            [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
-        ]
     });
+
+    if (!S.config("debug")) {
+        Loader.config({
+            // 每小时更新时间戳
+            map: [
+                [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
+            ]
+        });
+    }
 })(tbtx);

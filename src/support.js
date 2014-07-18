@@ -59,6 +59,8 @@
         return !!ua.match(/iPad/i);
     }).add("phone", function() {
         return this.mobile && !this.pad;
+    }).add("placeholder", function() {
+        return "placeholder" in document.createElement("input");
     });
 
     S.mix({
