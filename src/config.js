@@ -1,7 +1,10 @@
 (function(S) {
     var realpath = S.realpath,
+        fns = S.Config.fns,
         Loader = S.Loader,
-        loaderDir = Loader.data.dir,
+        data = Loader.data,
+        config = Loader.config,
+        loaderDir = data.dir,
         staticUrl = S.staticUrl = realpath(loaderDir + "../../../");
 
     /**
@@ -49,21 +52,33 @@
 
     alias.$ = alias.jquery;
 
-    Loader.config({
+    config({
         base: staticUrl,
 
         alias: alias,
 
-        paths: paths,
+        paths: paths
 
     });
 
     if (!S.config("debug")) {
-        Loader.config({
+        config({
             // 每小时更新时间戳
             map: [
                 [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
             ]
         });
     }
+
+    "alias map paths".replace(S.rword, function(name) {
+        fns[name] = function(val) {
+            if (val) {
+                var cfg = {};
+                cfg[name] = val;
+                config(cfg);
+            } else {
+                return data[name];
+            }
+        };
+    });
 })(tbtx);

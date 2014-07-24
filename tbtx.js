@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-07-18 3:45:35
+ * update: 2014-07-24 3:21:48
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -57,7 +57,7 @@
                 Config = self.Config,
                 fns = Config.fns,
                 cfg,
-                ret;
+                ret = self;
 
             if (typeof name === "string") {
                 cfg = fns[name];
@@ -674,8 +674,9 @@
     S.mix({
         rword: rword,
 
-        uniqueCid: function() {
-            return cidCounter++;
+        uniqueCid: function(prefix) {
+            prefix = prefix || 0;
+            return prefix + cidCounter++;
         },
 
         nextTick: global.setImmediate ? setImmediate.bind(global) : function(callback) {
@@ -748,6 +749,22 @@
         endsWith: function(str, suffix) {
             var index = str.length - suffix.length;
             return index >= 0 && str.indexOf(suffix, index) === index;
+        },
+
+        random: function(min, max) {
+            var array, seed;
+
+            if (isArray(min)) {
+                array = min;
+                min = 0;
+                max = array.length - 1;
+            }
+            if (max == null) {
+                max = min;
+                min = 0;
+            }
+            seed = min + Math.floor(Math.random() * (max - min + 1));
+            return array ? array[seed] : seed;
         },
 
         /**
@@ -2138,8 +2155,11 @@
 
 ;(function(S) {
     var realpath = S.realpath,
+        fns = S.Config.fns,
         Loader = S.Loader,
-        loaderDir = Loader.data.dir,
+        data = Loader.data,
+        config = Loader.config,
+        loaderDir = data.dir,
         staticUrl = S.staticUrl = realpath(loaderDir + "../../../");
 
     /**
@@ -2187,23 +2207,35 @@
 
     alias.$ = alias.jquery;
 
-    Loader.config({
+    config({
         base: staticUrl,
 
         alias: alias,
 
-        paths: paths,
+        paths: paths
 
     });
 
     if (!S.config("debug")) {
-        Loader.config({
+        config({
             // 每小时更新时间戳
             map: [
                 [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
             ]
         });
     }
+
+    "alias map paths".replace(S.rword, function(name) {
+        fns[name] = function(val) {
+            if (val) {
+                var cfg = {};
+                cfg[name] = val;
+                config(cfg);
+            } else {
+                return data[name];
+            }
+        };
+    });
 })(tbtx);
 
 ;(function(S) {
@@ -3028,4 +3060,5 @@
             });
         };
     });
+
 })(tbtx);

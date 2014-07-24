@@ -51,7 +51,7 @@
                 Config = self.Config,
                 fns = Config.fns,
                 cfg,
-                ret;
+                ret = self;
 
             if (typeof name === "string") {
                 cfg = fns[name];

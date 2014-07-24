@@ -566,8 +566,9 @@
     S.mix({
         rword: rword,
 
-        uniqueCid: function() {
-            return cidCounter++;
+        uniqueCid: function(prefix) {
+            prefix = prefix || 0;
+            return prefix + cidCounter++;
         },
 
         nextTick: global.setImmediate ? setImmediate.bind(global) : function(callback) {
@@ -640,6 +641,22 @@
         endsWith: function(str, suffix) {
             var index = str.length - suffix.length;
             return index >= 0 && str.indexOf(suffix, index) === index;
+        },
+
+        random: function(min, max) {
+            var array, seed;
+
+            if (isArray(min)) {
+                array = min;
+                min = 0;
+                max = array.length - 1;
+            }
+            if (max == null) {
+                max = min;
+                min = 0;
+            }
+            seed = min + Math.floor(Math.random() * (max - min + 1));
+            return array ? array[seed] : seed;
         },
 
         /**
