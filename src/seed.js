@@ -3,9 +3,9 @@
     var isSupportConsole = global.console && console.log,
         noop = function() {};
 
-    S = global[S] = global[S] || {};
+    S = global[S] = {
 
-    mix({
+        version: "2.0",
 
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
@@ -15,10 +15,14 @@
          * @return {Object}     返回tbtx以链式调用，如tbtx.log().log()
          */
         log: isSupportConsole ? function(msg, cat, src) {
+
             if (src) {
                 msg = src + ": " + msg;
             }
-            console[cat && console[cat] ? cat : "log"](msg);
+
+            if (S.config("debug")) {
+                console[cat && console[cat] ? cat : "log"](msg);
+            }
 
             return this;
         } : noop,
@@ -27,7 +31,9 @@
          * Throws error message.
          */
         error: function (msg) {
-            throw msg instanceof Error ? msg : new Error(msg);
+            if (S.config("debug")) {
+                throw msg instanceof Error ? msg : new Error(msg);
+            }
         },
 
         /**
@@ -46,29 +52,29 @@
             fns: {}
         },
 
-        config: function(name, value) {
+        config: function(key, value) {
             var self = S,
                 Config = self.Config,
                 fns = Config.fns,
-                cfg,
+                fn,
                 ret = self;
 
-            if (typeof name === "string") {
-                cfg = fns[name];
+            if (typeof key === "string") {
+                fn = fns[key];
                 // get config
                 if (value === undefined) {
-                    ret = cfg ? cfg.call(self) : Config[name];
+                    ret = fn ? fn.call(self) : Config[key];
                 } else { // set config
-                    if (cfg) {
-                        ret = cfg.call(self, value);
+                    if (fn) {
+                        ret = fn.call(self, value);
                     } else {
-                        Config[name] = value;
+                        Config[key] = value;
                     }
                 }
             } else {
                 // Object Config
-                S.each(name, function(v, k) {
-                    var fn = fns[k];
+                S.each(key, function(v, k) {
+                    fn = fns[k];
                     if (fn) {
                         fn.call(self, v);
                     } else {
@@ -77,24 +83,8 @@
                 });
             }
             return ret;
-        },
-
-        mix: mix
-
-    });
-
-    /*
-     * simple mix
-     */
-    function mix(to, from) {
-        if (!from) {
-            from = to;
-            to = S;
         }
-        for (var i in from) {
-            to[i] = from[i];
-        }
-        return to;
-    }
+
+    };
 
 })(this, "tbtx");

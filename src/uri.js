@@ -9,10 +9,8 @@
         log = S.log,
         rword = S.rword,
 
-        EMPTY = "",
-
         encode = function(s) {
-            return encodeURIComponent(s + EMPTY);
+            return encodeURIComponent(s + "");
         },
 
         decode = function(s) {
@@ -29,14 +27,14 @@
                 if (isValidParamValue(val)) {
                     buf.push(key);
                     if (val !== undefined) {
-                        buf.push(eq, encode(val + EMPTY));
+                        buf.push(eq, encode(val + ""));
                     }
                     buf.push(sep);
                 }
             });
 
             buf.pop();
-            return buf.join(EMPTY);
+            return buf.join("");
         },
 
         /**
@@ -78,7 +76,7 @@
         },
 
         Query = S.Query = function(query) {
-            this._query = query || EMPTY;
+            this._query = query || "";
             this._map = unparam(this._query);
         },
 
@@ -161,7 +159,7 @@
             "(?:\\?([^#]*))?", // query
             "(?:#(.*))?", // fragment
             "$",
-        ].join(EMPTY)),
+        ].join("")),
 
         rinfo = {
             scheme: 1,
@@ -250,7 +248,7 @@
                 ret.push(fragment);
             }
 
-            return ret.join(EMPTY);
+            return ret.join("");
         }
     };
 
@@ -267,7 +265,7 @@
             ret = {};
 
         each(rinfo, function(index, key) {
-            ret[key] = m[index] || EMPTY;
+            ret[key] = m[index] || "";
         });
 
         cacheComponents[uri] = ret;
@@ -319,7 +317,7 @@
                 query = uri.query,
                 ret = query[name].apply(query, args);
 
-            return ret === query ? uri.toString() : ret || EMPTY;
+            return ret === query ? uri.toString() : ret || "";
         };
     });
 

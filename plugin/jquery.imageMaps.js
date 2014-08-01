@@ -31,19 +31,19 @@ define("plugin/jquery.imageMaps", ["jquery"], function() {
                     //console.log(this);
                     var attrW = 'width',
                         attrH = 'height',
-                        w = $that.attr(attrW),
-                        h = $that.attr(attrH);
+                        w = $that.attr(attrW) || this.width,
+                        h = $that.attr(attrH) || this.height;
 
-                    if (!w || !h) {
+                   /* if (!w || !h) {
                         var temp = new Image();
                         temp.src = getSrc($that);
                         if (!w)
                             w = temp.width;
                         if (!h)
                             h = temp.height;
-                    }
+                    }*/
 
-                   // console.log(w, h);
+                    //console.log(w, h);
 
                     var wPercent = $that.width()/100,
                         hPercent = $that.height()/100,

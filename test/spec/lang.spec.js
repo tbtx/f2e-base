@@ -298,12 +298,6 @@ describe('lang', function() {
                 expect(S.indexOf(array, 1)).toBe(0);
                 expect(S.lastIndexOf(array, 1)).toBe(0);
                 expect(array.lastIndexOf(1)).toBe(0);
-
-                var str = "abc";
-                expect(str.indexOf("b")).toEqual(1);
-                expect(S.indexOf(str, "b")).toEqual(1);
-                expect(str.lastIndexOf("b")).toEqual(1);
-                expect(S.lastIndexOf(str, "b")).toEqual(1);
             });
         });
 

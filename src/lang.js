@@ -9,43 +9,74 @@
     var global = S.global,
 
         AP = Array.prototype,
-        OP = Object.prototype,
         SP = String.prototype,
         FP = Function.prototype,
 
-        toString = OP.toString,
-        hasOwn = OP.hasOwnProperty,
+        class2type = {},
+        toString = class2type.toString,
+        hasOwn = class2type.hasOwnProperty,
         slice = AP.slice,
 
         hasOwnProperty = function(o, p) {
             return hasOwn.call(o, p);
         },
 
-        EMPTY = "",
-
-        rtrim = /^\s+|\s+$/g,
         //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
         rword = /[^, ]+/g,
+        // 是否是复杂类型， function暂不考虑
+        rcomplexType = /^(?:object|array)$/,
         rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
+        // html标签
         rtags = /<[^>]+>/g,
-        rscripts = /<script[^>]*>([\S\s]*?)<\/script>/img;
+        // script标签
+        rscripts = /<script[^>]*>([\S\s]*?)<\/script>/img,
+
+        cidCounter = 0,
+
+        // return false终止循环
+        // 原生every必须return true or false
+        each = function(object, fn, context) {
+            if (object == null) {
+                return;
+            }
+
+            var i = 0,
+                key,
+                keys,
+                length = object.length;
+
+            context = context || null;
+
+            if (length === +length) {
+                for (; i < length; i++) {
+                    if (fn.call(context, object[i], i, object) === false) {
+                        break;
+                    }
+                }
+            } else {
+                keys = S.keys(object);
+                length = keys.length;
+                for (; i < length; i++) {
+                    key = keys[i];
+                    // can not use hasOwnProperty
+                    if (fn.call(context, object[key], key, object) === false) {
+                        break;
+                    }
+                }
+            }
+        };
 
     /**
      * Object.keys
      */
     if (!Object.keys) {
-        var hasEnumBug = !({
+        var enumerables = "propertyIsEnumerable,isPrototypeOf,hasOwnProperty,toLocaleString,toString,valueOf,constructor".split(",");
+
+        for (var i in {
             toString: 1
-        }.propertyIsEnumerable("toString")),
-            enumProperties = [
-                "constructor",
-                "hasOwnProperty",
-                "isPrototypeOf",
-                "propertyIsEnumerable",
-                "toString",
-                "toLocaleString",
-                "valueOf"
-            ];
+        }) {
+            enumerables = false;
+        }
 
         Object.keys = function(o) {
             var ret = [],
@@ -57,9 +88,9 @@
                     ret.push(p);
                 }
             }
-            if (hasEnumBug) {
-                for (i = enumProperties.length - 1; i >= 0; i--) {
-                    p = enumProperties[i];
+            if (enumerables) {
+                for (i = enumerables.length - 1; i >= 0; i--) {
+                    p = enumerables[i];
                     if (hasOwnProperty(o, p)) {
                         ret.push(p);
                     }
@@ -69,7 +100,6 @@
             return ret;
         };
     }
-    S.keys = Object.keys;
 
     if (!FP.bind) {
         FP.bind = function(context) {
@@ -86,9 +116,6 @@
             return ret;
         };
     }
-    S.bind = function(fn, context) {
-        return fn.bind(context);
-    };
 
     /**
      * Date.now
@@ -98,16 +125,13 @@
             return +new Date();
         };
     }
-    S.Now = Date.now;
 
     if (!SP.trim) {
+        var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
         SP.trim = function() {
-            return this.replace(rtrim, EMPTY);
+            return this.replace(rtrim, "");
         };
     }
-    S.trim = function(str) {
-        return str.trim();
-    };
 
     /*
      * array shim
@@ -262,77 +286,57 @@
         };
     }
 
-    "forEach map filter every some".replace(rword, function(name) {
-        /**
-         * iter object and array
-         * only use when you want to iter both array and object, if only array, please use [].map/filter..
-         * 要支持object, array, arrayLike object
-         * @param  {Array/Object}   object      the object to iter
-         * @param  {Function}       fn          the iter process fn
-         * @return {Boolean/Array}              the process result
-         */
+    S.keys = Object.keys;
+
+    "map filter forEach some every reduce reduceRight indexOf lastIndexOf".replace(rword, function(name) {
+
         S[name] = function(object, fn, context) {
-            if (!object) {
+            if (object == null) {
                 return;
             }
             // 处理arrayLike object
             if (object.length === +object.length) {
                 object = makeArray(object);
             }
-            if (object[name] === AP[name]) {
-                return object[name](fn, context);
+
+            var args = slice.call(arguments, 1),
+                method = object[name];
+
+            if (method === AP[name]) {
+                return method.apply(object, args);
             } else {
-                var keys = Object.keys(object),
+                var keys = S.keys(object),
                     ret = {};
 
-                if (S.inArray(["map", "filter"], name)) {
-                    keys[name](function(key) {
-                        var value = object[key],
-                            item = fn.call(context, value, key, object);
+                // object只支持map filter即可满足大部分场景
+                switch (name) {
+                    case "filter":
+                        each(keys, function(k) {
+                            var v = object[k],
+                                item = fn.call(context, v, k, object);
 
-                        if (name === "filter" && item) {
-                            ret[key] = value;
-                        }
-                        if (name === "map") {
-                            ret[key] = item;
-                        }
-                        return item;
-                    });
-
-                    return ret;
-                } else {
-                    return keys[name](function(key, value) {
-                        value = object[key];
-                        return fn.call(context, value, key, object);
-                    });
+                            if (item) {
+                                ret[k] = v;
+                            }
+                        });
+                        break;
+                    case "map":
+                        each(keys, function(k, v) {
+                            v = object[k];
+                            ret[k] = fn.call(context, v, k, object);
+                        });
+                        break;
+                    default:
+                        return keys[name](function(k, v) {
+                            v = object[k];
+                            return fn.call(context, v, k, object);
+                        });
                 }
+                return ret;
             }
         };
     });
 
-    "reduce reduceRight".replace(rword, function(name) {
-        S[name] = function(array, fn, initialValue) {
-            if (array.length === +array.length) {
-                array = makeArray(array);
-            }
-            if (initialValue === undefined) {
-                return array[name](fn);
-            }
-            return array[name](fn, initialValue);
-        };
-    });
-
-    "indexOf lastIndexOf".replace(rword, function(name) {
-        S[name] = function(array, searchElement, fromIndex) {
-            // indexOf对string能同样使用
-            if (array.length === +array.length && !isString(array)) {
-                array = makeArray(array);
-            }
-            return array[name](searchElement, fromIndex);
-        };
-    });
-
-    var class2type = {};
     "Boolean Number String Function Array Date RegExp Object".replace(rword, function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
         S["is" + name] = function(o) {
@@ -343,62 +347,51 @@
     var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         isFunction = S.isFunction,
         isObject = S.isObject,
-        isString = S.isString;
+        isString = S.isString,
 
-    // return false终止循环
-    // 原生every必须return true or false
-    var each = S.each = function(object, fn, context) {
-        if (!object) {
-            return;
-        }
+        memoize = function(fn, hasher) {
+            var memo = {};
 
-        var i = 0,
-            key,
-            keys,
-            length = object.length;
-
-        context = context || null;
-
-        if (length === +length) {
-            for (; i < length; i++) {
-                if (fn.call(context, object[i], i, object) === false) {
-                    break;
-                }
-            }
-        } else {
-            keys = Object.keys(object);
-            length = keys.length;
-            for (; i < length; i++) {
-                key = keys[i];
-                // can not use hasOwnProperty
-                if (fn.call(context, object[key], key, object) === false) {
-                    break;
-                }
-            }
-        }
-    };
-
-    /**
-     * 单例模式
-     * return only one instance
-     * @param  {Function} fn      the function to return the instance
-     * @param  {object}   context
-     * @return {Function}
-     */
-    var singleton = function(fn, context) {
-            var result;
-            return function() {
-                return result || (result = fn.apply(context, arguments));
+            // 默认拿第一个传入的参数做key
+            hasher = hasher || function(val) {
+                return val;
             };
+
+            return function() {
+                var args = arguments,
+                    key = hasher.apply(this, args),
+                    val = memo[key];
+                return val ? val : (memo[key] = fn.apply(this, args));
+            };
+        },
+
+        /**
+         * 单例模式
+         * return only one instance
+         * @param  {Function} fn      the function to return the instance
+         * @param  {object}   context
+         * @return {Function}
+         */
+        singleton = function(fn, context) {
+            return memoize(fn.bind(context), function() {
+                return 1;
+            });
         },
 
         /**
          * jQuery type()
          */
         type = function(object) {
-            return object == null ?
-                String(object) :
-                class2type[toString.call(object)] || "object";
+            if (object == null ) {
+                return object + "";
+            }
+            return typeof object === "object" || typeof object === "function" ?
+                class2type[toString.call(object)] || "object" :
+                typeof object;
+        },
+
+        isComplexType = function(val) {
+            return rcomplexType.test(type(val));
         },
 
         isWindow = function(object) {
@@ -443,8 +436,8 @@
             var ret = [],
                 i = 0,
                 length = o.length,
-                lengthType = typeof length,
-                oType = typeof o;
+                lengthType = type(length),
+                oType = type(o);
 
             if (lengthType !== "number" || typeof o.nodeName === "string" || isWindow(o) || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
                 return [o];
@@ -530,7 +523,7 @@
         },
         reverseEntities = {},
         getEscapeReg = singleton(function() {
-            var str = EMPTY;
+            var str = "";
             each(htmlEntities, function(entity) {
                 str += entity + "|";
             });
@@ -538,7 +531,7 @@
             return new RegExp(str, "g");
         }),
         getUnEscapeReg = singleton(function() {
-            var str = EMPTY;
+            var str = "";
             each(reverseEntities, function(entity) {
                 str += entity + "|";
             });
@@ -547,12 +540,12 @@
             return new RegExp(str, "g");
         }),
         escapeHtml = function(text) {
-            return (text + EMPTY).replace(getEscapeReg(), function(all) {
+            return (text + "").replace(getEscapeReg(), function(all) {
                 return reverseEntities[all];
             });
         },
         unEscapeHtml = function(text) {
-            return (text + EMPTY).replace(getUnEscapeReg(), function(all) {
+            return (text + "").replace(getUnEscapeReg(), function(all) {
                 return htmlEntities[all];
             });
         };
@@ -561,10 +554,39 @@
         reverseEntities[entity] = k;
     });
 
-    var cidCounter = 0;
+    // Now兼容之前的用法
+    S.Now = S.now = Date.now;
+
     // S
-    S.mix({
+    extend(S, {
+        bind: function(fn, context) {
+            return fn.bind(context);
+        },
+
+        trim: function(str) {
+            return str.trim();
+        },
+
+        each: each,
+
+        mix: extend,
+
+        extend: extend,
+
         rword: rword,
+
+        isWindow: isWindow,
+
+        isPlainObject: isPlainObject,
+
+        isComplexType: isComplexType,
+
+        type: type,
+
+        makeArray: makeArray,
+
+        memoize: memoize,
+        singleton: singleton,
 
         uniqueCid: function(prefix) {
             prefix = prefix || 0;
@@ -576,38 +598,33 @@
         },
 
         isNotEmptyString: function(val) {
-            return isString(val) && val !== EMPTY;
+            return isString(val) && val !== "";
         },
 
-        isWindow: isWindow,
-
-        isPlainObject: isPlainObject,
-
-        extend: extend,
-
         inArray: function(array, item) {
+            if (isArray(item)) {
+                array = [item, item = array][0];
+            }
             return array.indexOf(item) > -1;
         },
 
-        erase: function(target, array) {
-            var index = array.indexOf(target);
+        erase: function(array, item) {
+            if (isArray(item)) {
+                array = [item, item = array][0];
+            }
+
+            var index = array.indexOf(item);
             if (index > -1) {
                 array.splice(index, 1);
             }
             return array;
         },
 
-        type: type,
-
-        makeArray: makeArray,
-
-        singleton: singleton,
-
         unique: function(array) {
             var hash = {};
 
             return array.filter(function(item) {
-                var key = typeof(item) + item;
+                var key = type(item) + item;
                 if (hash[key] !== 1) {
                     hash[key] = 1;
                     return true;
@@ -616,17 +633,16 @@
             });
         },
 
-        namespace: function() {
-            var args = arguments,
-                l = args.length,
+        namespace: function(space) {
+            var i,
+                p,
                 o = this,
-                i, j, p;
+                length;
 
-            for (i = 0; i < l; i++) {
-                p = (EMPTY + args[i]).split(".");
-                for (j = (global[p[0]] === o) ? 1 : 0; j < p.length; ++j) {
-                    o = o[p[j]] = o[p[j]] || {};
-                }
+            p = ("" + space).split(".");
+
+            for (i = global[p[0]] === o ? 1 : 0, length = p.length; i < length; i++) {
+                o = o[p[i]] = o[p[i]] || {};
             }
             return o;
         },
@@ -753,23 +769,20 @@
          * 默认没有替换为空
          */
         substitute: function(str, o, blank) {
-            if (!isString(str)) {
-                return str;
-            }
-            if (!(isPlainObject(o) || isArray(o))) {
+            if (!isString(str) || !isComplexType(o)) {
                 return str;
             }
             return str.replace(rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
                 }
-                return (o[name] === undefined) ? blank ? match : EMPTY : o[name];
+                return (o[name] === undefined) ? blank ? match : "" : o[name];
             });
         },
 
         // 去除字符串中的html标签
         stripTags: function(str) {
-            return (str + EMPTY).replace(rtags, EMPTY);
+            return (str + "").replace(rtags, "");
         },
 
         stripScripts: function(str, blacklist) {
@@ -786,18 +799,18 @@
                     "[^>]*([\\S\\s]*?)<\\/",
                     scripts,
                     ">"
-                ].join(EMPTY), "img");
+                ].join(""), "img");
 
             }
 
-            return (str + EMPTY).replace(pattern || rscripts, EMPTY);
+            return (str + "").replace(pattern || rscripts, "");
         },
 
         /**
          * 对字符串进行截断处理
          */
         truncate: function(str, length, truncation) {
-            str = str + EMPTY;
+            str = str + "";
             truncation = truncation || "...";
 
             return str.length > length ? str.slice(0, length - truncation.length) + truncation : str;
