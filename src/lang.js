@@ -354,7 +354,7 @@
 
             // 默认拿第一个传入的参数做key
             hasher = hasher || function(val) {
-                return val;
+                return val + "";
             };
 
             return function() {

@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-08-01 2:03:12
+ * update: 2014-08-01 2:36:36
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -452,7 +452,7 @@
 
             // 默认拿第一个传入的参数做key
             hasher = hasher || function(val) {
-                return val;
+                return val + "";
             };
 
             return function() {
@@ -928,7 +928,8 @@
     var each = S.each,
         isString = S.isString,
         makeArray = S.makeArray,
-        log = S.log,
+        memoize = S.memoize,
+        error = S.error,
         rword = S.rword,
 
         encode = function(s) {
@@ -962,8 +963,10 @@
         /**
          * query字符串转为对象
          */
-        unparam = function(str, sep, eq) {
-            if (!(isString(str) && (str = str.trim()))) {
+        unparam = memoize(function(str, sep, eq) {
+            str = (str + "").trim();
+
+            if (!str) {
                 return {};
             }
             sep = sep || "&";
@@ -989,16 +992,18 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        log(e + "decodeURIComponent error : " + val, "error", "unparam");
+                        error(e + "decodeURIComponent error : " + val, "error", "unparam");
                     }
                 }
                 ret[key] = val;
             }
             return ret;
-        },
+        }, function(str, sep, eq) {
+            return "" + str + sep + eq;
+        }),
 
         Query = S.Query = function(query) {
-            this._query = query || "";
+            this._query = query;
             this._map = unparam(this._query);
         },
 
@@ -1061,13 +1066,9 @@
             toString: function() {
                 return param(this._map);
             }
-        };
+        },
 
-    fn.add = fn.set;
-
-
-    // from caja uri
-    var ruri = new RegExp([
+        ruri = new RegExp([
             "^",
             "(?:",
                 "([^:/?#]+)", // scheme
@@ -1109,7 +1110,7 @@
                     try {
                         v = decode(v);
                     } catch (e) {
-                        log(e + "urlDecode error : " + v, "error", "Uri");
+                        error(e + "urlDecode error : " + v, "error", "Uri");
                     }
                     // need to decode to get data structure in memory
                     uri[key] = v;
@@ -1118,6 +1119,8 @@
 
             return uri;
         };
+
+    fn.add = fn.set;
 
     Uri.prototype = {
 
@@ -1174,14 +1177,8 @@
         }
     };
 
-    var cacheComponents = {};
-    Uri.getComponents = function(uri) {
+    Uri.getComponents = memoize(function(uri) {
         uri = uri || defaultUri;
-
-        var cache = cacheComponents[uri];
-        if (cache) {
-            return cache;
-        }
 
         var m = uri.match(ruri) || [],
             ret = {};
@@ -1190,9 +1187,10 @@
             ret[key] = m[index] || "";
         });
 
-        cacheComponents[uri] = ret;
         return ret;
-    };
+    }, function(uri) {
+        return uri || defaultUri;
+    });
 
 
     function isValidParamValue(val) {
@@ -1201,18 +1199,19 @@
         return val === null || (t !== "object" && t !== "function");
     }
 
-    function isUri(val) {
-        if (isString(val)) {
-            if (val.charAt(0) === "/") {
-                return true;
-            }
-            var match = ruri.exec(val);
-            // scheme
-            // file:/// -> no domain
-            return match && !!match[1];
+    var isUri = memoize(function(val) {
+        val = val + "";
+
+        // 相对链接
+        if (val.charAt(0) === "/") {
+            return true;
         }
-        return false;
-    }
+
+        var match = ruri.exec(val);
+        // scheme
+        // file:/// -> no domain
+        return match && !!match[1];
+    });
 
     /**
      * get/set/remove/add QueryParam
