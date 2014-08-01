@@ -13,9 +13,9 @@
     var paths = {},
         alias = {
             // arale
-            "events": "arale/events/1.1.0/events",
-            "class": "arale/class/1.1.0/class",
-            "base": "arale/base/1.1.1/base",
+            // "events": "arale/events/1.1.0/events",
+            // "class": "arale/class/1.1.0/class",
+            // "base": "arale/base/1.1.1/base",
             "widget": "arale/widget/1.1.1/widget",
             "position": "arale/position/1.0.1/position",
             "detector": "arale/detector/1.3.0/detector",

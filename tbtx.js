@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-08-01 5:21:24
+ * update: 2014-08-01 5:50:51
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -2096,53 +2096,6 @@
         mod.status = STATUS.EXECUTED;
     };
 
-    var RE_NON_WORD = /\W/g,
-        styleNode;
-
-    S.importStyle = function(cssText, id) {
-        if (id) {
-            // Convert id to valid string
-            id = id.replace(RE_NON_WORD, '-');
-
-            // Don't add multiple times
-            if (doc.getElementById(id)) return;
-        }
-
-        var element;
-
-        // Don't share styleNode when id is spectied
-        if (!styleNode || id) {
-            element = doc.createElement("style");
-            if (id) {
-                element.id = id;
-            }
-
-            // Adds to DOM first to avoid the css hack invalid
-            head.appendChild(element);
-        } else {
-            element = styleNode;
-        }
-
-        // IE
-        if (element.styleSheet !== undefined) {
-
-            // http://support.microsoft.com/kb/262161
-            if (doc.getElementsByTagName("style").length > 31) {
-                S.error("Exceed the maximal count of style tags in IE");
-            }
-
-            element.styleSheet.cssText += cssText;
-        }
-        // W3C
-        else {
-            element.appendChild(doc.createTextNode(cssText));
-        }
-
-        if (!id) {
-            styleNode = element;
-        }
-    };
-
 
     S.mix({
         register: Module.register,
@@ -2166,9 +2119,9 @@
     var paths = {},
         alias = {
             // arale
-            "events": "arale/events/1.1.0/events",
-            "class": "arale/class/1.1.0/class",
-            "base": "arale/base/1.1.1/base",
+            // "events": "arale/events/1.1.0/events",
+            // "class": "arale/class/1.1.0/class",
+            // "base": "arale/base/1.1.1/base",
             "widget": "arale/widget/1.1.1/widget",
             "position": "arale/position/1.0.1/position",
             "detector": "arale/detector/1.3.0/detector",
