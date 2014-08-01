@@ -13,7 +13,7 @@
     var paths = {},
         alias = {
             // arale
-            // "events": "arale/events/1.1.0/events",
+            "events": "arale/events/1.1.0/events",
             // "class": "arale/class/1.1.0/class",
             // "base": "arale/base/1.1.1/base",
             "widget": "arale/widget/1.1.1/widget",
