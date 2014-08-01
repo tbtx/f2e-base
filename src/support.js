@@ -1,10 +1,13 @@
 (function(S, document) {
+    // thanks modernizr
 
     var ucfirst = S.ucfirst,
-        ua = navigator.userAgent;
+        ua = navigator.userAgent,
 
-    // thanks modernizr
-    var element = document.createElement("tbtx"),
+        support = S.support = {},
+
+        documentElement = document.documentElement,
+        element = document.createElement("tbtx"),
 
         style = element.style,
 
@@ -36,16 +39,12 @@
             return testProps(props, prefixed);
         };
 
-
-    // export
-    var support = S.namespace("support");
-
     support.add = function(name, fn) {
         support[name] = fn.call(support);
         return this;
     };
 
-    "transition transform".split(spliter).forEach(function(name) {
+    "transition transform".replace(S.rword, function(name) {
         support[name] = testPropsAll(name);
     });
 
@@ -54,7 +53,7 @@
         return !!(elem.getContext && elem.getContext("2d"));
     }).add("mobile", function() {
         // 是否是移动设备，包含pad
-        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in document.documentElement;
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in documentElement;
     }).add("pad", function() {
         return !!ua.match(/iPad/i);
     }).add("phone", function() {

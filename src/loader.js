@@ -10,9 +10,8 @@
         isArray = S.isArray,
         isFunction = S.isFunction,
         global = S.global,
-        noop = S.noop;
-
-    var Loader = S.Loader = {},
+        noop = S.noop,
+        Loader = S.Loader = {},
         data = Loader.data = {};
 
     var _cid = 0;
@@ -24,7 +23,7 @@
     var DIRNAME_RE = /[^?#]*\//,
         DOT_RE = /\/\.\//g,
         DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//,
-        DOUBLE_SLASH_RE = /([^:/])\/\//g;
+        MULTI_SLASH_RE = /([^:/])\/\//g;
 
     // Extract the directory portion of a path
     // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
@@ -39,13 +38,13 @@
         // /a/b/./c/./d ==> /a/b/c/d
         path = path.replace(DOT_RE, "/");
 
+        // a//b/c  ==>  a/b/c
+        path = path.replace(MULTI_SLASH_RE, "$1/");
+
         // a/b/c/../../d  ==>  a/b/../d  ==>  a/d
         while (path.match(DOUBLE_DOT_RE)) {
             path = path.replace(DOUBLE_DOT_RE, "/");
         }
-
-        // a//b/c  ==>  a/b/c
-        path = path.replace(DOUBLE_SLASH_RE, "$1/");
 
         return path;
     }
@@ -134,7 +133,7 @@
         }
         // Relative
         else if (first === ".") {
-            ret = realpath((refUri ? dirname(refUri) : data.cwd) + id);
+            ret = (refUri ? dirname(refUri) : data.cwd) + id;
         }
         // Root
         else if (first === "/") {
@@ -150,7 +149,7 @@
             ret = location.protocol + ret;
         }
 
-        return ret;
+        return realpath(ret);
     }
 
     function id2Uri(id, refUri) {

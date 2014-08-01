@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-08-01 2:36:36
+ * update: 2014-08-01 5:21:24
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -1265,12 +1265,15 @@
 })(tbtx);
 
 ;(function(S, document) {
+    // thanks modernizr
 
     var ucfirst = S.ucfirst,
-        ua = navigator.userAgent;
+        ua = navigator.userAgent,
 
-    // thanks modernizr
-    var element = document.createElement("tbtx"),
+        support = S.support = {},
+
+        documentElement = document.documentElement,
+        element = document.createElement("tbtx"),
 
         style = element.style,
 
@@ -1302,16 +1305,12 @@
             return testProps(props, prefixed);
         };
 
-
-    // export
-    var support = S.namespace("support");
-
     support.add = function(name, fn) {
         support[name] = fn.call(support);
         return this;
     };
 
-    "transition transform".split(spliter).forEach(function(name) {
+    "transition transform".replace(S.rword, function(name) {
         support[name] = testPropsAll(name);
     });
 
@@ -1320,7 +1319,7 @@
         return !!(elem.getContext && elem.getContext("2d"));
     }).add("mobile", function() {
         // 是否是移动设备，包含pad
-        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in document.documentElement;
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in documentElement;
     }).add("pad", function() {
         return !!ua.match(/iPad/i);
     }).add("phone", function() {
@@ -1348,9 +1347,8 @@
         isArray = S.isArray,
         isFunction = S.isFunction,
         global = S.global,
-        noop = S.noop;
-
-    var Loader = S.Loader = {},
+        noop = S.noop,
+        Loader = S.Loader = {},
         data = Loader.data = {};
 
     var _cid = 0;
@@ -1362,7 +1360,7 @@
     var DIRNAME_RE = /[^?#]*\//,
         DOT_RE = /\/\.\//g,
         DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//,
-        DOUBLE_SLASH_RE = /([^:/])\/\//g;
+        MULTI_SLASH_RE = /([^:/])\/\//g;
 
     // Extract the directory portion of a path
     // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
@@ -1377,13 +1375,13 @@
         // /a/b/./c/./d ==> /a/b/c/d
         path = path.replace(DOT_RE, "/");
 
+        // a//b/c  ==>  a/b/c
+        path = path.replace(MULTI_SLASH_RE, "$1/");
+
         // a/b/c/../../d  ==>  a/b/../d  ==>  a/d
         while (path.match(DOUBLE_DOT_RE)) {
             path = path.replace(DOUBLE_DOT_RE, "/");
         }
-
-        // a//b/c  ==>  a/b/c
-        path = path.replace(DOUBLE_SLASH_RE, "$1/");
 
         return path;
     }
@@ -1472,7 +1470,7 @@
         }
         // Relative
         else if (first === ".") {
-            ret = realpath((refUri ? dirname(refUri) : data.cwd) + id);
+            ret = (refUri ? dirname(refUri) : data.cwd) + id;
         }
         // Root
         else if (first === "/") {
@@ -1488,7 +1486,7 @@
             ret = location.protocol + ret;
         }
 
-        return ret;
+        return realpath(ret);
     }
 
     function id2Uri(id, refUri) {
