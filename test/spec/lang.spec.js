@@ -323,11 +323,16 @@ describe('lang', function() {
         counter = 0;
         S.each(array, function() {
             counter++;
-
-            // not work
             return false;
         });
         expect(counter).toEqual(1);
+
+        var map = [];
+        S.each(object, function(v, k) {
+            map.push(v);
+        });
+
+        expect(map.indexOf("av") > -1).toBeTruthy();
     });
 
     describe("isWindow", function() {

@@ -2,17 +2,16 @@
     // thanks modernizr
 
     var ucfirst = S.ucfirst,
+
+        support = {},
+
         ua = navigator.userAgent,
-
-        support = S.support = {},
-
         documentElement = document.documentElement,
-        element = document.createElement("tbtx"),
 
+        element = document.createElement("tbtx"),
         style = element.style,
 
         spliter = " ",
-
         omPrefixes = "Webkit Moz O ms",
 
         cssomPrefixes = omPrefixes.split(spliter);
@@ -48,21 +47,26 @@
         support[name] = testPropsAll(name);
     });
 
-    support.add("canvas", function() {
-        var elem = document.createElement("canvas");
-        return !!(elem.getContext && elem.getContext("2d"));
-    }).add("mobile", function() {
+    support.add("mobile", function() {
         // 是否是移动设备，包含pad
         return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in documentElement;
-    }).add("pad", function() {
+    })
+    .add("pad", function() {
         return !!ua.match(/iPad/i);
-    }).add("phone", function() {
+    })
+    .add("phone", function() {
         return this.mobile && !this.pad;
-    }).add("placeholder", function() {
-        return "placeholder" in document.createElement("input");
     });
+    // .add("canvas", function() {
+    //     var elem = document.createElement("canvas");
+    //     return !!(elem.getContext && elem.getContext("2d"));
+    // })
+    // .add("placeholder", function() {
+    //     return "placeholder" in document.createElement("input");
+    // });
 
     S.mix({
+        support: support,
         testPropsAll: testPropsAll,
         prefixed: prefixed
     });

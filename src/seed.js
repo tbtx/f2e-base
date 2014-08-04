@@ -10,17 +10,15 @@
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
          * @param  {String} msg 消息
-         * @param  {String} cat 类型，如error/info等，可选
          * @param  {String} src 消息来源，可选
-         * @return {Object}     返回tbtx以链式调用，如tbtx.log().log()
+         * @param  {String} cat 类型，如error/info等，可选
+         * @return {Object}     返回this以链式调用，如S.log().log()
          */
-        log: isSupportConsole ? function(msg, cat, src) {
-
-            if (src) {
-                msg = src + ": " + msg;
-            }
-
+        log: isSupportConsole ? function(msg, src, cat) {
             if (S.config("debug")) {
+                if (src) {
+                    msg = src + ": " + msg;
+                }
                 console[cat && console[cat] ? cat : "log"](msg);
             }
 
@@ -31,9 +29,7 @@
          * Throws error message.
          */
         error: function (msg) {
-            if (S.config("debug")) {
-                throw msg instanceof Error ? msg : new Error(msg);
-            }
+            throw msg instanceof Error ? msg : new Error(msg);
         },
 
         /**
@@ -47,6 +43,10 @@
          */
         noop: noop,
 
+        /**
+         * 配置对象
+         * @type {Object}
+         */
         Config: {
             debug: location.search.indexOf("debug") !== -1 ? true : false,
             fns: {}
@@ -82,6 +82,7 @@
                     }
                 });
             }
+
             return ret;
         }
 

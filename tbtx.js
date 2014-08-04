@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-08-01 6:01:30
+ * update: 2014-08-04 1:30:52
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -16,17 +16,15 @@
         /**
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
          * @param  {String} msg 消息
-         * @param  {String} cat 类型，如error/info等，可选
          * @param  {String} src 消息来源，可选
-         * @return {Object}     返回tbtx以链式调用，如tbtx.log().log()
+         * @param  {String} cat 类型，如error/info等，可选
+         * @return {Object}     返回this以链式调用，如S.log().log()
          */
-        log: isSupportConsole ? function(msg, cat, src) {
-
-            if (src) {
-                msg = src + ": " + msg;
-            }
-
+        log: isSupportConsole ? function(msg, src, cat) {
             if (S.config("debug")) {
+                if (src) {
+                    msg = src + ": " + msg;
+                }
                 console[cat && console[cat] ? cat : "log"](msg);
             }
 
@@ -37,9 +35,7 @@
          * Throws error message.
          */
         error: function (msg) {
-            if (S.config("debug")) {
-                throw msg instanceof Error ? msg : new Error(msg);
-            }
+            throw msg instanceof Error ? msg : new Error(msg);
         },
 
         /**
@@ -53,6 +49,10 @@
          */
         noop: noop,
 
+        /**
+         * 配置对象
+         * @type {Object}
+         */
         Config: {
             debug: location.search.indexOf("debug") !== -1 ? true : false,
             fns: {}
@@ -88,6 +88,7 @@
                     }
                 });
             }
+
             return ret;
         }
 
@@ -121,7 +122,7 @@
 
         //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
         rword = /[^, ]+/g,
-        // 是否是复杂类型， function暂不考虑
+        // 是否是复杂类型
         rcomplexType = /^(?:object|array)$/,
         rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
         // html标签
@@ -131,19 +132,19 @@
 
         cidCounter = 0,
 
-        // return false终止循环
-        // 原生every必须return true or false
+        /**
+         * return false终止循环
+         * 原生every必须return true or false
+         */
         each = function(object, fn, context) {
-            if (object == null) {
+            if (!object) {
                 return;
             }
 
             var i = 0,
-                key,
-                keys,
                 length = object.length;
 
-            context = context || null;
+            context = context || this;
 
             if (length === +length) {
                 for (; i < length; i++) {
@@ -152,13 +153,11 @@
                     }
                 }
             } else {
-                keys = S.keys(object);
-                length = keys.length;
-                for (; i < length; i++) {
-                    key = keys[i];
-                    // can not use hasOwnProperty
-                    if (fn.call(context, object[key], key, object) === false) {
-                        break;
+                for (i in object) {
+                    if (hasOwnProperty(object, i)) {
+                        if (fn.call(context, object[i], i, object) === false) {
+                            break;
+                        }
                     }
                 }
             }
@@ -168,7 +167,7 @@
      * Object.keys
      */
     if (!Object.keys) {
-        var enumerables = "propertyIsEnumerable,isPrototypeOf,hasOwnProperty,toLocaleString,toString,valueOf,constructor".split(",");
+        var enumerables = "propertyIsEnumerable isPrototypeOf hasOwnProperty toLocaleString toString valueOf constructor".split(" ");
 
         for (var i in {
             toString: 1
@@ -384,12 +383,10 @@
         };
     }
 
-    S.keys = Object.keys;
-
     "map filter forEach some every reduce reduceRight indexOf lastIndexOf".replace(rword, function(name) {
 
         S[name] = function(object, fn, context) {
-            if (object == null) {
+            if (!object) {
                 return;
             }
             // 处理arrayLike object
@@ -403,10 +400,10 @@
             if (method === AP[name]) {
                 return method.apply(object, args);
             } else {
-                var keys = S.keys(object),
+                var keys = Object.keys(object),
                     ret = {};
 
-                // object只支持map filter即可满足大部分场景
+                // object只支持map filter forEach some every
                 switch (name) {
                     case "filter":
                         each(keys, function(k) {
@@ -459,6 +456,8 @@
                 var args = arguments,
                     key = hasher.apply(this, args),
                     val = memo[key];
+
+                // 必须有返回结果才缓存
                 return val ? val : (memo[key] = fn.apply(this, args));
             };
         },
@@ -655,8 +654,9 @@
     // Now兼容之前的用法
     S.Now = S.now = Date.now;
 
-    // S
     extend(S, {
+        keys: Object.keys,
+
         bind: function(fn, context) {
             return fn.bind(context);
         },
@@ -691,7 +691,7 @@
             return prefix + cidCounter++;
         },
 
-        nextTick: global.setImmediate ? setImmediate.bind(global) : function(callback) {
+        nextTick: function(callback) {
             setTimeout(callback, 0);
         },
 
@@ -700,17 +700,10 @@
         },
 
         inArray: function(array, item) {
-            if (isArray(item)) {
-                array = [item, item = array][0];
-            }
             return array.indexOf(item) > -1;
         },
 
-        erase: function(array, item) {
-            if (isArray(item)) {
-                array = [item, item = array][0];
-            }
-
+        erase: function(item, array) {
             var index = array.indexOf(item);
             if (index > -1) {
                 array.splice(index, 1);
@@ -1094,8 +1087,6 @@
             fragment: 7
         },
 
-        defaultUri = location.href;
-
         Uri = S.Uri = function(uriStr) {
             var uri = this,
                 components = Uri.getComponents(uriStr);
@@ -1178,7 +1169,7 @@
     };
 
     Uri.getComponents = memoize(function(uri) {
-        uri = uri || defaultUri;
+        uri = uri || location.href;
 
         var m = uri.match(ruri) || [],
             ret = {};
@@ -1188,8 +1179,6 @@
         });
 
         return ret;
-    }, function(uri) {
-        return uri || defaultUri;
     });
 
 
@@ -1199,10 +1188,10 @@
         return val === null || (t !== "object" && t !== "function");
     }
 
+    // 只判断绝对链接
     var isUri = memoize(function(val) {
         val = val + "";
 
-        // 相对链接
         if (val.charAt(0) === "/") {
             return true;
         }
@@ -1268,17 +1257,16 @@
     // thanks modernizr
 
     var ucfirst = S.ucfirst,
+
+        support = {},
+
         ua = navigator.userAgent,
-
-        support = S.support = {},
-
         documentElement = document.documentElement,
-        element = document.createElement("tbtx"),
 
+        element = document.createElement("tbtx"),
         style = element.style,
 
         spliter = " ",
-
         omPrefixes = "Webkit Moz O ms",
 
         cssomPrefixes = omPrefixes.split(spliter);
@@ -1314,21 +1302,26 @@
         support[name] = testPropsAll(name);
     });
 
-    support.add("canvas", function() {
-        var elem = document.createElement("canvas");
-        return !!(elem.getContext && elem.getContext("2d"));
-    }).add("mobile", function() {
+    support.add("mobile", function() {
         // 是否是移动设备，包含pad
         return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in documentElement;
-    }).add("pad", function() {
+    })
+    .add("pad", function() {
         return !!ua.match(/iPad/i);
-    }).add("phone", function() {
+    })
+    .add("phone", function() {
         return this.mobile && !this.pad;
-    }).add("placeholder", function() {
-        return "placeholder" in document.createElement("input");
     });
+    // .add("canvas", function() {
+    //     var elem = document.createElement("canvas");
+    //     return !!(elem.getContext && elem.getContext("2d"));
+    // })
+    // .add("placeholder", function() {
+    //     return "placeholder" in document.createElement("input");
+    // });
 
     S.mix({
+        support: support,
         testPropsAll: testPropsAll,
         prefixed: prefixed
     });

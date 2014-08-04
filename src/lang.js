@@ -23,7 +23,7 @@
 
         //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
         rword = /[^, ]+/g,
-        // 是否是复杂类型， function暂不考虑
+        // 是否是复杂类型
         rcomplexType = /^(?:object|array)$/,
         rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
         // html标签
@@ -33,19 +33,19 @@
 
         cidCounter = 0,
 
-        // return false终止循环
-        // 原生every必须return true or false
+        /**
+         * return false终止循环
+         * 原生every必须return true or false
+         */
         each = function(object, fn, context) {
-            if (object == null) {
+            if (!object) {
                 return;
             }
 
             var i = 0,
-                key,
-                keys,
                 length = object.length;
 
-            context = context || null;
+            context = context || this;
 
             if (length === +length) {
                 for (; i < length; i++) {
@@ -54,13 +54,11 @@
                     }
                 }
             } else {
-                keys = S.keys(object);
-                length = keys.length;
-                for (; i < length; i++) {
-                    key = keys[i];
-                    // can not use hasOwnProperty
-                    if (fn.call(context, object[key], key, object) === false) {
-                        break;
+                for (i in object) {
+                    if (hasOwnProperty(object, i)) {
+                        if (fn.call(context, object[i], i, object) === false) {
+                            break;
+                        }
                     }
                 }
             }
@@ -70,7 +68,7 @@
      * Object.keys
      */
     if (!Object.keys) {
-        var enumerables = "propertyIsEnumerable,isPrototypeOf,hasOwnProperty,toLocaleString,toString,valueOf,constructor".split(",");
+        var enumerables = "propertyIsEnumerable isPrototypeOf hasOwnProperty toLocaleString toString valueOf constructor".split(" ");
 
         for (var i in {
             toString: 1
@@ -286,12 +284,10 @@
         };
     }
 
-    S.keys = Object.keys;
-
     "map filter forEach some every reduce reduceRight indexOf lastIndexOf".replace(rword, function(name) {
 
         S[name] = function(object, fn, context) {
-            if (object == null) {
+            if (!object) {
                 return;
             }
             // 处理arrayLike object
@@ -305,10 +301,10 @@
             if (method === AP[name]) {
                 return method.apply(object, args);
             } else {
-                var keys = S.keys(object),
+                var keys = Object.keys(object),
                     ret = {};
 
-                // object只支持map filter即可满足大部分场景
+                // object只支持map filter forEach some every
                 switch (name) {
                     case "filter":
                         each(keys, function(k) {
@@ -361,6 +357,8 @@
                 var args = arguments,
                     key = hasher.apply(this, args),
                     val = memo[key];
+
+                // 必须有返回结果才缓存
                 return val ? val : (memo[key] = fn.apply(this, args));
             };
         },
@@ -557,8 +555,9 @@
     // Now兼容之前的用法
     S.Now = S.now = Date.now;
 
-    // S
     extend(S, {
+        keys: Object.keys,
+
         bind: function(fn, context) {
             return fn.bind(context);
         },
@@ -593,7 +592,7 @@
             return prefix + cidCounter++;
         },
 
-        nextTick: global.setImmediate ? setImmediate.bind(global) : function(callback) {
+        nextTick: function(callback) {
             setTimeout(callback, 0);
         },
 
@@ -602,17 +601,10 @@
         },
 
         inArray: function(array, item) {
-            if (isArray(item)) {
-                array = [item, item = array][0];
-            }
             return array.indexOf(item) > -1;
         },
 
-        erase: function(array, item) {
-            if (isArray(item)) {
-                array = [item, item = array][0];
-            }
-
+        erase: function(item, array) {
             var index = array.indexOf(item);
             if (index > -1) {
                 array.splice(index, 1);

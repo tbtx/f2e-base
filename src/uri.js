@@ -172,8 +172,6 @@
             fragment: 7
         },
 
-        defaultUri = location.href;
-
         Uri = S.Uri = function(uriStr) {
             var uri = this,
                 components = Uri.getComponents(uriStr);
@@ -256,7 +254,7 @@
     };
 
     Uri.getComponents = memoize(function(uri) {
-        uri = uri || defaultUri;
+        uri = uri || location.href;
 
         var m = uri.match(ruri) || [],
             ret = {};
@@ -266,8 +264,6 @@
         });
 
         return ret;
-    }, function(uri) {
-        return uri || defaultUri;
     });
 
 
@@ -277,10 +273,10 @@
         return val === null || (t !== "object" && t !== "function");
     }
 
+    // 只判断绝对链接
     var isUri = memoize(function(val) {
         val = val + "";
 
-        // 相对链接
         if (val.charAt(0) === "/") {
             return true;
         }

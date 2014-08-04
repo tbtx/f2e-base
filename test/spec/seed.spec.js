@@ -26,9 +26,9 @@ describe("seed", function() {
 
         it("should get a config with fn", function() {
             fns.e = function() {
-                return "e";
+                return "fne";
             };
-            expect(S.config("e")).toEqual("e");
+            expect(S.config("e")).toEqual("fne");
         });
 
     });
