@@ -8,12 +8,10 @@
 
     var isDate = S.isDate,
         each = S.each,
-        floor = Math.floor,
-        EMPTY = "",
-        rword = S.rword,
+        type = S.type,
         rformat = /y|m|d|h|i|s/gi,
-        rdate = /number|object/,
-        rnewdate = /number|string/;
+        rdate = /^(?:number|date)$/,
+        rnewdate = /^(?:number|string)$/;
 
     /*
      * 将日期格式化成字符串
@@ -30,11 +28,13 @@
      *  S - 不补0的秒
      *  s - 补0的秒
      *  毫秒暂不支持
+     *
+     * date只支持毫秒和Date
      *  @return：指定格式的字符串
      */
     function formatDate(format, date) {
         // 交换参数
-        if (rdate.test(typeof format)) {
+        if (rdate.test(type(format))) {
             date = [format, format = date][0];
         }
 
@@ -58,18 +58,18 @@
                 I: date.getMinutes(),
                 S: date.getSeconds()
             },
-            ret = {};
+            ret = {
+                origin: date
+            };
 
         each(o, function(v, k) {
-            v = EMPTY + v;
-
+            v = v + "";
             ret[k] = v;
 
             k = k.toLowerCase();
-            ret[k] = k === "y" ? v.substring(2, 4) : padding2(v);
+            ret[k] = padding2(v).slice(-2);
         });
 
-        ret.origin = date;
         return ret;
     }
 
@@ -88,9 +88,9 @@
             remain = diff,
             ret = {};
 
-        "day hour minute second".replace(rword, function(name) {
+        "day hour minute second".replace(S.rword, function(name) {
             var s = seconds[name],
-                current = floor(remain / s);
+                current = Math.floor(remain / s);
 
             ret[name] = current;
             remain -= s * current;
@@ -108,7 +108,7 @@
     }
 
     function padding2(str) {
-        str = EMPTY + str;
+        str = str + "";
         return str.length === 1 ? "0" + str : str;
     }
 

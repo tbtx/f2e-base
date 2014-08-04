@@ -631,7 +631,7 @@
                 o = this,
                 length;
 
-            p = ("" + space).split(".");
+            p = (space + "").split(".");
 
             for (i = global[p[0]] === o ? 1 : 0, length = p.length; i < length; i++) {
                 o = o[p[i]] = o[p[i]] || {};
