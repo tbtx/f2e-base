@@ -2,13 +2,13 @@ define("request", ["jquery", "json"], function($) {
     var S = tbtx,
         cookie = S.cookie,
         isPlainObject = S.isPlainObject,
-        config = S.config;
+        config = S.config,
 
-    var generateToken = S.generateToken = function() {
-        var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
-        cookie.set(config("tokenName"), token, '', '', '/');
-        return token;
-    };
+        generateToken = S.generateToken = function() {
+            var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
+            cookie.set(config("tokenName"), token, '', '', '/');
+            return token;
+        };
 
     if (!config("tokenName")) {
         // 默认蜜儿
@@ -17,7 +17,16 @@ define("request", ["jquery", "json"], function($) {
 
     config({
         requestFailCode: -1,
-        requestFailMsg: "请求失败！请检查网络连接！",
+        requestFailMsg: {
+            "def": "请求失败！请重试！",
+            "0": "无法连接到服务器！",
+            // "301": "请求被重定向!",
+            // "302": "请求被临时重定向！",
+            "500": "服务器出错!",
+            "timeout": "请求超时！请检查网络连接！",
+            // "abort": "请求被终止！",
+            "parsererror": "服务器出错或数据解析出错！"
+        },
 
         // 正在请求中，state === "pending"
         requestingCode: -2,
@@ -91,10 +100,12 @@ define("request", ["jquery", "json"], function($) {
                     deferred.reject(code, response);
                 }
             })
-            .fail(function() {
+            .fail(function(xhr, status, err) {
+                var msgs = config("requestFailMsg");
+
                 deferred.reject(config("requestFailCode"), {
                     code: config("requestFailCode"),
-                    msg: config("requestFailMsg")
+                    msg: msgs[xhr.status] || msgs[status] || msgs.def
                 });
             });
 

@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-08-04 1:52:51
+ * update: 2014-08-19 3:00:38
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -124,11 +124,11 @@
         rword = /[^, ]+/g,
         // 是否是复杂类型
         rcomplexType = /^(?:object|array)$/,
-        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
+        rsubstitute,
         // html标签
-        rtags = /<[^>]+>/g,
+        rtags,
         // script标签
-        rscripts = /<script[^>]*>([\S\s]*?)<\/script>/img,
+        rscripts,
 
         cidCounter = 0,
 
@@ -863,6 +863,8 @@
             if (!isString(str) || !isComplexType(o)) {
                 return str;
             }
+
+            rsubstitute = rsubstitute || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g;
             return str.replace(rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
@@ -873,6 +875,7 @@
 
         // 去除字符串中的html标签
         stripTags: function(str) {
+            rtags = rtags || /<[^>]+>/g;
             return (str + "").replace(rtags, "");
         },
 
@@ -894,6 +897,7 @@
 
             }
 
+            rscripts = rscripts || /<script[^>]*>([\S\s]*?)<\/script>/img;
             return (str + "").replace(pattern || rscripts, "");
         },
 
@@ -1188,18 +1192,25 @@
         return val === null || (t !== "object" && t !== "function");
     }
 
-    // 只判断绝对链接
     var isUri = memoize(function(val) {
         val = val + "";
 
-        if (val.charAt(0) === "/") {
+        var first = val.charAt(0),
+            match;
+
+        // root and relative
+        if (first === "/" || first === ".") {
             return true;
         }
 
-        var match = ruri.exec(val);
+        match = ruri.exec(val);
         // scheme
-        // file:/// -> no domain
-        return match && !!match[1];
+        if (match) {
+            // http://a.com
+            // file:/// -> no domain
+            return !!((match[1] && match[3]) || (match[1] && match[5]));
+        }
+        return false;
     });
 
     /**
@@ -1210,17 +1221,13 @@
         S[name + "QueryParam"] = function() {
             var args = makeArray(arguments),
                 length = args.length,
-                // 第一个跟最后一个参数都可能是uri
-                first = args[0],
-                last = args[length - 1],
                 uriStr;
 
-            if (isUri(first)) {
-                uriStr = first;
-                args.shift();
-            } else if (isUri(last)) {
-                uriStr = last;
-                args.pop();
+            // 第一个跟最后一个参数都可能是uri
+            if (isUri(args[0])) {
+                uriStr = args.shift();
+            } else if (isUri(args[length - 1])) {
+                uriStr = args.pop();
             }
 
             var uri = new Uri(uriStr),
@@ -2077,23 +2084,8 @@
         return S;
     };
 
-    Module.register = function(id, exports) {
-        var uri = Module.resolve(id),
-            mod = Module.get(uri);
+    S.realpath = realpath;
 
-        mod.id = id || uri;
-        if (exports) {
-            mod.exports = exports;
-        }
-
-        mod.status = STATUS.EXECUTED;
-    };
-
-
-    S.mix({
-        register: Module.register,
-        realpath: realpath
-    });
 })(tbtx);
 
 
@@ -2753,13 +2745,13 @@
     var S = tbtx,
         cookie = S.cookie,
         isPlainObject = S.isPlainObject,
-        config = S.config;
+        config = S.config,
 
-    var generateToken = S.generateToken = function() {
-        var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
-        cookie.set(config("tokenName"), token, '', '', '/');
-        return token;
-    };
+        generateToken = S.generateToken = function() {
+            var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
+            cookie.set(config("tokenName"), token, '', '', '/');
+            return token;
+        };
 
     if (!config("tokenName")) {
         // 默认蜜儿
@@ -2768,7 +2760,16 @@
 
     config({
         requestFailCode: -1,
-        requestFailMsg: "请求失败！请检查网络连接！",
+        requestFailMsg: {
+            "def": "请求失败！请重试！",
+            "0": "无法连接到服务器！",
+            // "301": "请求被重定向!",
+            // "302": "请求被临时重定向！",
+            "500": "服务器出错!",
+            "timeout": "请求超时！请检查网络连接！",
+            // "abort": "请求被终止！",
+            "parsererror": "服务器出错或数据解析出错！"
+        },
 
         // 正在请求中，state === "pending"
         requestingCode: -2,
@@ -2842,10 +2843,12 @@
                     deferred.reject(code, response);
                 }
             })
-            .fail(function() {
+            .fail(function(xhr, status, err) {
+                var msgs = config("requestFailMsg");
+
                 deferred.reject(config("requestFailCode"), {
                     code: config("requestFailCode"),
-                    msg: config("requestFailMsg")
+                    msg: msgs[xhr.status] || msgs[status] || msgs.def
                 });
             });
 
@@ -2955,26 +2958,32 @@
 ;(function(S){
 
     var global = S.global,
-        register = S.register;
+        define = S.define,
+        require = S.require,
+        $;
 
     // require to get the jquery exports
-    S.define.amd.jQuery = true;
+    define.amd.jQuery = true;
 
     /*
      * shim config
      */
     if (global.JSON) {
-        register("json");
+        define("json", global.JSON);
     }
 
-    var $ = global.jQuery || global.Zepto;
+    $ = global.jQuery || global.Zepto;
     if ($) {
-        register("jquery", $);
-        register("$", $);
+        define("jquery", function() {
+            return $;
+        });
+        define("$", function() {
+            return $;
+        });
     }
 
     // events
-    S.require("events", function(Events) {
+    require("events", function(Events) {
         S.Events = Events;
         Events.mixTo(S);
     });
@@ -2998,7 +3007,7 @@
         S[name] = function() {
             var args = arguments;
 
-            S.require(module, function(exports) {
+            require(module, function(exports) {
                 var fn = exports[name] || exports;
                 fn.apply(S, args);
             });

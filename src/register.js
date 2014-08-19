@@ -1,26 +1,32 @@
 (function(S){
 
     var global = S.global,
-        register = S.register;
+        define = S.define,
+        require = S.require,
+        $;
 
     // require to get the jquery exports
-    S.define.amd.jQuery = true;
+    define.amd.jQuery = true;
 
     /*
      * shim config
      */
     if (global.JSON) {
-        register("json");
+        define("json", global.JSON);
     }
 
-    var $ = global.jQuery || global.Zepto;
+    $ = global.jQuery || global.Zepto;
     if ($) {
-        register("jquery", $);
-        register("$", $);
+        define("jquery", function() {
+            return $;
+        });
+        define("$", function() {
+            return $;
+        });
     }
 
     // events
-    S.require("events", function(Events) {
+    require("events", function(Events) {
         S.Events = Events;
         Events.mixTo(S);
     });
@@ -44,7 +50,7 @@
         S[name] = function() {
             var args = arguments;
 
-            S.require(module, function(exports) {
+            require(module, function(exports) {
                 var fn = exports[name] || exports;
                 fn.apply(S, args);
             });

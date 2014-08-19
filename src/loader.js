@@ -747,21 +747,6 @@
         return S;
     };
 
-    Module.register = function(id, exports) {
-        var uri = Module.resolve(id),
-            mod = Module.get(uri);
+    S.realpath = realpath;
 
-        mod.id = id || uri;
-        if (exports) {
-            mod.exports = exports;
-        }
-
-        mod.status = STATUS.EXECUTED;
-    };
-
-
-    S.mix({
-        register: Module.register,
-        realpath: realpath
-    });
 })(tbtx);

@@ -277,6 +277,7 @@ define("plugin/jquery.slider", ["jquery"], function() {
                     x : et.pageX , 
                     y : et.pageY
                 };
+                this.callback && this.callback('startTouche');
             },
             move : function(e){
                 if(e.touches.length > 1 || e.scale && e.scale !== 1) return;
@@ -318,7 +319,10 @@ define("plugin/jquery.slider", ["jquery"], function() {
                 minp = this._minpage;
                 cur -= 1;
                 if(cur < minp){
-                    if(!this.loop){cur = minp;}
+                    if(!this.loop){
+                        this.callback && this.callback('BOF');
+                        cur = minp;                        
+                    }
                     else{cur = minp - 1;}
                 }
                 this.slideTo(cur);
@@ -332,7 +336,10 @@ define("plugin/jquery.slider", ["jquery"], function() {
                 maxp = this._maxpage;
                 cur += 1;
                 if(cur > maxp){
-                    if(!this.loop){cur = maxp;}
+                    if(!this.loop){
+                        this.callback && this.callback('EOF');
+                        cur = maxp;
+                    }
                     else{cur = maxp + 1;}
                 }
                 this.slideTo(cur);

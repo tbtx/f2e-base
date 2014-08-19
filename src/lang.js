@@ -25,11 +25,11 @@
         rword = /[^, ]+/g,
         // 是否是复杂类型
         rcomplexType = /^(?:object|array)$/,
-        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
+        rsubstitute,
         // html标签
-        rtags = /<[^>]+>/g,
+        rtags,
         // script标签
-        rscripts = /<script[^>]*>([\S\s]*?)<\/script>/img,
+        rscripts,
 
         cidCounter = 0,
 
@@ -764,6 +764,8 @@
             if (!isString(str) || !isComplexType(o)) {
                 return str;
             }
+
+            rsubstitute = rsubstitute || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g;
             return str.replace(rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
@@ -774,6 +776,7 @@
 
         // 去除字符串中的html标签
         stripTags: function(str) {
+            rtags = rtags || /<[^>]+>/g;
             return (str + "").replace(rtags, "");
         },
 
@@ -795,6 +798,7 @@
 
             }
 
+            rscripts = rscripts || /<script[^>]*>([\S\s]*?)<\/script>/img;
             return (str + "").replace(pattern || rscripts, "");
         },
 

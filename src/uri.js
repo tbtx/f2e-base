@@ -273,18 +273,25 @@
         return val === null || (t !== "object" && t !== "function");
     }
 
-    // 只判断绝对链接
     var isUri = memoize(function(val) {
         val = val + "";
 
-        if (val.charAt(0) === "/") {
+        var first = val.charAt(0),
+            match;
+
+        // root and relative
+        if (first === "/" || first === ".") {
             return true;
         }
 
-        var match = ruri.exec(val);
+        match = ruri.exec(val);
         // scheme
-        // file:/// -> no domain
-        return match && !!match[1];
+        if (match) {
+            // http://a.com
+            // file:/// -> no domain
+            return !!((match[1] && match[3]) || (match[1] && match[5]));
+        }
+        return false;
     });
 
     /**
@@ -295,17 +302,13 @@
         S[name + "QueryParam"] = function() {
             var args = makeArray(arguments),
                 length = args.length,
-                // 第一个跟最后一个参数都可能是uri
-                first = args[0],
-                last = args[length - 1],
                 uriStr;
 
-            if (isUri(first)) {
-                uriStr = first;
-                args.shift();
-            } else if (isUri(last)) {
-                uriStr = last;
-                args.pop();
+            // 第一个跟最后一个参数都可能是uri
+            if (isUri(args[0])) {
+                uriStr = args.shift();
+            } else if (isUri(args[length - 1])) {
+                uriStr = args.pop();
             }
 
             var uri = new Uri(uriStr),

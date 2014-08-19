@@ -484,3 +484,7 @@ if (typeof JSON !== 'object') {
         };
     }
 }());
+
+if (define && define.amd) {
+    define("json", JSON);
+}
