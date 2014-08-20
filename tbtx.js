@@ -1,6 +1,7 @@
 /*
  * tbtx-base-js
- * update: 2014-08-20 2:23:39
+ * version: 2.0.0
+ * update: 2014-08-20 3:40:07
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -123,13 +124,11 @@
         rword = /[^, ]+/g,
         // 是否是复杂类型
         // rcomplexType = /^(?:object|array)$/,
-        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
+        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/mg,
         // html标签
-        rtags = /<[^>]+>/g,
+        rtags = /<[^>]+>/img,
         // script标签
         rscripts = /<script[^>]*>([\S\s]*?)<\/script\s*>/img,
-
-        cidCounter = 0,
 
         /**
          * return false终止循环
@@ -588,6 +587,15 @@
             return target;
         },
 
+        cidGenerator = function(prefix) {
+            prefix = prefix || 0;
+
+            var counter = 0;
+            return function() {
+                return prefix + counter++;
+            };
+        },
+
         htmlEntities = {
             "&amp;": "&",
             "&gt;": ">",
@@ -663,10 +671,8 @@
         memoize: memoize,
         singleton: singleton,
 
-        uniqueCid: function(prefix) {
-            prefix = prefix || 0;
-            return prefix + cidCounter++;
-        },
+        cidGenerator: cidGenerator,
+        uniqueCid: cidGenerator(),
 
         nextTick: function(callback) {
             setTimeout(callback, 0);
@@ -1236,21 +1242,16 @@
     // thanks modernizr
 
     var ucfirst = S.ucfirst,
-
-        support = {},
-
         ua = navigator.userAgent,
         documentElement = document.documentElement,
 
         element = document.createElement("tbtx"),
         style = element.style,
-
         spliter = " ",
         omPrefixes = "Webkit Moz O ms",
+        cssomPrefixes = omPrefixes.split(spliter),
 
-        cssomPrefixes = omPrefixes.split(spliter);
-
-    var prefixed = function(prop) {
+        prefixed = function(prop) {
             return testPropsAll(prop, "pfx");
         },
         testProps = function(props, prefixed) {
@@ -1265,35 +1266,18 @@
             }
             return false;
         },
-        testPropsAll = function (prop, prefixed) {
+        testPropsAll = function(prop, prefixed) {
             var ucProp = ucfirst(prop),
                 props = (prop + spliter + cssomPrefixes.join(ucProp + spliter) + ucProp).split(spliter);
 
             return testProps(props, prefixed);
-        };
+        },
 
-    support.add = function(name, fn) {
-        support[name] = fn.call(support);
-        return this;
-    };
+        touch = "ontouchstart" in documentElement,
+        mobile = !!ua.match(/AppleWebKit.*Mobile.*/) || touch,
+        pad = !!ua.match(/iPad/i),
+        phone = mobile && !pad;
 
-    "transition transform".replace(S.rword, function(name) {
-        support[name] = testPropsAll(name);
-    });
-
-    support.add("touch", function() {
-        return "ontouchstart" in documentElement;
-    }).
-    add("mobile", function() {
-        // 是否是移动设备，包含pad
-        return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
-    })
-    .add("pad", function() {
-        return !!ua.match(/iPad/i);
-    })
-    .add("phone", function() {
-        return this.mobile && !this.pad;
-    });
     // .add("canvas", function() {
     //     var elem = document.createElement("canvas");
     //     return !!(elem.getContext && elem.getContext("2d"));
@@ -1303,7 +1287,14 @@
     // });
 
     S.mix({
-        support: support,
+        support: {
+            transition: testPropsAll("transition"),
+            transform: testPropsAll("transform"),
+            touch: touch,
+            mobile: mobile,
+            pad: pad,
+            phone: phone
+        },
         testPropsAll: testPropsAll,
         prefixed: prefixed
     });
@@ -1324,12 +1315,9 @@
         global = S.global,
         noop = S.noop,
         Loader = S.Loader = {},
-        data = Loader.data = {};
+        data = Loader.data = {},
 
-    var _cid = 0;
-    function cid() {
-        return _cid++;
-    }
+        cid = S.cidGenerator();
 
     // path
     var DIRNAME_RE = /[^?#]*\//,
@@ -2049,16 +2037,13 @@
         }
     };
 
-
     Loader.resolve = id2Uri;
 
     global.define = S.define = Module.define;
-
-    S.require = function(ids, callback) {
+    global.require = S.require = function(ids, callback) {
         Module.require(ids, callback, data.cwd + "_require_" + cid());
         return S;
     };
-
     S.realpath = realpath;
 
 })(tbtx);
@@ -2081,10 +2066,10 @@
             // arale
             "events": "arale/events/1.1.0/events",
             // "class": "arale/class/1.1.0/class",
-            // "base": "arale/base/1.1.1/base",
+            "base": "arale/base/1.1.1/base",
             "widget": "arale/widget/1.1.1/widget",
             "position": "arale/position/1.0.1/position",
-            "detector": "arale/detector/1.3.0/detector",
+            // "detector": "arale/detector/1.3.0/detector",
 
             // dist
             "router": "dist/router",
@@ -2105,6 +2090,7 @@
             "clipboard": "gallery/zeroclipboard/1.3.5/ZeroClipboard.min",
 
             // plugin
+            "lazyload": "plugin/jquery.lazyload",
             "easing": "plugin/jquery.easing.1.3",
 
             "kissy": "http://g.tbcdn.cn/kissy/k/1.4.0/seed-min.js"
@@ -2823,6 +2809,7 @@
 
                 deferred.reject(config("requestFailCode"), {
                     code: config("requestFailCode"),
+                    url: url,
                     msg: msgs[xhr.status] || msgs[status] || msgs.def
                 });
             });

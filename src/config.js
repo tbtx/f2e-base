@@ -15,10 +15,10 @@
             // arale
             "events": "arale/events/1.1.0/events",
             // "class": "arale/class/1.1.0/class",
-            // "base": "arale/base/1.1.1/base",
+            "base": "arale/base/1.1.1/base",
             "widget": "arale/widget/1.1.1/widget",
             "position": "arale/position/1.0.1/position",
-            "detector": "arale/detector/1.3.0/detector",
+            // "detector": "arale/detector/1.3.0/detector",
 
             // dist
             "router": "dist/router",
@@ -39,6 +39,7 @@
             "clipboard": "gallery/zeroclipboard/1.3.5/ZeroClipboard.min",
 
             // plugin
+            "lazyload": "plugin/jquery.lazyload",
             "easing": "plugin/jquery.easing.1.3",
 
             "kissy": "http://g.tbcdn.cn/kissy/k/1.4.0/seed-min.js"

@@ -2,21 +2,16 @@
     // thanks modernizr
 
     var ucfirst = S.ucfirst,
-
-        support = {},
-
         ua = navigator.userAgent,
         documentElement = document.documentElement,
 
         element = document.createElement("tbtx"),
         style = element.style,
-
         spliter = " ",
         omPrefixes = "Webkit Moz O ms",
+        cssomPrefixes = omPrefixes.split(spliter),
 
-        cssomPrefixes = omPrefixes.split(spliter);
-
-    var prefixed = function(prop) {
+        prefixed = function(prop) {
             return testPropsAll(prop, "pfx");
         },
         testProps = function(props, prefixed) {
@@ -31,35 +26,18 @@
             }
             return false;
         },
-        testPropsAll = function (prop, prefixed) {
+        testPropsAll = function(prop, prefixed) {
             var ucProp = ucfirst(prop),
                 props = (prop + spliter + cssomPrefixes.join(ucProp + spliter) + ucProp).split(spliter);
 
             return testProps(props, prefixed);
-        };
+        },
 
-    support.add = function(name, fn) {
-        support[name] = fn.call(support);
-        return this;
-    };
+        touch = "ontouchstart" in documentElement,
+        mobile = !!ua.match(/AppleWebKit.*Mobile.*/) || touch,
+        pad = !!ua.match(/iPad/i),
+        phone = mobile && !pad;
 
-    "transition transform".replace(S.rword, function(name) {
-        support[name] = testPropsAll(name);
-    });
-
-    support.add("touch", function() {
-        return "ontouchstart" in documentElement;
-    }).
-    add("mobile", function() {
-        // 是否是移动设备，包含pad
-        return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
-    })
-    .add("pad", function() {
-        return !!ua.match(/iPad/i);
-    })
-    .add("phone", function() {
-        return this.mobile && !this.pad;
-    });
     // .add("canvas", function() {
     //     var elem = document.createElement("canvas");
     //     return !!(elem.getContext && elem.getContext("2d"));
@@ -69,7 +47,14 @@
     // });
 
     S.mix({
-        support: support,
+        support: {
+            transition: testPropsAll("transition"),
+            transform: testPropsAll("transform"),
+            touch: touch,
+            mobile: mobile,
+            pad: pad,
+            phone: phone
+        },
         testPropsAll: testPropsAll,
         prefixed: prefixed
     });

@@ -105,6 +105,7 @@ define("request", ["jquery", "json"], function($) {
 
                 deferred.reject(config("requestFailCode"), {
                     code: config("requestFailCode"),
+                    url: url,
                     msg: msgs[xhr.status] || msgs[status] || msgs.def
                 });
             });

@@ -26,7 +26,7 @@ module.exports = function(grunt) {
 
             main: {
                 options: {
-                    banner: '/*\n * <%= pkg.name %>\n * update: <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
+                    banner: '/*\n * <%= pkg.name %>\n * version: <%= pkg.version %>\n * update: <%= grunt.template.today("yyyy-mm-dd h:MM:ss") %>\n * <%= pkg.author %>\n * <%= pkg.email %>\n */\n'
                 },
                 src: ["src/seed.js", "src/lang.js", "src/uri.js", "src/support.js", "src/loader.js", "src/config.js", "src/cookie.js", "src/arale/events/1.1.0/events.js", "src/arale/position/1.0.1/position.js", "src/date.js", "src/request.js", "src/msg.js", "src/register.js"],
                 dest: 'tbtx.js' // 合并成依赖文件

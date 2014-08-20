@@ -12,12 +12,9 @@
         global = S.global,
         noop = S.noop,
         Loader = S.Loader = {},
-        data = Loader.data = {};
+        data = Loader.data = {},
 
-    var _cid = 0;
-    function cid() {
-        return _cid++;
-    }
+        cid = S.cidGenerator();
 
     // path
     var DIRNAME_RE = /[^?#]*\//,
@@ -737,16 +734,13 @@
         }
     };
 
-
     Loader.resolve = id2Uri;
 
     global.define = S.define = Module.define;
-
-    S.require = function(ids, callback) {
+    global.require = S.require = function(ids, callback) {
         Module.require(ids, callback, data.cwd + "_require_" + cid());
         return S;
     };
-
     S.realpath = realpath;
 
 })(tbtx);

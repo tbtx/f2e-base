@@ -25,13 +25,11 @@
         rword = /[^, ]+/g,
         // 是否是复杂类型
         // rcomplexType = /^(?:object|array)$/,
-        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
+        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/mg,
         // html标签
-        rtags = /<[^>]+>/g,
+        rtags = /<[^>]+>/img,
         // script标签
         rscripts = /<script[^>]*>([\S\s]*?)<\/script\s*>/img,
-
-        cidCounter = 0,
 
         /**
          * return false终止循环
@@ -490,6 +488,15 @@
             return target;
         },
 
+        cidGenerator = function(prefix) {
+            prefix = prefix || 0;
+
+            var counter = 0;
+            return function() {
+                return prefix + counter++;
+            };
+        },
+
         htmlEntities = {
             "&amp;": "&",
             "&gt;": ">",
@@ -565,10 +572,8 @@
         memoize: memoize,
         singleton: singleton,
 
-        uniqueCid: function(prefix) {
-            prefix = prefix || 0;
-            return prefix + cidCounter++;
-        },
+        cidGenerator: cidGenerator,
+        uniqueCid: cidGenerator(),
 
         nextTick: function(callback) {
             setTimeout(callback, 0);
