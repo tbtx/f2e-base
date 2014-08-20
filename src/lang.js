@@ -24,12 +24,12 @@
         //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
         rword = /[^, ]+/g,
         // 是否是复杂类型
-        rcomplexType = /^(?:object|array)$/,
-        rsubstitute,
+        // rcomplexType = /^(?:object|array)$/,
+        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
         // html标签
-        rtags,
+        rtags = /<[^>]+>/g,
         // script标签
-        rscripts,
+        rscripts = /<script[^>]*>([\S\s]*?)<\/script\s*>/img,
 
         cidCounter = 0,
 
@@ -66,32 +66,16 @@
 
     /**
      * Object.keys
+     * 不支持enum bug
      */
     if (!Object.keys) {
-        var enumerables = "propertyIsEnumerable isPrototypeOf hasOwnProperty toLocaleString toString valueOf constructor".split(" ");
-
-        for (var i in {
-            toString: 1
-        }) {
-            enumerables = false;
-        }
-
         Object.keys = function(o) {
             var ret = [],
-                p,
-                i;
+                p;
 
             for (p in o) {
                 if (hasOwnProperty(o, p)) {
                     ret.push(p);
-                }
-            }
-            if (enumerables) {
-                for (i = enumerables.length - 1; i >= 0; i--) {
-                    p = enumerables[i];
-                    if (hasOwnProperty(o, p)) {
-                        ret.push(p);
-                    }
                 }
             }
 
@@ -388,10 +372,6 @@
                 typeof object;
         },
 
-        isComplexType = function(val) {
-            return rcomplexType.test(type(val));
-        },
-
         isWindow = function(object) {
             return object != null && object == object.window;
         },
@@ -578,8 +558,6 @@
 
         isPlainObject: isPlainObject,
 
-        isComplexType: isComplexType,
-
         type: type,
 
         makeArray: makeArray,
@@ -761,11 +739,10 @@
          * 默认没有替换为空
          */
         substitute: function(str, o, blank) {
-            if (!isString(str) || !isComplexType(o)) {
+            if (!isString(str) && !isArray(o) && !isPlainObject(o)) {
                 return str;
             }
 
-            rsubstitute = rsubstitute || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g;
             return str.replace(rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
@@ -776,7 +753,6 @@
 
         // 去除字符串中的html标签
         stripTags: function(str) {
-            rtags = rtags || /<[^>]+>/g;
             return (str + "").replace(rtags, "");
         },
 
@@ -793,12 +769,10 @@
                     scripts,
                     "[^>]*([\\S\\s]*?)<\\/",
                     scripts,
-                    ">"
+                    "\\s*>"
                 ].join(""), "img");
 
             }
-
-            rscripts = rscripts || /<script[^>]*>([\S\s]*?)<\/script>/img;
             return (str + "").replace(pattern || rscripts, "");
         },
 

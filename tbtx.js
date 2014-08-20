@@ -1,6 +1,6 @@
 /*
  * tbtx-base-js
- * update: 2014-08-19 3:00:38
+ * update: 2014-08-20 2:23:39
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -17,15 +17,14 @@
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
          * @param  {String} msg 消息
          * @param  {String} src 消息来源，可选
-         * @param  {String} cat 类型，如error/info等，可选
          * @return {Object}     返回this以链式调用，如S.log().log()
          */
-        log: isSupportConsole ? function(msg, src, cat) {
+        log: isSupportConsole ? function(msg, src) {
             if (S.config("debug")) {
                 if (src) {
                     msg = src + ": " + msg;
                 }
-                console[cat && console[cat] ? cat : "log"](msg);
+                console.log(msg);
             }
 
             return this;
@@ -123,12 +122,12 @@
         //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
         rword = /[^, ]+/g,
         // 是否是复杂类型
-        rcomplexType = /^(?:object|array)$/,
-        rsubstitute,
+        // rcomplexType = /^(?:object|array)$/,
+        rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g,
         // html标签
-        rtags,
+        rtags = /<[^>]+>/g,
         // script标签
-        rscripts,
+        rscripts = /<script[^>]*>([\S\s]*?)<\/script\s*>/img,
 
         cidCounter = 0,
 
@@ -165,32 +164,16 @@
 
     /**
      * Object.keys
+     * 不支持enum bug
      */
     if (!Object.keys) {
-        var enumerables = "propertyIsEnumerable isPrototypeOf hasOwnProperty toLocaleString toString valueOf constructor".split(" ");
-
-        for (var i in {
-            toString: 1
-        }) {
-            enumerables = false;
-        }
-
         Object.keys = function(o) {
             var ret = [],
-                p,
-                i;
+                p;
 
             for (p in o) {
                 if (hasOwnProperty(o, p)) {
                     ret.push(p);
-                }
-            }
-            if (enumerables) {
-                for (i = enumerables.length - 1; i >= 0; i--) {
-                    p = enumerables[i];
-                    if (hasOwnProperty(o, p)) {
-                        ret.push(p);
-                    }
                 }
             }
 
@@ -487,10 +470,6 @@
                 typeof object;
         },
 
-        isComplexType = function(val) {
-            return rcomplexType.test(type(val));
-        },
-
         isWindow = function(object) {
             return object != null && object == object.window;
         },
@@ -677,8 +656,6 @@
 
         isPlainObject: isPlainObject,
 
-        isComplexType: isComplexType,
-
         type: type,
 
         makeArray: makeArray,
@@ -860,11 +837,10 @@
          * 默认没有替换为空
          */
         substitute: function(str, o, blank) {
-            if (!isString(str) || !isComplexType(o)) {
+            if (!isString(str) && !isArray(o) && !isPlainObject(o)) {
                 return str;
             }
 
-            rsubstitute = rsubstitute || /\\?\{\{\s*([^{}\s]+)\s*\}\}/g;
             return str.replace(rsubstitute, function(match, name) {
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
@@ -875,7 +851,6 @@
 
         // 去除字符串中的html标签
         stripTags: function(str) {
-            rtags = rtags || /<[^>]+>/g;
             return (str + "").replace(rtags, "");
         },
 
@@ -892,12 +867,10 @@
                     scripts,
                     "[^>]*([\\S\\s]*?)<\\/",
                     scripts,
-                    ">"
+                    "\\s*>"
                 ].join(""), "img");
 
             }
-
-            rscripts = rscripts || /<script[^>]*>([\S\s]*?)<\/script>/img;
             return (str + "").replace(pattern || rscripts, "");
         },
 
@@ -926,8 +899,7 @@
         isString = S.isString,
         makeArray = S.makeArray,
         memoize = S.memoize,
-        error = S.error,
-        rword = S.rword,
+        log = S.log,
 
         encode = function(s) {
             return encodeURIComponent(s + "");
@@ -989,14 +961,14 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        error(e + "decodeURIComponent error : " + val, "error", "unparam");
+                        log(e + "decodeURIComponent error : " + val);
                     }
                 }
                 ret[key] = val;
             }
             return ret;
         }, function(str, sep, eq) {
-            return "" + str + sep + eq;
+            return str + sep + eq;
         }),
 
         Query = S.Query = function(query) {
@@ -1105,7 +1077,7 @@
                     try {
                         v = decode(v);
                     } catch (e) {
-                        error(e + "urlDecode error : " + v, "error", "Uri");
+                        log(e + "urlDecode error : " + v);
                     }
                     // need to decode to get data structure in memory
                     uri[key] = v;
@@ -1217,7 +1189,7 @@
      * get/set/remove/add QueryParam
      * uri, args... or args.., uri
      */
-    "add get remove set".replace(rword, function(name) {
+    "add get remove set".replace(S.rword, function(name) {
         S[name + "QueryParam"] = function() {
             var args = makeArray(arguments),
                 length = args.length,
@@ -1309,9 +1281,12 @@
         support[name] = testPropsAll(name);
     });
 
-    support.add("mobile", function() {
+    support.add("touch", function() {
+        return "ontouchstart" in documentElement;
+    }).
+    add("mobile", function() {
         // 是否是移动设备，包含pad
-        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in documentElement;
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
     })
     .add("pad", function() {
         return !!ua.match(/iPad/i);

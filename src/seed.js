@@ -11,15 +11,14 @@
          * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
          * @param  {String} msg 消息
          * @param  {String} src 消息来源，可选
-         * @param  {String} cat 类型，如error/info等，可选
          * @return {Object}     返回this以链式调用，如S.log().log()
          */
-        log: isSupportConsole ? function(msg, src, cat) {
+        log: isSupportConsole ? function(msg, src) {
             if (S.config("debug")) {
                 if (src) {
                     msg = src + ": " + msg;
                 }
-                console[cat && console[cat] ? cat : "log"](msg);
+                console.log(msg);
             }
 
             return this;

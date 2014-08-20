@@ -7,8 +7,7 @@
         isString = S.isString,
         makeArray = S.makeArray,
         memoize = S.memoize,
-        error = S.error,
-        rword = S.rword,
+        log = S.log,
 
         encode = function(s) {
             return encodeURIComponent(s + "");
@@ -70,14 +69,14 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        error(e + "decodeURIComponent error : " + val, "error", "unparam");
+                        log(e + "decodeURIComponent error : " + val);
                     }
                 }
                 ret[key] = val;
             }
             return ret;
         }, function(str, sep, eq) {
-            return "" + str + sep + eq;
+            return str + sep + eq;
         }),
 
         Query = S.Query = function(query) {
@@ -186,7 +185,7 @@
                     try {
                         v = decode(v);
                     } catch (e) {
-                        error(e + "urlDecode error : " + v, "error", "Uri");
+                        log(e + "urlDecode error : " + v);
                     }
                     // need to decode to get data structure in memory
                     uri[key] = v;
@@ -298,7 +297,7 @@
      * get/set/remove/add QueryParam
      * uri, args... or args.., uri
      */
-    "add get remove set".replace(rword, function(name) {
+    "add get remove set".replace(S.rword, function(name) {
         S[name + "QueryParam"] = function() {
             var args = makeArray(arguments),
                 length = args.length,

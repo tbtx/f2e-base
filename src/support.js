@@ -47,9 +47,12 @@
         support[name] = testPropsAll(name);
     });
 
-    support.add("mobile", function() {
+    support.add("touch", function() {
+        return "ontouchstart" in documentElement;
+    }).
+    add("mobile", function() {
         // 是否是移动设备，包含pad
-        return !!ua.match(/AppleWebKit.*Mobile.*/) || "ontouchstart" in documentElement;
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
     })
     .add("pad", function() {
         return !!ua.match(/iPad/i);
