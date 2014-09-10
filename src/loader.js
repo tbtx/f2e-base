@@ -9,6 +9,7 @@
         isString = S.isString,
         isArray = S.isArray,
         isFunction = S.isFunction,
+
         global = S.global,
         noop = S.noop,
         Loader = S.Loader = {},

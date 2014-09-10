@@ -1,22 +1,32 @@
 define("request", ["jquery", "json"], function($) {
+
     var S = tbtx,
         cookie = S.cookie,
         isPlainObject = S.isPlainObject,
         config = S.config,
+        key = "tokenName",
 
-        generateToken = S.generateToken = function() {
-            var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
-            cookie.set(config("tokenName"), token, '', '', '/');
+        random = function() {
+            return String(Math.random()).slice(2);
+        },
+        token = random() + random() + random(),
+        generateToken = function() {
+            cookie.set(config(key), token, "", "", "/");
             return token;
         };
 
-    if (!config("tokenName")) {
+    if (!config(key)) {
         // 默认蜜儿
-        config("tokenName", "MIIEE_JTOKEN");
+        config(key, "MIIEE_JTOKEN");
     }
 
     config({
         requestFailCode: -1,
+        // 正在请求中，state === "pending"
+        requestingCode: -2,
+        // 请求成功
+        requestSuccessCode: 100,
+
         requestFailMsg: {
             "def": "请求失败！请重试！",
             "0": "无法连接到服务器！",
@@ -26,11 +36,7 @@ define("request", ["jquery", "json"], function($) {
             "timeout": "请求超时！请检查网络连接！",
             // "abort": "请求被终止！",
             "parsererror": "服务器出错或数据解析出错！"
-        },
-
-        // 正在请求中，state === "pending"
-        requestingCode: -2,
-        requestSuccessCode: 100
+        }
     });
 
     var deferredMap = {},
@@ -49,10 +55,16 @@ define("request", ["jquery", "json"], function($) {
                 successCode = data;
             } else {
                 data = data || {};
+
+                if (!isPlainObject(data)) {
+                    data = S.unparam(data);
+                }
+
                 settings.url = url;
                 settings.data = data;
             }
 
+            // 做个trim防止出错
             url = settings.url.trim();
             data = settings.data;
             if (typeof successCode === "boolean") {
@@ -74,9 +86,8 @@ define("request", ["jquery", "json"], function($) {
             deferred = deferredMap[url] = $.Deferred();
             requestData[url] = data;
 
-            if (isPlainObject(data) && !data.jtoken) {
-                data.jtoken = generateToken();
-            }
+            data.jtoken = generateToken();
+
             // url 加上时间戳
             settings.url = S.addQueryParam(url, "_", String(Math.random()).replace(/\D/g, ""));
 
@@ -115,7 +126,6 @@ define("request", ["jquery", "json"], function($) {
 
     // 大写兼容之前的用法
     S.Request = S.request = request;
-
 
     function isEqual(a, b) {
         return JSON.stringify(a) == JSON.stringify(b);

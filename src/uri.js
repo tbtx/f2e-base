@@ -27,7 +27,7 @@
                 if (isValidParamValue(val)) {
                     buf.push(key);
                     if (val !== undefined) {
-                        buf.push(eq, encode(val + ""));
+                        buf.push(eq, encode(val));
                     }
                     buf.push(sep);
                 }
@@ -69,14 +69,12 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        log(e + "decodeURIComponent error : " + val);
+                        log(e, "unparam");
                     }
                 }
                 ret[key] = val;
             }
             return ret;
-        }, function(str, sep, eq) {
-            return str + sep + eq;
         }),
 
         Query = S.Query = function(query) {
@@ -84,7 +82,7 @@
             this._map = unparam(this._query);
         },
 
-        fn = Query.prototype = {
+        queryProto = Query.prototype = {
 
             /**
              * Return parameter value corresponding to current key
@@ -161,7 +159,7 @@
             "$",
         ].join("")),
 
-        rinfo = {
+        uriInfo = {
             scheme: 1,
             credentials: 2,
             domain: 3,
@@ -185,7 +183,7 @@
                     try {
                         v = decode(v);
                     } catch (e) {
-                        log(e + "urlDecode error : " + v);
+                        log(e, "Uri");
                     }
                     // need to decode to get data structure in memory
                     uri[key] = v;
@@ -193,9 +191,30 @@
             });
 
             return uri;
-        };
+        },
 
-    fn.add = fn.set;
+        isUri = memoize(function(val) {
+            val = val + "";
+
+            var first = val.charAt(0),
+                match;
+
+            // root and relative
+            if (first === "/" || first === ".") {
+                return true;
+            }
+
+            match = ruri.exec(val);
+            // scheme
+            if (match) {
+                // http://a.com
+                // file:/// -> no domain
+                return !!((match[1] && match[3]) || (match[1] && match[5]));
+            }
+            return false;
+        });
+
+    queryProto.add = queryProto.set;
 
     Uri.prototype = {
 
@@ -258,7 +277,7 @@
         var m = uri.match(ruri) || [],
             ret = {};
 
-        each(rinfo, function(index, key) {
+        each(uriInfo, function(index, key) {
             ret[key] = m[index] || "";
         });
 
@@ -271,27 +290,6 @@
         // If the type of val is null, undefined, number, string, boolean, return TRUE.
         return val === null || (t !== "object" && t !== "function");
     }
-
-    var isUri = memoize(function(val) {
-        val = val + "";
-
-        var first = val.charAt(0),
-            match;
-
-        // root and relative
-        if (first === "/" || first === ".") {
-            return true;
-        }
-
-        match = ruri.exec(val);
-        // scheme
-        if (match) {
-            // http://a.com
-            // file:/// -> no domain
-            return !!((match[1] && match[3]) || (match[1] && match[5]));
-        }
-        return false;
-    });
 
     /**
      * get/set/remove/add QueryParam
@@ -326,9 +324,7 @@
 
         isUri: isUri,
 
-        parseUri: function(uri) {
-            return Uri.getComponents(uri);
-        },
+        parseUri: Uri.getComponents,
 
         getFragment: function(uri) {
             return new Uri(uri).getFragment();

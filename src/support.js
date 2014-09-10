@@ -42,9 +42,6 @@
     //     var elem = document.createElement("canvas");
     //     return !!(elem.getContext && elem.getContext("2d"));
     // })
-    // .add("placeholder", function() {
-    //     return "placeholder" in document.createElement("input");
-    // });
 
     S.mix({
         support: {
@@ -53,7 +50,8 @@
             touch: touch,
             mobile: mobile,
             pad: pad,
-            phone: phone
+            phone: phone,
+            placeholder: "placeholder" in document.createElement("input")
         },
         testPropsAll: testPropsAll,
         prefixed: prefixed

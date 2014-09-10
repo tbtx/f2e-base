@@ -66,7 +66,14 @@
         config({
             // 每小时更新时间戳
             map: [
-                [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
+                function(uri) {
+                    if (S.inArray(["msg", "position", "request"], uri.slice(staticUrl.length, uri.length - 3))) {
+                        return;
+                    }
+                    if (uri.indexOf("t=") === -1) {
+                        return uri.replace(/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000));
+                    }
+                }
             ]
         });
     }

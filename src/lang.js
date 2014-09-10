@@ -21,6 +21,7 @@
             return hasOwn.call(o, p);
         },
 
+        rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
         //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
         rword = /[^, ]+/g,
         // 是否是复杂类型
@@ -35,26 +36,20 @@
          * return false终止循环
          * 原生every必须return true or false
          */
-        each = function(object, fn, context) {
-            if (!object) {
-                return;
-            }
-
+        each = function(object, fn) {
             var i = 0,
                 length = object.length;
 
-            context = context || this;
-
             if (length === +length) {
                 for (; i < length; i++) {
-                    if (fn.call(context, object[i], i, object) === false) {
+                    if (fn(object[i], i, object) === false) {
                         break;
                     }
                 }
             } else {
                 for (i in object) {
                     if (hasOwnProperty(object, i)) {
-                        if (fn.call(context, object[i], i, object) === false) {
+                        if (fn(object[i], i, object) === false) {
                             break;
                         }
                     }
@@ -107,7 +102,6 @@
     }
 
     if (!SP.trim) {
-        var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
         SP.trim = function() {
             return this.replace(rtrim, "");
         };
@@ -269,9 +263,6 @@
     "map filter forEach some every reduce reduceRight indexOf lastIndexOf".replace(rword, function(name) {
 
         S[name] = function(object, fn, context) {
-            if (!object) {
-                return;
-            }
             // 处理arrayLike object
             if (object.length === +object.length) {
                 object = makeArray(object);
@@ -332,7 +323,7 @@
 
             // 默认拿第一个传入的参数做key
             hasher = hasher || function(val) {
-                return val + "";
+                return (val + "").trim();
             };
 
             return function() {
@@ -365,9 +356,11 @@
             if (object == null ) {
                 return object + "";
             }
-            return typeof object === "object" || typeof object === "function" ?
+
+            var t = typeof object;
+            return t === "object" || t === "function" ?
                 class2type[toString.call(object)] || "object" :
-                typeof object;
+                t;
         },
 
         isWindow = function(object) {

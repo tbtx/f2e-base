@@ -1,7 +1,7 @@
 /*
  * tbtx-base-js
  * version: 2.0.0
- * update: 2014-08-20 3:40:07
+ * update: 2014-09-10 4:26:14
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -28,7 +28,7 @@
                 console.log(msg);
             }
 
-            return this;
+            return S;
         } : noop,
 
         /**
@@ -91,7 +91,6 @@
 
             return ret;
         }
-
     };
 
 })(this, "tbtx");
@@ -120,6 +119,7 @@
             return hasOwn.call(o, p);
         },
 
+        rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
         //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
         rword = /[^, ]+/g,
         // 是否是复杂类型
@@ -134,26 +134,20 @@
          * return false终止循环
          * 原生every必须return true or false
          */
-        each = function(object, fn, context) {
-            if (!object) {
-                return;
-            }
-
+        each = function(object, fn) {
             var i = 0,
                 length = object.length;
 
-            context = context || this;
-
             if (length === +length) {
                 for (; i < length; i++) {
-                    if (fn.call(context, object[i], i, object) === false) {
+                    if (fn(object[i], i, object) === false) {
                         break;
                     }
                 }
             } else {
                 for (i in object) {
                     if (hasOwnProperty(object, i)) {
-                        if (fn.call(context, object[i], i, object) === false) {
+                        if (fn(object[i], i, object) === false) {
                             break;
                         }
                     }
@@ -206,7 +200,6 @@
     }
 
     if (!SP.trim) {
-        var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
         SP.trim = function() {
             return this.replace(rtrim, "");
         };
@@ -368,9 +361,6 @@
     "map filter forEach some every reduce reduceRight indexOf lastIndexOf".replace(rword, function(name) {
 
         S[name] = function(object, fn, context) {
-            if (!object) {
-                return;
-            }
             // 处理arrayLike object
             if (object.length === +object.length) {
                 object = makeArray(object);
@@ -431,7 +421,7 @@
 
             // 默认拿第一个传入的参数做key
             hasher = hasher || function(val) {
-                return val + "";
+                return (val + "").trim();
             };
 
             return function() {
@@ -464,9 +454,11 @@
             if (object == null ) {
                 return object + "";
             }
-            return typeof object === "object" || typeof object === "function" ?
+
+            var t = typeof object;
+            return t === "object" || t === "function" ?
                 class2type[toString.call(object)] || "object" :
-                typeof object;
+                t;
         },
 
         isWindow = function(object) {
@@ -925,7 +917,7 @@
                 if (isValidParamValue(val)) {
                     buf.push(key);
                     if (val !== undefined) {
-                        buf.push(eq, encode(val + ""));
+                        buf.push(eq, encode(val));
                     }
                     buf.push(sep);
                 }
@@ -967,14 +959,12 @@
                     try {
                         val = decode(val);
                     } catch (e) {
-                        log(e + "decodeURIComponent error : " + val);
+                        log(e, "unparam");
                     }
                 }
                 ret[key] = val;
             }
             return ret;
-        }, function(str, sep, eq) {
-            return str + sep + eq;
         }),
 
         Query = S.Query = function(query) {
@@ -982,7 +972,7 @@
             this._map = unparam(this._query);
         },
 
-        fn = Query.prototype = {
+        queryProto = Query.prototype = {
 
             /**
              * Return parameter value corresponding to current key
@@ -1059,7 +1049,7 @@
             "$",
         ].join("")),
 
-        rinfo = {
+        uriInfo = {
             scheme: 1,
             credentials: 2,
             domain: 3,
@@ -1083,7 +1073,7 @@
                     try {
                         v = decode(v);
                     } catch (e) {
-                        log(e + "urlDecode error : " + v);
+                        log(e, "Uri");
                     }
                     // need to decode to get data structure in memory
                     uri[key] = v;
@@ -1091,9 +1081,30 @@
             });
 
             return uri;
-        };
+        },
 
-    fn.add = fn.set;
+        isUri = memoize(function(val) {
+            val = val + "";
+
+            var first = val.charAt(0),
+                match;
+
+            // root and relative
+            if (first === "/" || first === ".") {
+                return true;
+            }
+
+            match = ruri.exec(val);
+            // scheme
+            if (match) {
+                // http://a.com
+                // file:/// -> no domain
+                return !!((match[1] && match[3]) || (match[1] && match[5]));
+            }
+            return false;
+        });
+
+    queryProto.add = queryProto.set;
 
     Uri.prototype = {
 
@@ -1156,7 +1167,7 @@
         var m = uri.match(ruri) || [],
             ret = {};
 
-        each(rinfo, function(index, key) {
+        each(uriInfo, function(index, key) {
             ret[key] = m[index] || "";
         });
 
@@ -1169,27 +1180,6 @@
         // If the type of val is null, undefined, number, string, boolean, return TRUE.
         return val === null || (t !== "object" && t !== "function");
     }
-
-    var isUri = memoize(function(val) {
-        val = val + "";
-
-        var first = val.charAt(0),
-            match;
-
-        // root and relative
-        if (first === "/" || first === ".") {
-            return true;
-        }
-
-        match = ruri.exec(val);
-        // scheme
-        if (match) {
-            // http://a.com
-            // file:/// -> no domain
-            return !!((match[1] && match[3]) || (match[1] && match[5]));
-        }
-        return false;
-    });
 
     /**
      * get/set/remove/add QueryParam
@@ -1224,9 +1214,7 @@
 
         isUri: isUri,
 
-        parseUri: function(uri) {
-            return Uri.getComponents(uri);
-        },
+        parseUri: Uri.getComponents,
 
         getFragment: function(uri) {
             return new Uri(uri).getFragment();
@@ -1282,9 +1270,6 @@
     //     var elem = document.createElement("canvas");
     //     return !!(elem.getContext && elem.getContext("2d"));
     // })
-    // .add("placeholder", function() {
-    //     return "placeholder" in document.createElement("input");
-    // });
 
     S.mix({
         support: {
@@ -1293,7 +1278,8 @@
             touch: touch,
             mobile: mobile,
             pad: pad,
-            phone: phone
+            phone: phone,
+            placeholder: "placeholder" in document.createElement("input")
         },
         testPropsAll: testPropsAll,
         prefixed: prefixed
@@ -1312,6 +1298,7 @@
         isString = S.isString,
         isArray = S.isArray,
         isFunction = S.isFunction,
+
         global = S.global,
         noop = S.noop,
         Loader = S.Loader = {},
@@ -2117,7 +2104,14 @@
         config({
             // 每小时更新时间戳
             map: [
-                [/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000)]
+                function(uri) {
+                    if (S.inArray(["msg", "position", "request"], uri.slice(staticUrl.length, uri.length - 3))) {
+                        return;
+                    }
+                    if (uri.indexOf("t=") === -1) {
+                        return uri.replace(/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000));
+                    }
+                }
             ]
         });
     }
@@ -2703,24 +2697,34 @@
 
 
 ;define("request", ["jquery", "json"], function($) {
+
     var S = tbtx,
         cookie = S.cookie,
         isPlainObject = S.isPlainObject,
         config = S.config,
+        key = "tokenName",
 
-        generateToken = S.generateToken = function() {
-            var token = Math.random().toString().substr(2) + Date.now().toString().substr(1) + Math.random().toString().substr(2);
-            cookie.set(config("tokenName"), token, '', '', '/');
+        random = function() {
+            return String(Math.random()).slice(2);
+        },
+        token = random() + random() + random(),
+        generateToken = function() {
+            cookie.set(config(key), token, "", "", "/");
             return token;
         };
 
-    if (!config("tokenName")) {
+    if (!config(key)) {
         // 默认蜜儿
-        config("tokenName", "MIIEE_JTOKEN");
+        config(key, "MIIEE_JTOKEN");
     }
 
     config({
         requestFailCode: -1,
+        // 正在请求中，state === "pending"
+        requestingCode: -2,
+        // 请求成功
+        requestSuccessCode: 100,
+
         requestFailMsg: {
             "def": "请求失败！请重试！",
             "0": "无法连接到服务器！",
@@ -2730,11 +2734,7 @@
             "timeout": "请求超时！请检查网络连接！",
             // "abort": "请求被终止！",
             "parsererror": "服务器出错或数据解析出错！"
-        },
-
-        // 正在请求中，state === "pending"
-        requestingCode: -2,
-        requestSuccessCode: 100
+        }
     });
 
     var deferredMap = {},
@@ -2753,10 +2753,16 @@
                 successCode = data;
             } else {
                 data = data || {};
+
+                if (!isPlainObject(data)) {
+                    data = S.unparam(data);
+                }
+
                 settings.url = url;
                 settings.data = data;
             }
 
+            // 做个trim防止出错
             url = settings.url.trim();
             data = settings.data;
             if (typeof successCode === "boolean") {
@@ -2778,9 +2784,8 @@
             deferred = deferredMap[url] = $.Deferred();
             requestData[url] = data;
 
-            if (isPlainObject(data) && !data.jtoken) {
-                data.jtoken = generateToken();
-            }
+            data.jtoken = generateToken();
+
             // url 加上时间戳
             settings.url = S.addQueryParam(url, "_", String(Math.random()).replace(/\D/g, ""));
 
@@ -2819,7 +2824,6 @@
 
     // 大写兼容之前的用法
     S.Request = S.request = request;
-
 
     function isEqual(a, b) {
         return JSON.stringify(a) == JSON.stringify(b);

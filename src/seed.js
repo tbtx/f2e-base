@@ -21,7 +21,7 @@
                 console.log(msg);
             }
 
-            return this;
+            return S;
         } : noop,
 
         /**
@@ -84,7 +84,6 @@
 
             return ret;
         }
-
     };
 
 })(this, "tbtx");
