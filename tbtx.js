@@ -1,7 +1,7 @@
 /*
  * tbtx-base-js
  * version: 2.0.0
- * update: 2014-09-10 4:26:14
+ * update: 2014-09-12 3:21:23
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -134,10 +134,13 @@
          * return false终止循环
          * 原生every必须return true or false
          */
-        each = function(object, fn) {
+        each = function(object, fn, context) {
             var i = 0,
                 length = object.length;
 
+            if (context) {
+                fn = fn.bind(context);
+            }
             if (length === +length) {
                 for (; i < length; i++) {
                     if (fn(object[i], i, object) === false) {
@@ -442,7 +445,10 @@
          * @return {Function}
          */
         singleton = function(fn, context) {
-            return memoize(fn.bind(context), function() {
+            if (context) {
+                fn = fn.bind(context);
+            }
+            return memoize(fn, function() {
                 return 1;
             });
         },
@@ -2031,7 +2037,12 @@
         Module.require(ids, callback, data.cwd + "_require_" + cid());
         return S;
     };
-    S.realpath = realpath;
+
+    S.mix({
+        realpath: realpath,
+        loadScript: request,
+        loadCss: request
+    });
 
 })(tbtx);
 

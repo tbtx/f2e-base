@@ -36,10 +36,13 @@
          * return false终止循环
          * 原生every必须return true or false
          */
-        each = function(object, fn) {
+        each = function(object, fn, context) {
             var i = 0,
                 length = object.length;
 
+            if (context) {
+                fn = fn.bind(context);
+            }
             if (length === +length) {
                 for (; i < length; i++) {
                     if (fn(object[i], i, object) === false) {
@@ -344,7 +347,10 @@
          * @return {Function}
          */
         singleton = function(fn, context) {
-            return memoize(fn.bind(context), function() {
+            if (context) {
+                fn = fn.bind(context);
+            }
+            return memoize(fn, function() {
                 return 1;
             });
         },

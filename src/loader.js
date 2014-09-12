@@ -742,6 +742,11 @@
         Module.require(ids, callback, data.cwd + "_require_" + cid());
         return S;
     };
-    S.realpath = realpath;
+
+    S.mix({
+        realpath: realpath,
+        loadScript: request,
+        loadCss: request
+    });
 
 })(tbtx);

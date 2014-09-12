@@ -18,7 +18,7 @@
         define([ "jquery" ], factory);
     } else {
         // 全局模式
-        factory(jQuery, window, document);
+        factory(jQuery);
     }
 }(function ($) {
     var $window = $(window);
