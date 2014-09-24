@@ -1,7 +1,7 @@
 /*
  * tbtx-base-js
  * version: 2.0.0
- * update: 2014-09-24 3:21:06
+ * update: 2014-09-24 4:40:22
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -2803,15 +2803,16 @@
                     if (response) {
                         code = response.code;
                         result = response.result;
-                    }
 
-                    if (code === successCode) {
                         // 有result返回result，没有result返回response
                         // 返回result时加一层result来兼容之前的写法
                         if (result) {
                             response = result;
                             response.result = S.extend(Array.isArray(response) ? [] : {}, response);
                         }
+                    }
+
+                    if (code === successCode) {
                         deferred.resolve(response);
                     } else {
                         deferred.reject(code, response);
