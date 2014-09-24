@@ -28,7 +28,7 @@
          * Throws error message.
          */
         error: function (msg) {
-            throw msg instanceof Error ? msg : new Error(msg);
+            throw S.isError(msg) ? msg : new Error(msg);
         },
 
         /**

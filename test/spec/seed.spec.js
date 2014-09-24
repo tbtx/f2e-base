@@ -25,11 +25,23 @@ describe("seed", function() {
         });
 
         it("should get a config with fn", function() {
-            fns.e = function() {
-                return "fne";
+            fns.path = function() {
+                return "my path";
             };
-            expect(S.config("e")).toEqual("fne");
+            expect(S.config("path")).toEqual("my path");
         });
 
+        it("should set a config with fn", function() {
+            fns.var = function(val) {
+                if (val) {
+                    Config.var = "my " + val;
+                } else {
+                    return "getter";
+                }
+            };
+            S.config("var", "var");
+            expect(Config.var).toEqual("my var");
+            expect(S.config("var")).toEqual("getter");
+        });
     });
 });

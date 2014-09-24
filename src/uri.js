@@ -6,7 +6,6 @@
     var each = S.each,
         isString = S.isString,
         makeArray = S.makeArray,
-        memoize = S.memoize,
         log = S.log,
 
         encode = function(s) {
@@ -40,7 +39,7 @@
         /**
          * query字符串转为对象
          */
-        unparam = memoize(function(str, sep, eq) {
+        unparam = function(str, sep, eq) {
             str = (str + "").trim();
 
             if (!str) {
@@ -75,7 +74,7 @@
                 ret[key] = val;
             }
             return ret;
-        }),
+        },
 
         Query = S.Query = function(query) {
             this._query = query;
@@ -193,7 +192,7 @@
             return uri;
         },
 
-        isUri = memoize(function(val) {
+        isUri = function(val) {
             val = val + "";
 
             var first = val.charAt(0),
@@ -212,7 +211,7 @@
                 return !!((match[1] && match[3]) || (match[1] && match[5]));
             }
             return false;
-        });
+        };
 
     queryProto.add = queryProto.set;
 
@@ -271,7 +270,7 @@
         }
     };
 
-    Uri.getComponents = memoize(function(uri) {
+    Uri.getComponents = function(uri) {
         uri = uri || location.href;
 
         var m = uri.match(ruri) || [],
@@ -282,7 +281,7 @@
         });
 
         return ret;
-    });
+    };
 
 
     function isValidParamValue(val) {

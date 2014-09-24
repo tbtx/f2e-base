@@ -1,7 +1,7 @@
 /*
  * tbtx-base-js
  * version: 2.0.0
- * update: 2014-09-12 3:21:23
+ * update: 2014-09-24 3:21:06
  * shiyi_tbtx
  * tb_dongshuang.xiao@taobao.com
  */
@@ -35,7 +35,7 @@
          * Throws error message.
          */
         error: function (msg) {
-            throw msg instanceof Error ? msg : new Error(msg);
+            throw S.isError(msg) ? msg : new Error(msg);
         },
 
         /**
@@ -149,10 +149,8 @@
                 }
             } else {
                 for (i in object) {
-                    if (hasOwnProperty(object, i)) {
-                        if (fn(object[i], i, object) === false) {
-                            break;
-                        }
+                    if (hasOwnProperty(object, i) && (fn(object[i], i, object) === false)) {
+                        break;
                     }
                 }
             }
@@ -183,11 +181,11 @@
                 fn = this,
                 noop = function() {},
                 ret = function() {
-                    // 已经bind过context, context还应该是this
-                    return fn.apply(this instanceof noop && context ? this : context || global, args.concat(slice.call(arguments)));
+                    // bind过context再new
+                    return fn.apply(this instanceof noop? this : context || global, args.concat(slice.call(arguments)));
                 };
 
-            noop.prototype = this.prototype;
+            noop.prototype = fn.prototype;
             ret.prototype = new noop();
             return ret;
         };
@@ -407,7 +405,7 @@
         };
     });
 
-    "Boolean Number String Function Array Date RegExp Object".replace(rword, function(name, lc) {
+    "Boolean Number String Function Array Date RegExp Object Error".replace(rword, function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
         S["is" + name] = function(o) {
             return type(o) === lc;
@@ -849,7 +847,7 @@
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
                 }
-                return (o[name] === undefined) ? blank ? match : "" : o[name];
+                return (o[name] == null) ? blank ? match : "" : o[name];
             });
         },
 
@@ -902,7 +900,6 @@
     var each = S.each,
         isString = S.isString,
         makeArray = S.makeArray,
-        memoize = S.memoize,
         log = S.log,
 
         encode = function(s) {
@@ -936,7 +933,7 @@
         /**
          * query字符串转为对象
          */
-        unparam = memoize(function(str, sep, eq) {
+        unparam = function(str, sep, eq) {
             str = (str + "").trim();
 
             if (!str) {
@@ -971,7 +968,7 @@
                 ret[key] = val;
             }
             return ret;
-        }),
+        },
 
         Query = S.Query = function(query) {
             this._query = query;
@@ -1089,7 +1086,7 @@
             return uri;
         },
 
-        isUri = memoize(function(val) {
+        isUri = function(val) {
             val = val + "";
 
             var first = val.charAt(0),
@@ -1108,7 +1105,7 @@
                 return !!((match[1] && match[3]) || (match[1] && match[5]));
             }
             return false;
-        });
+        };
 
     queryProto.add = queryProto.set;
 
@@ -1167,7 +1164,7 @@
         }
     };
 
-    Uri.getComponents = memoize(function(uri) {
+    Uri.getComponents = function(uri) {
         uri = uri || location.href;
 
         var m = uri.match(ruri) || [],
@@ -1178,7 +1175,7 @@
         });
 
         return ret;
-    });
+    };
 
 
     function isValidParamValue(val) {
@@ -2707,11 +2704,9 @@
 })(tbtx);
 
 
-;define("request", ["jquery", "json"], function($) {
+;(function(S) {
 
-    var S = tbtx,
-        cookie = S.cookie,
-        isPlainObject = S.isPlainObject,
+    var cookie = S.cookie,
         config = S.config,
         key = "tokenName",
 
@@ -2748,100 +2743,106 @@
         }
     });
 
-    var deferredMap = {},
-        requestData = {},
+    S.define("request", ["jquery", "json"], function($) {
+        var isPlainObject = S.isPlainObject,
+            deferredMap = {},
+            requestData = {},
 
-        request = function(url, data, successCode, nocache) {
-            var settings = {
-                type: "post",
-                dataType: "json",
-                timeout: 10000
+            request = function(url, data, successCode, nocache) {
+                var settings = {
+                    type: "post",
+                    dataType: "json",
+                    timeout: 10000
+                };
+
+                if (isPlainObject(url)) {
+                    settings = S.extend(settings, url);
+                    nocache = successCode;
+                    successCode = data;
+                } else {
+                    data = data || {};
+
+                    if (!isPlainObject(data)) {
+                        data = S.unparam(data);
+                    }
+
+                    settings.url = url;
+                    settings.data = data;
+                }
+
+                // 做个trim防止出错
+                url = settings.url.trim();
+                data = settings.data;
+                if (typeof successCode === "boolean") {
+                    nocache = successCode;
+                    successCode = 0;
+                }
+                successCode = successCode || config("requestSuccessCode");
+
+
+                var deferred = deferredMap[url];
+                if (!nocache && deferred && deferred.state() === "pending") {
+                    if (isEqual(data, requestData[url])) {
+                        deferred.notify(config("requestingCode"));
+                        return deferred.promise();
+                    }
+                }
+
+
+                deferred = deferredMap[url] = $.Deferred();
+                requestData[url] = data;
+
+                data.jtoken = generateToken();
+
+                // url 加上时间戳
+                settings.url = S.addQueryParam(url, "_", String(Math.random()).replace(/\D/g, ""));
+
+                $.ajax(settings)
+                .done(function(response) {
+                    var code, result;
+                    if (response) {
+                        code = response.code;
+                        result = response.result;
+                    }
+
+                    if (code === successCode) {
+                        // 有result返回result，没有result返回response
+                        // 返回result时加一层result来兼容之前的写法
+                        if (result) {
+                            response = result;
+                            response.result = S.extend(Array.isArray(response) ? [] : {}, response);
+                        }
+                        deferred.resolve(response);
+                    } else {
+                        deferred.reject(code, response);
+                    }
+                })
+                .fail(function(xhr, status, err) {
+                    var msgs = config("requestFailMsg");
+
+                    deferred.reject(config("requestFailCode"), {
+                        code: config("requestFailCode"),
+                        url: url,
+                        msg: msgs[xhr.status] || msgs[status] || msgs.def
+                    });
+                });
+
+                return deferred.promise();
             };
 
-            if (isPlainObject(url)) {
-                settings = S.extend(settings, url);
-                nocache = successCode;
-                successCode = data;
-            } else {
-                data = data || {};
+        // 大写兼容之前的用法
+        S.Request = S.request = request;
 
-                if (!isPlainObject(data)) {
-                    data = S.unparam(data);
-                }
+        function isEqual(a, b) {
+            return JSON.stringify(a) == JSON.stringify(b);
+        }
 
-                settings.url = url;
-                settings.data = data;
-            }
+        return request;
+    });
 
-            // 做个trim防止出错
-            url = settings.url.trim();
-            data = settings.data;
-            if (typeof successCode === "boolean") {
-                nocache = successCode;
-                successCode = 0;
-            }
-            successCode = successCode || config("requestSuccessCode");
+    S.generateToken = generateToken;
 
-
-            var deferred = deferredMap[url];
-            if (!nocache && deferred && deferred.state() === "pending") {
-                if (isEqual(data, requestData[url])) {
-                    deferred.notify(config("requestingCode"));
-                    return deferred.promise();
-                }
-            }
-
-
-            deferred = deferredMap[url] = $.Deferred();
-            requestData[url] = data;
-
-            data.jtoken = generateToken();
-
-            // url 加上时间戳
-            settings.url = S.addQueryParam(url, "_", String(Math.random()).replace(/\D/g, ""));
-
-            $.ajax(settings)
-            .done(function(response) {
-                var code, result;
-                if (response) {
-                    code = response.code;
-                    result = response.result;
-                }
-
-                if (code === successCode) {
-                    // 有result返回result，没有result返回response
-                    // 返回result时加一层result来兼容之前的写法
-                    if (result) {
-                        response = result;
-                        response.result = S.extend(Array.isArray(response) ? [] : {}, response);
-                    }
-                    deferred.resolve(response);
-                } else {
-                    deferred.reject(code, response);
-                }
-            })
-            .fail(function(xhr, status, err) {
-                var msgs = config("requestFailMsg");
-
-                deferred.reject(config("requestFailCode"), {
-                    code: config("requestFailCode"),
-                    url: url,
-                    msg: msgs[xhr.status] || msgs[status] || msgs.def
-                });
-            });
-
-            return deferred.promise();
-        };
-
-    // 大写兼容之前的用法
-    S.Request = S.request = request;
-
-    function isEqual(a, b) {
-        return JSON.stringify(a) == JSON.stringify(b);
-    }
-
-    return request;
-});
+})(tbtx);
 
 ;define("msg", ["widget", "position", "base/2.0/css/msg.css"], function(Widget, Position) {
     var S = tbtx;

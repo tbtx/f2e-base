@@ -51,10 +51,8 @@
                 }
             } else {
                 for (i in object) {
-                    if (hasOwnProperty(object, i)) {
-                        if (fn(object[i], i, object) === false) {
-                            break;
-                        }
+                    if (hasOwnProperty(object, i) && (fn(object[i], i, object) === false)) {
+                        break;
                     }
                 }
             }
@@ -85,11 +83,11 @@
                 fn = this,
                 noop = function() {},
                 ret = function() {
-                    // 已经bind过context, context还应该是this
-                    return fn.apply(this instanceof noop && context ? this : context || global, args.concat(slice.call(arguments)));
+                    // bind过context再new
+                    return fn.apply(this instanceof noop? this : context || global, args.concat(slice.call(arguments)));
                 };
 
-            noop.prototype = this.prototype;
+            noop.prototype = fn.prototype;
             ret.prototype = new noop();
             return ret;
         };
@@ -309,7 +307,7 @@
         };
     });
 
-    "Boolean Number String Function Array Date RegExp Object".replace(rword, function(name, lc) {
+    "Boolean Number String Function Array Date RegExp Object Error".replace(rword, function(name, lc) {
         class2type["[object " + name + "]"] = (lc = name.toLowerCase());
         S["is" + name] = function(o) {
             return type(o) === lc;
@@ -751,7 +749,7 @@
                 if (match.charAt(0) === '\\') {
                     return match.slice(1);
                 }
-                return (o[name] === undefined) ? blank ? match : "" : o[name];
+                return (o[name] == null) ? blank ? match : "" : o[name];
             });
         },
 
