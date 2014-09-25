@@ -70,6 +70,17 @@ describe('lang', function() {
         });
     });
 
+    describe("memoize", function() {
+        it("should memoize the result of the function", function() {
+            var f = S.memoize(function(val) {
+                return {
+                    val: val
+                };
+            });
+            expect(f(1)).toBe(f(1));
+        });
+    });
+
     describe("singleton", function() {
         it("should get only one instance", function() {
             var getInstance = S.singleton(function() {
@@ -96,6 +107,8 @@ describe('lang', function() {
             };
             var t = "<a {{name}} {{age}}>";
             expect(S.substitute(t, o)).toEqual("<a alex 18>");
+
+            expect(S.substitute("{{ name }}", {}, true)).toEqual("{{ name }}");
         });
     });
 

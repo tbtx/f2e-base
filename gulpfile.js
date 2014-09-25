@@ -1,25 +1,37 @@
 var gulp = require('gulp');
+var fs = require("fs");
 var gulpLoadPlugins = require('gulp-load-plugins');
 var plugins = gulpLoadPlugins();
+var pkg = require('./package.json');
+
+var header = fs.readFileSync("header.txt", "utf-8");
 
 gulp.task("jshint", function() {
     gulp.src([
             './src/*.js',
             '!./src/intro.js',
-            '!./src/outro.js'
+            '!./src/outro.js',
+            './tbtx.js'
         ])
         .pipe(plugins.jshint())
         .pipe(plugins.jshint.reporter('default'));
 });
 
 gulp.task('main', function() {
-    var modules = ['intro', 'seed', 'lang', 'uri', 'outro'];
+    var modules = ['intro', 'seed', 'lang', 'uri', 'events', 'support', 'loader', 'config', 'cookie', "date", 'outro'];
 
 
     gulp.src(modules.map(function(module) {
             return './src/' + module + '.js';
         }))
         .pipe(plugins.concat('tbtx.js'))
+        .pipe(plugins.header(header, {
+            pkg: pkg,
+            buildTime: new Date().toLocaleString()
+        }))
+        .pipe(gulp.dest('.'))
+        .pipe(plugins.concat('tbtx.min.js'))
+        .pipe(plugins.uglify())
         .pipe(gulp.dest('.'));
 });
 

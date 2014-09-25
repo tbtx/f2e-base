@@ -34,9 +34,9 @@ describe("uri", function() {
             // S.log(q.toString());
         });
     });
-    describe('parseUrl', function() {
+    describe('parseUri', function() {
         it("should get the info of a url", function() {
-            var r = S.parseUrl("http://miiee.taobao.com/choice.htm?spm=a310i.2181413.5731757.9.Jmv67O&pcid=8101&banner=nvzhuang#page-5");
+            var r = S.parseUri("http://miiee.taobao.com/choice.htm?spm=a310i.2181413.5731757.9.Jmv67O&pcid=8101&banner=nvzhuang#page-5");
             expect(r.scheme).toEqual("http");
             expect(r.domain).toEqual("miiee.taobao.com");
         });

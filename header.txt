@@ -1,0 +1,7 @@
+/**
+ * @name:       <%= pkg.name %>
+ * @author:     <%= pkg.author %>
+ * @email:      <%= pkg.email %>
+ * @version:    v<%= pkg.version %>
+ * @buildTime:  <%= buildTime %>
+ */

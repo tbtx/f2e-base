@@ -286,6 +286,10 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     isError = S.isError,
     isDate = S.isDate,
 
+    isNotEmptyString = function(val) {
+        return isString(val) && val !== "";
+    },
+
     memoize = function(fn, hasher) {
         var memo = {};
 
@@ -317,6 +321,24 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         }
         return memoize(fn, function() {
             return 1;
+        });
+    },
+
+    /**
+     * {{ name }} -> {{ o[name] }}
+     * \{{}} -> \{{}}
+     * reserve 是否保留{{ var }}来进行多次替换, 默认不保留，即替换为空
+     */
+    substitute = function(str, o, reserve) {
+        if (!isString(str) && !isArray(o) && !isPlainObject(o)) {
+            return str;
+        }
+
+        return str.replace(rsubstitute, function(match, name) {
+            if (match.charAt(0) === '\\') {
+                return match.slice(1);
+            }
+            return (o[name] == null) ? reserve ? match : "" : o[name];
         });
     },
 
@@ -461,6 +483,10 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         };
     },
 
+    ucfirst = function(str) {
+        return str.charAt(0).toUpperCase() + str.substring(1);
+    },
+
     htmlEntities = {
         "&amp;": "&",
         "&gt;": ">",
@@ -525,13 +551,9 @@ extend(S, {
     cidGenerator: cidGenerator,
     uniqueCid: cidGenerator(),
 
-    isNotEmptyString: function(val) {
-        return isString(val) && val !== "";
-    },
+    isNotEmptyString: isNotEmptyString,
 
-    ucfirst: function(str) {
-        return str.charAt(0).toUpperCase() + str.substring(1);
-    },
+    ucfirst: ucfirst,
 
     random: function(min, max) {
         var array, seed;
@@ -636,24 +658,7 @@ extend(S, {
         return f;
     },
 
-    /**
-     * {{ name }} -> {{ o[name] }}
-     * \{{}} -> \{{}}
-     * blank 是否处理空
-     * 默认没有替换为空
-     */
-    substitute: function(str, o, blank) {
-        if (!isString(str) && !isArray(o) && !isPlainObject(o)) {
-            return str;
-        }
-
-        return str.replace(rsubstitute, function(match, name) {
-            if (match.charAt(0) === '\\') {
-                return match.slice(1);
-            }
-            return (o[name] == null) ? blank ? match : "" : o[name];
-        });
-    },
+    substitute: substitute,
 
     /**
      * 对字符串进行截断处理

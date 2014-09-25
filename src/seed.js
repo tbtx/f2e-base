@@ -1,9 +1,19 @@
 
 var location = global.location,
 
+    ua = navigator.userAgent,
+
+    documentElement = document.documentElement,
+
+    head = document.head || document.getElementsByTagName("head")[0] || documentElement,
+
     isSupportConsole = global.console && console.log,
 
     noop = function() {},
+
+    error = function (msg) {
+        throw isError(msg) ? msg : new Error(msg);
+    },
 
     /**
      * 配置getter/setter
@@ -44,9 +54,7 @@ S = global[S] = {
     /**
      * Throws error message.
      */
-    error: function (msg) {
-        throw isError(msg) ? msg : new Error(msg);
-    },
+    error: error,
 
     /**
      * global对象，在浏览器环境中为window
