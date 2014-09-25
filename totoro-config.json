@@ -1,0 +1,3 @@
+{
+  "browsers": ["chrome", "firefox", "safari", "ie/8.0", "ie/9.0", "ie/10.0", "ie/11.0"]
+}

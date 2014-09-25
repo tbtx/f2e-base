@@ -1,0 +1,7 @@
+{
+    "eqnull": true,
+    "-W079": true,
+    "browser": true,      // 访问浏览器全局变量
+    "sub": true,          // person['name'] vs. person.name
+    "debug": true        // debugger statements
+}

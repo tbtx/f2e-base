@@ -1,0 +1,12 @@
+{
+    "name": "tbtx-base-js",
+    "author": "shiyi_tbtx",
+    "email": "tb_dongshuang.xiao@taobao.com",
+    "version": "2.5.0",
+    "devDependencies": {
+        "gulp": "^3.8.7",
+        "gulp-concat": "^2.3.4",
+        "gulp-jshint": "^1.8.4",
+        "gulp-load-plugins": "^0.6.0"
+    }
+}
