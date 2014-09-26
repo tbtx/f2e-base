@@ -1,10 +1,10 @@
+
 /**
 * an amd loader
 * thanks [seajs](http://seajs.org/)
 * 将seajs改造为一个amd加载器
 * 尽量减少对seajs代码的修改
 */
-
 var Loader = S.Loader = {},
     data = Loader.data = {},
     cid = cidGenerator(),
@@ -12,7 +12,7 @@ var Loader = S.Loader = {},
     DIRNAME_RE = /[^?#]*\//,
     DOT_RE = /\/\.\//g,
     DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//,
-    MULTI_SLASH_RE = /([^:/])\/\//g;
+    MULTI_SLASH_RE = /([^:/])\/+\//g;
 
 // Extract the directory portion of a path
 // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
@@ -235,7 +235,7 @@ function addOnload(node, callback, isCSS) {
         // Ensure only run once and handle memory leak in IE
         node.onload = node.onerror = node.onreadystatechange = null;
 
-        if(!isCSS) {
+        if(!isCSS && !S.config("debug")) {
             head.removeChild(node);
         }
 
@@ -245,11 +245,7 @@ function addOnload(node, callback, isCSS) {
     };
 
     if (supportOnload) {
-        node.onload = onload;
-        node.onerror = function(error) {
-            S.log(error, "error", "request " + isCSS ? "css" : "js");
-            onload();
-        };
+        node.onload = node.onerror = onload;
     } else {
         node.onreadystatechange = function() {
             if (/loaded|complete/.test(node.readyState)) {
@@ -394,10 +390,10 @@ Module.prototype = {
         // 未加载的依赖数
         var len = mod._remain = uris.length,
             m,
-            i = 0;
+            i;
 
         // Initialize modules and register waitings
-        for (; i < len; i++) {
+        for (i = 0; i < len; i++) {
             m = Module.get(uris[i]);
 
             if (m.status < STATUS.EXECUTED) {
@@ -580,26 +576,21 @@ Module.get = function(uri, deps) {
 Module.require = function(ids, callback, uri) {
     // 匿名模块uri根据preload，require等+cid进行区分
     // 需要uri来创建模块，注册依赖
-    var mod = Module.get(uri, isArray(ids) ? ids : [ids]);
+    var mod = Module.get(uri, makeArray(ids));
 
     // 注册模块完成时的callback
     // 获取依赖模块的export并且执行callback
-    mod.callback = function() {
-        var exports = [],
-            uris = mod.resolve(),
-            i = 0,
-            len = uris.length;
+    if (callback) {
+        mod.callback = function() {
+            var uris = mod.resolve(),
+                exports = uris.map(function(uri) {
+                    return cachedMods[uri].exports;
+                });
 
-        for (; i < len; i++) {
-            exports[i] = cachedMods[uris[i]].exports;
-        }
-
-        if (callback) {
             callback.apply(global, exports);
-        }
-
-        delete mod.callback;
-    };
+            delete mod.callback;
+        };
+    }
 
     mod.load();
 };
@@ -726,13 +717,15 @@ Loader.config = function(configData) {
 
 Loader.resolve = id2Uri;
 
-global.define = S.define = Module.define;
-global.require = S.require = function(ids, callback) {
+var define = global.define = Module.define;
+var require = global.require = function(ids, callback) {
     Module.require(ids, callback, data.cwd + "_require_" + cid());
     return S;
 };
 
 S.mix({
+    define: define,
+    require: require,
     realpath: realpath,
     loadScript: request,
     loadCss: request

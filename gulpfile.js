@@ -18,7 +18,7 @@ gulp.task("jshint", function() {
 });
 
 gulp.task('main', function() {
-    var modules = ['intro', 'seed', 'lang', 'uri', 'events', 'support', 'loader', 'config', 'cookie', "date", 'outro'];
+    var modules = ['intro', 'seed', 'lang', 'uri', 'events', 'support', 'loader', 'config', 'cookie', 'request', 'outro'];
 
 
     gulp.src(modules.map(function(module) {

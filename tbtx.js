@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Thu Sep 25 2014 18:06:20 GMT+0800 (中国标准时间)
+ * @buildTime:  Fri Sep 26 2014 16:25:59 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -140,6 +140,8 @@ var AP = Array.prototype,
 
     // 是否是复杂类型
     // rcomplexType = /^(?:object|array)$/,
+
+    rtags = /<[^>]+>/img,
 
     rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/mg,
 
@@ -587,6 +589,73 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return target;
     },
 
+    /**
+     * 判断两个变量是否相等
+     * 数字特殊情况不做判断 如0 == -0
+     * regexp不特殊判断
+     */
+    isEqual = function(a, b) {
+
+        var ret = a === b,
+            aType,
+            bType;
+
+        if (ret || (a == null || b == null)) {
+            return ret;
+        }
+
+        aType = type(a);
+        bType = type(b);
+        /**
+         * type不同即不相等
+         */
+        if (aType !== bType) {
+            return false;
+        }
+
+        switch (aType) {
+            case "array":
+            case "object":
+                return compareObject(a, b);
+            /**
+             * new String("a")
+             */
+            case "string":
+                return a == String(b);
+            case "number":
+                return ret;
+            case "date":
+            case "boolean":
+                return +a == +b;
+        }
+
+        return ret;
+    },
+
+    compareObject = function(a, b) {
+        var p;
+
+        for (p in b) {
+            if (!hasOwnProperty(a, p) && hasOwnProperty(b, p)) {
+                return false;
+            }
+        }
+        for (p in a) {
+            if (!hasOwnProperty(b, p) && hasOwnProperty(a, p)) {
+                return false;
+            }
+        }
+        for (p in b) {
+            if (!isEqual(a[p], b[p])) {
+                return false;
+            }
+        }
+        if (isArray(a) && isArray(b) && a.length !== b.length) {
+            return false;
+        }
+        return true;
+    },
+
     cidGenerator = function(prefix) {
         prefix = prefix || 0;
 
@@ -653,6 +722,8 @@ extend(S, {
     isWindow: isWindow,
 
     isPlainObject: isPlainObject,
+
+    isEqual: isEqual,
 
     type: type,
 
@@ -777,10 +848,14 @@ extend(S, {
      * 对字符串进行截断处理
      */
     truncate: function(str, length, truncation) {
-        str = str + "";
+        str += "";
         truncation = truncation || "...";
 
         return str.length > length ? str.slice(0, length - truncation.length) + truncation : str;
+    },
+
+    stripTags: function(str) {
+        return (str + "").replace(rtags, "");
     },
 
     escapeHtml: escapeHtml,
@@ -928,7 +1003,7 @@ var encode = encodeURIComponent,
     },
 
     isUri = function(val) {
-        val = val + "";
+        val += "";
 
         var first = val.charAt(0),
             match;
@@ -1227,13 +1302,13 @@ S.mix({
     prefixed: prefixed
 });
 
+
 /**
 * an amd loader
 * thanks [seajs](http://seajs.org/)
 * 将seajs改造为一个amd加载器
 * 尽量减少对seajs代码的修改
 */
-
 var Loader = S.Loader = {},
     data = Loader.data = {},
     cid = cidGenerator(),
@@ -1241,7 +1316,7 @@ var Loader = S.Loader = {},
     DIRNAME_RE = /[^?#]*\//,
     DOT_RE = /\/\.\//g,
     DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//,
-    MULTI_SLASH_RE = /([^:/])\/\//g;
+    MULTI_SLASH_RE = /([^:/])\/+\//g;
 
 // Extract the directory portion of a path
 // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
@@ -1464,7 +1539,7 @@ function addOnload(node, callback, isCSS) {
         // Ensure only run once and handle memory leak in IE
         node.onload = node.onerror = node.onreadystatechange = null;
 
-        if(!isCSS) {
+        if(!isCSS && !S.config("debug")) {
             head.removeChild(node);
         }
 
@@ -1474,11 +1549,7 @@ function addOnload(node, callback, isCSS) {
     };
 
     if (supportOnload) {
-        node.onload = onload;
-        node.onerror = function(error) {
-            S.log(error, "error", "request " + isCSS ? "css" : "js");
-            onload();
-        };
+        node.onload = node.onerror = onload;
     } else {
         node.onreadystatechange = function() {
             if (/loaded|complete/.test(node.readyState)) {
@@ -1623,10 +1694,10 @@ Module.prototype = {
         // 未加载的依赖数
         var len = mod._remain = uris.length,
             m,
-            i = 0;
+            i;
 
         // Initialize modules and register waitings
-        for (; i < len; i++) {
+        for (i = 0; i < len; i++) {
             m = Module.get(uris[i]);
 
             if (m.status < STATUS.EXECUTED) {
@@ -1809,26 +1880,21 @@ Module.get = function(uri, deps) {
 Module.require = function(ids, callback, uri) {
     // 匿名模块uri根据preload，require等+cid进行区分
     // 需要uri来创建模块，注册依赖
-    var mod = Module.get(uri, isArray(ids) ? ids : [ids]);
+    var mod = Module.get(uri, makeArray(ids));
 
     // 注册模块完成时的callback
     // 获取依赖模块的export并且执行callback
-    mod.callback = function() {
-        var exports = [],
-            uris = mod.resolve(),
-            i = 0,
-            len = uris.length;
+    if (callback) {
+        mod.callback = function() {
+            var uris = mod.resolve(),
+                exports = uris.map(function(uri) {
+                    return cachedMods[uri].exports;
+                });
 
-        for (; i < len; i++) {
-            exports[i] = cachedMods[uris[i]].exports;
-        }
-
-        if (callback) {
             callback.apply(global, exports);
-        }
-
-        delete mod.callback;
-    };
+            delete mod.callback;
+        };
+    }
 
     mod.load();
 };
@@ -1955,13 +2021,15 @@ Loader.config = function(configData) {
 
 Loader.resolve = id2Uri;
 
-global.define = S.define = Module.define;
-global.require = S.require = function(ids, callback) {
+var define = global.define = Module.define;
+var require = global.require = function(ids, callback) {
     Module.require(ids, callback, data.cwd + "_require_" + cid());
     return S;
 };
 
 S.mix({
+    define: define,
+    require: require,
     realpath: realpath,
     loadScript: request,
     loadCss: request
@@ -2072,4 +2140,117 @@ if (jQuery) {
 }
 
 
+
+var MILLISECONDS_OF_DAY = 24 * 60 * 60 * 1000,
+
+    cookie = S.cookie = {
+        /**
+         * 获取 cookie 值
+         * @return {string} 如果 name 不存在，返回 undefined
+         */
+        get: function(name) {
+            var ret, m;
+
+            if (isNotEmptyString(name)) {
+                if ((m = String(document.cookie).match(
+                    new RegExp('(?:^| )' + name + '(?:(?:=([^;]*))|;|$)')))) {
+                    ret = m[1] ? decode(m[1]) : '';
+                }
+            }
+            return ret;
+        },
+
+        set: function(name, val, domain, expires, path, secure) {
+            var text = String(encode(val)),
+                date = expires;
+
+            // 从当前时间开始，多少天后过期
+            if (typeof date === 'number') {
+                date = new Date();
+                date.setTime(date.getTime() + expires * MILLISECONDS_OF_DAY);
+            }
+
+            // expiration date
+            if (date instanceof Date) {
+                text += '; expires=' + date.toUTCString();
+            }
+
+            // domain
+            if (isNotEmptyString(domain)) {
+                text += '; domain=' + domain;
+            }
+
+            // path
+            if (isNotEmptyString(path)) {
+                text += '; path=' + path;
+            }
+
+            // secure
+            if (secure) {
+                text += '; secure';
+            }
+
+            document.cookie = name + '=' + text;
+            return this;
+        },
+
+        remove: function(name, domain, path, secure) {
+            // 置空，并立刻过期
+            this.set(name, '', domain, -1, path, secure);
+            return this;
+        }
+    };
+
+define("request.config", function() {
+
+    var key = "tokenName",
+
+        random = function() {
+            return String(Math.random()).slice(2);
+        },
+
+        token = random() + random() + random(),
+
+        generateToken = function() {
+            cookie.set(S.config(key), token, "", "", "/");
+            return token;
+        };
+
+    // 默认蜜儿
+    S.config(key, "MIIEE_JTOKEN");
+
+    S.config({
+        request: {
+            code: {
+                fail: -1,
+                success: 100,
+                pending: -2
+            },
+            msg: {
+                def: "请求失败！请重试！",
+                0: "无法连接到服务器！",
+                // "301": "请求被重定向!",
+                // "302": "请求被临时重定向！",
+                500: "服务器出错!",
+                timeout: "请求超时！请检查网络连接！",
+                // "abort": "请求被终止！",
+                parsererror: "服务器出错或数据解析出错！"
+            }
+        }
+    });
+
+    S.generateToken = generateToken;
+});
+
+require("request.config");
+
+define("request", ["jquery"], function($) {
+
+    /**
+     * 拦截器
+     * @type {Array}
+     */
+    var interceptors = [];
+
+});
 })(typeof window !== "undefined" ? window : this, document, "tbtx");

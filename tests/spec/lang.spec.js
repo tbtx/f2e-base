@@ -187,6 +187,33 @@ describe('lang', function() {
         });
     });
 
+    describe("isEqual", function() {
+        it("should test if two variable isEqual", function() {
+            expect(S.isEqual(1, 1)).toBeTruthy();
+            expect(S.isEqual(1, 2)).toBeFalsy();
+            expect(S.isEqual(null, undefined)).toBeFalsy();
+            expect(S.isEqual(null, null)).toBeTruthy();
+            expect(S.isEqual(undefined, undefined)).toBeTruthy();
+
+            expect(S.isEqual("a", "b")).toBeFalsy();
+            expect(S.isEqual("b", "b")).toBeTruthy();
+            expect(S.isEqual("a", new String("a"))).toBeTruthy();
+
+            expect(S.isEqual(true, true)).toBeTruthy();
+            expect(S.isEqual(true, false)).toBeFalsy();
+
+            var t = new Date();
+            expect(S.isEqual(t, t)).toBeTruthy();
+
+            expect(S.isEqual([1, 2, 3], [3, 2, 1])).toBeFalsy();
+            expect(S.isEqual([1, 2, 3], [1, 2, 3])).toBeTruthy();
+            expect(S.isEqual([1, 2, 3, 4], [1, 2, 3])).toBeFalsy();
+
+            expect(S.isEqual({a: 1, b: 2}, {a: 1, b: 2})).toBeTruthy();
+            expect(S.isEqual({a: 1, b: 2}, {a: 2, b: 1})).toBeFalsy();
+            expect(S.isEqual({b: 2, a: 1}, {a: 1, b: 2})).toBeTruthy();
+        });
+    });
 
     describe('makeArray', function() {
         it("should make arguments to array", function() {

@@ -138,7 +138,7 @@ var encode = encodeURIComponent,
     },
 
     isUri = function(val) {
-        val = val + "";
+        val += "";
 
         var first = val.charAt(0),
             match;
