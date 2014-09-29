@@ -309,7 +309,7 @@ function isValidParamValue(val) {
     };
 });
 
-S.mix({
+extend({
     Query: Query,
     Uri: Uri,
 

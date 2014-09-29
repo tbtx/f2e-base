@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Fri Sep 26 2014 16:25:59 GMT+0800 (中国标准时间)
+ * @buildTime:  Mon Sep 29 2014 13:23:58 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -36,6 +36,40 @@ var location = global.location,
     Config = {
         debug: location.search.indexOf("debug") !== -1 ? true : false,
         fns: ConfigFns
+    },
+
+    _config = function(key, value) {
+        var self = S,
+            Config = self.Config,
+            fns = Config.fns,
+            fn,
+            ret = self;
+
+        if (isString(key)) {
+            fn = fns[key];
+            // get config
+            if (value === undefined) {
+                ret = fn ? fn.call(self) : Config[key];
+            } else { // set config
+                if (fn) {
+                    ret = fn.call(self, value);
+                } else {
+                    Config[key] = value;
+                }
+            }
+        } else {
+            // Object config
+            each(key, function(v, k) {
+                fn = fns[k];
+                if (fn) {
+                    fn.call(self, v);
+                } else {
+                    Config[k] = v;
+                }
+            });
+        }
+
+        return ret;
     };
 
 S = global[S] = {
@@ -77,39 +111,7 @@ S = global[S] = {
 
     Config: Config,
 
-    config: function(key, value) {
-        var self = S,
-            Config = self.Config,
-            fns = Config.fns,
-            fn,
-            ret = self;
-
-        if (isString(key)) {
-            fn = fns[key];
-            // get config
-            if (value === undefined) {
-                ret = fn ? fn.call(self) : Config[key];
-            } else { // set config
-                if (fn) {
-                    ret = fn.call(self, value);
-                } else {
-                    Config[key] = value;
-                }
-            }
-        } else {
-            // Object config
-            each(key, function(v, k) {
-                fn = fns[k];
-                if (fn) {
-                    fn.call(self, v);
-                } else {
-                    Config[k] = v;
-                }
-            });
-        }
-
-        return ret;
-    }
+    config: _config
 };
 
 /**
@@ -548,7 +550,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
 
         // extend itself if only one argument is passed
         if (i === length) {
-            target = this;
+            target = S;
             i--;
         }
 
@@ -711,7 +713,7 @@ each(htmlEntities, function(entity, k) {
     reverseEntities[entity] = k;
 });
 
-extend(S, {
+extend({
 
     each: each,
 
@@ -1174,7 +1176,7 @@ function isValidParamValue(val) {
     };
 });
 
-S.mix({
+extend({
     Query: Query,
     Uri: Uri,
 
@@ -1281,15 +1283,9 @@ var element = document.createElement("tbtx"),
     touch = "ontouchstart" in documentElement,
     mobile = !!ua.match(/AppleWebKit.*Mobile.*/) || touch,
     pad = !!ua.match(/iPad/i),
-    phone = mobile && !pad;
+    phone = mobile && !pad,
 
-// .add("canvas", function() {
-//     var elem = document.createElement("canvas");
-//     return !!(elem.getContext && elem.getContext("2d"));
-// })
-
-S.mix({
-    support: {
+    support = {
         transition: testPropsAll("transition"),
         transform: testPropsAll("transform"),
         touch: touch,
@@ -1297,7 +1293,15 @@ S.mix({
         pad: pad,
         phone: phone,
         placeholder: "placeholder" in document.createElement("input")
-    },
+    };
+
+// .add("canvas", function() {
+//     var elem = document.createElement("canvas");
+//     return !!(elem.getContext && elem.getContext("2d"));
+// })
+
+extend({
+    support: support,
     testPropsAll: testPropsAll,
     prefixed: prefixed
 });
@@ -1539,7 +1543,7 @@ function addOnload(node, callback, isCSS) {
         // Ensure only run once and handle memory leak in IE
         node.onload = node.onerror = node.onreadystatechange = null;
 
-        if(!isCSS && !S.config("debug")) {
+        if(!isCSS && !_config("debug")) {
             head.removeChild(node);
         }
 
@@ -1689,12 +1693,13 @@ Module.prototype = {
 
         mod.status = STATUS.LOADING;
 
-        var uris = mod.resolve();
+        var uris = mod.resolve(),
 
-        // 未加载的依赖数
-        var len = mod._remain = uris.length,
+            // 未加载的依赖数
+            len = mod._remain = uris.length,
             m,
-            i;
+            i,
+            uri = mod.uri;
 
         // Initialize modules and register waitings
         for (i = 0; i < len; i++) {
@@ -1702,7 +1707,7 @@ Module.prototype = {
 
             if (m.status < STATUS.EXECUTED) {
                 // Maybe duplicate
-                m._waitings[mod.uri] = (m._waitings[mod.uri] || 0) + 1;
+                m._waitings[uri] = (m._waitings[uri] || 0) + 1;
             } else {
                 mod._remain--;
             }
@@ -1743,25 +1748,6 @@ Module.prototype = {
         }
 
         mod.exec();
-
-        // Notify waiting modules to fire onload
-        var waitings = mod._waitings,
-            uri,
-            m;
-
-        for (uri in waitings) {
-            if (waitings.hasOwnProperty(uri)) {
-                m = cachedMods[uri];
-                m._remain -= waitings[uri];
-                if (m._remain === 0) {
-                    m.onload();
-                }
-            }
-        }
-
-        // Reduce memory taken
-        delete mod._waitings;
-        delete mod._remain;
     },
 
     // exec to get exports
@@ -1809,6 +1795,24 @@ Module.prototype = {
 
         // Emit `exec` event
         // emit("exec", mod)
+        //
+        // Notify waiting modules to fire onload
+        var waitings = mod._waitings,
+            m;
+
+        for (uri in waitings) {
+            if (waitings.hasOwnProperty(uri)) {
+                m = cachedMods[uri];
+                m._remain -= waitings[uri];
+                if (m._remain === 0) {
+                    m.onload();
+                }
+            }
+        }
+
+        // Reduce memory taken
+        delete mod._waitings;
+        delete mod._remain;
 
         return exports;
     },
@@ -1819,7 +1823,7 @@ Module.prototype = {
 
         mod.status = STATUS.FETCHING;
 
-        // Empty uri or a non-CMD module
+        // Empty uri or a non-AMD module
         if (!uri || fetchedList[uri]) {
             mod.load();
             return;
@@ -1941,7 +1945,9 @@ Module.define = function(id, deps, factory) {
         factory: factory
     };
 
-    // Try to derive uri in IE6-9 for anonymous modules
+    /**
+     * 具名模块直接save，匿名模块使用meta信息，在onload里面保存
+     */
     if (!meta.uri) {
         var script = getCurrentScript();
         if (script) {
@@ -2027,7 +2033,8 @@ var require = global.require = function(ids, callback) {
     return S;
 };
 
-S.mix({
+extend({
+    Module: Module,
     define: define,
     require: require,
     realpath: realpath,
@@ -2094,7 +2101,7 @@ Loader.config({
 
 });
 
-if (!S.config("debug")) {
+if (!_config("debug")) {
     Loader.config({
         // 每小时更新时间戳
         map: [
@@ -2201,6 +2208,95 @@ var MILLISECONDS_OF_DAY = 24 * 60 * 60 * 1000,
         }
     };
 
+/**
+ * formate格式只有2014/07/12 12:34:35的格式可以跨平台
+ * new Date()
+ * new Date(时间戳)
+ * new Date(year, month, day[, hour[, minute[, second[, millisecond]]]])
+ */
+
+var rformat = /y|m|d|h|i|s/gi,
+    rdate = /^(?:number|date)$/,
+    rnewdate = /^(?:number|string)$/;
+
+/*
+ * 将日期格式化成字符串
+ *  Y - 4位年
+ *  y - 2位年
+ *  M - 不补0的月,
+ *  m - 补0的月
+ *  D - 不补0的日期
+ *  d - 补0的日期
+ *  H - 不补0的小时
+ *  h - 补0的小时
+ *  I - 不补0的分
+ *  i - 补0的分
+ *  S - 不补0的秒
+ *  s - 补0的秒
+ *  毫秒暂不支持
+ *
+ * date只支持毫秒和Date
+ *  @return：指定格式的字符串
+ */
+function formatDate(format, date) {
+    // 交换参数
+    if (rdate.test(type(format))) {
+        date = [format, format = date][0];
+    }
+
+    format = format || "Y-m-d h:i:s";
+    date = normalizeDate(date);
+
+    return format.replace(rformat, function(k) {
+        return date[k];
+    });
+}
+
+// date转对象
+function normalizeDate(date) {
+    date = makeDate(date);
+
+    var o = {
+            Y: date.getFullYear(),
+            M: date.getMonth() + 1,
+            D: date.getDate(),
+            H: date.getHours(),
+            I: date.getMinutes(),
+            S: date.getSeconds()
+        },
+        ret = {};
+
+    each(o, function(v, k) {
+        // 统一结果为字符串
+        v += "";
+        ret[k] = v;
+
+        ret[k.toLowerCase()] = padding2(v).slice(-2);
+    });
+
+    return ret;
+}
+
+// 字符串/数字 -> Date
+function makeDate(date) {
+    if (isDate(date)) {
+        date = +date;
+    }
+
+    return rnewdate.test(type(date)) ? new Date(date) : new Date();
+}
+
+function padding2(str) {
+    str += "";
+    return str.length === 1 ? "0" + str : str;
+}
+
+extend({
+    normalizeDate: normalizeDate,
+    formatDate: formatDate
+});
+
+
 define("request.config", function() {
 
     var key = "tokenName",
@@ -2212,19 +2308,18 @@ define("request.config", function() {
         token = random() + random() + random(),
 
         generateToken = function() {
-            cookie.set(S.config(key), token, "", "", "/");
+            cookie.set(_config(key), token, "", "", "/");
             return token;
         };
 
     // 默认蜜儿
-    S.config(key, "MIIEE_JTOKEN");
+    _config(key, "MIIEE_JTOKEN");
 
-    S.config({
+    _config({
         request: {
             code: {
                 fail: -1,
-                success: 100,
-                pending: -2
+                success: 100
             },
             msg: {
                 def: "请求失败！请重试！",
@@ -2246,11 +2341,74 @@ require("request.config");
 
 define("request", ["jquery"], function($) {
 
-    /**
-     * 拦截器
-     * @type {Array}
-     */
-    var interceptors = [];
+    var defaultDeferred = {
+            done: noop,
+            fail: noop,
+            always: noop,
+            then: noop
+        },
 
+        config = _config("request"),
+
+        code = config.code,
+        msg = config.msg,
+
+        request = function(url, data, successCode) {
+            var options = {
+                method: "post",
+                dataType: "json",
+                timeout: 10000
+            };
+
+            if (typeof url === "object") {
+                options = extend(options, url);
+                successCode = data;
+            }
+
+            successCode = successCode || code.success;
+            data = data || {};
+            url = url.trim();
+            if (isString(data)) {
+                data = unparam(data);
+            }
+
+            data.jtoken = S.generateToken();
+            url = S.addQueryParam(url, "_", Date.now());
+            options.url = url;
+            options.data = data;
+
+            var ret = $.Deferred();
+
+            $.ajax(options).done(function(response) {
+                var code, result;
+                if (response) {
+                    code = response.code;
+                    result = response.result;
+
+                    // 有result返回result，没有result返回response
+                    // 返回result时加一层result来兼容之前的写法
+                    if (result) {
+                        response = result;
+                        response.result = extend(true, isArray(response) ? [] : {}, response);
+                    }
+                }
+
+                if (code === successCode) {
+                    ret.resolve(response, options);
+                } else {
+                    ret.reject(code, response, options);
+                }
+            }).fail(function(xhr, status, err) {
+                ret.reject(code.fail, {
+                    code: code.fail,
+                    url: url,
+                    msg: msg[xhr.status] || msg[status] || msg.def
+                });
+            });
+
+            return ret;
+        };
+
+    return request;
 });
 })(typeof window !== "undefined" ? window : this, document, "tbtx");

@@ -28,6 +28,40 @@ var location = global.location,
     Config = {
         debug: location.search.indexOf("debug") !== -1 ? true : false,
         fns: ConfigFns
+    },
+
+    _config = function(key, value) {
+        var self = S,
+            Config = self.Config,
+            fns = Config.fns,
+            fn,
+            ret = self;
+
+        if (isString(key)) {
+            fn = fns[key];
+            // get config
+            if (value === undefined) {
+                ret = fn ? fn.call(self) : Config[key];
+            } else { // set config
+                if (fn) {
+                    ret = fn.call(self, value);
+                } else {
+                    Config[key] = value;
+                }
+            }
+        } else {
+            // Object config
+            each(key, function(v, k) {
+                fn = fns[k];
+                if (fn) {
+                    fn.call(self, v);
+                } else {
+                    Config[k] = v;
+                }
+            });
+        }
+
+        return ret;
     };
 
 S = global[S] = {
@@ -69,37 +103,5 @@ S = global[S] = {
 
     Config: Config,
 
-    config: function(key, value) {
-        var self = S,
-            Config = self.Config,
-            fns = Config.fns,
-            fn,
-            ret = self;
-
-        if (isString(key)) {
-            fn = fns[key];
-            // get config
-            if (value === undefined) {
-                ret = fn ? fn.call(self) : Config[key];
-            } else { // set config
-                if (fn) {
-                    ret = fn.call(self, value);
-                } else {
-                    Config[key] = value;
-                }
-            }
-        } else {
-            // Object config
-            each(key, function(v, k) {
-                fn = fns[k];
-                if (fn) {
-                    fn.call(self, v);
-                } else {
-                    Config[k] = v;
-                }
-            });
-        }
-
-        return ret;
-    }
+    config: _config
 };

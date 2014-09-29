@@ -56,7 +56,7 @@ Loader.config({
 
 });
 
-if (!S.config("debug")) {
+if (!_config("debug")) {
     Loader.config({
         // 每小时更新时间戳
         map: [

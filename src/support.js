@@ -31,15 +31,9 @@ var element = document.createElement("tbtx"),
     touch = "ontouchstart" in documentElement,
     mobile = !!ua.match(/AppleWebKit.*Mobile.*/) || touch,
     pad = !!ua.match(/iPad/i),
-    phone = mobile && !pad;
+    phone = mobile && !pad,
 
-// .add("canvas", function() {
-//     var elem = document.createElement("canvas");
-//     return !!(elem.getContext && elem.getContext("2d"));
-// })
-
-S.mix({
-    support: {
+    support = {
         transition: testPropsAll("transition"),
         transform: testPropsAll("transform"),
         touch: touch,
@@ -47,7 +41,15 @@ S.mix({
         pad: pad,
         phone: phone,
         placeholder: "placeholder" in document.createElement("input")
-    },
+    };
+
+// .add("canvas", function() {
+//     var elem = document.createElement("canvas");
+//     return !!(elem.getContext && elem.getContext("2d"));
+// })
+
+extend({
+    support: support,
     testPropsAll: testPropsAll,
     prefixed: prefixed
 });

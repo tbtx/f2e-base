@@ -435,7 +435,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
 
         // extend itself if only one argument is passed
         if (i === length) {
-            target = this;
+            target = S;
             i--;
         }
 
@@ -598,7 +598,7 @@ each(htmlEntities, function(entity, k) {
     reverseEntities[entity] = k;
 });
 
-extend(S, {
+extend({
 
     each: each,
 

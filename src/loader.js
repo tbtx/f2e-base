@@ -235,7 +235,7 @@ function addOnload(node, callback, isCSS) {
         // Ensure only run once and handle memory leak in IE
         node.onload = node.onerror = node.onreadystatechange = null;
 
-        if(!isCSS && !S.config("debug")) {
+        if(!isCSS && !_config("debug")) {
             head.removeChild(node);
         }
 
@@ -385,12 +385,13 @@ Module.prototype = {
 
         mod.status = STATUS.LOADING;
 
-        var uris = mod.resolve();
+        var uris = mod.resolve(),
 
-        // 未加载的依赖数
-        var len = mod._remain = uris.length,
+            // 未加载的依赖数
+            len = mod._remain = uris.length,
             m,
-            i;
+            i,
+            uri = mod.uri;
 
         // Initialize modules and register waitings
         for (i = 0; i < len; i++) {
@@ -398,7 +399,7 @@ Module.prototype = {
 
             if (m.status < STATUS.EXECUTED) {
                 // Maybe duplicate
-                m._waitings[mod.uri] = (m._waitings[mod.uri] || 0) + 1;
+                m._waitings[uri] = (m._waitings[uri] || 0) + 1;
             } else {
                 mod._remain--;
             }
@@ -439,25 +440,6 @@ Module.prototype = {
         }
 
         mod.exec();
-
-        // Notify waiting modules to fire onload
-        var waitings = mod._waitings,
-            uri,
-            m;
-
-        for (uri in waitings) {
-            if (waitings.hasOwnProperty(uri)) {
-                m = cachedMods[uri];
-                m._remain -= waitings[uri];
-                if (m._remain === 0) {
-                    m.onload();
-                }
-            }
-        }
-
-        // Reduce memory taken
-        delete mod._waitings;
-        delete mod._remain;
     },
 
     // exec to get exports
@@ -505,6 +487,24 @@ Module.prototype = {
 
         // Emit `exec` event
         // emit("exec", mod)
+        //
+        // Notify waiting modules to fire onload
+        var waitings = mod._waitings,
+            m;
+
+        for (uri in waitings) {
+            if (waitings.hasOwnProperty(uri)) {
+                m = cachedMods[uri];
+                m._remain -= waitings[uri];
+                if (m._remain === 0) {
+                    m.onload();
+                }
+            }
+        }
+
+        // Reduce memory taken
+        delete mod._waitings;
+        delete mod._remain;
 
         return exports;
     },
@@ -515,7 +515,7 @@ Module.prototype = {
 
         mod.status = STATUS.FETCHING;
 
-        // Empty uri or a non-CMD module
+        // Empty uri or a non-AMD module
         if (!uri || fetchedList[uri]) {
             mod.load();
             return;
@@ -637,7 +637,9 @@ Module.define = function(id, deps, factory) {
         factory: factory
     };
 
-    // Try to derive uri in IE6-9 for anonymous modules
+    /**
+     * 具名模块直接save，匿名模块使用meta信息，在onload里面保存
+     */
     if (!meta.uri) {
         var script = getCurrentScript();
         if (script) {
@@ -723,7 +725,8 @@ var require = global.require = function(ids, callback) {
     return S;
 };
 
-S.mix({
+extend({
+    Module: Module,
     define: define,
     require: require,
     realpath: realpath,
