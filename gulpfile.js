@@ -20,7 +20,6 @@ gulp.task("jshint", function() {
 gulp.task('main', function() {
     var modules = ['intro', 'seed', 'lang', 'uri', 'events', 'support', 'loader', 'config', 'cookie', 'date', 'request', 'outro'];
 
-
     gulp.src(modules.map(function(module) {
             return './src/' + module + '.js';
         }))
