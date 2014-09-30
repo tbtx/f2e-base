@@ -6,6 +6,11 @@
     uri             // uri相关
     events          // 自定义事件
     loader          // 模块加载
+    config          // 模块配置
+    support         // 浏览器支持
+    cookie          // cookie
+    date            // 日期
+    request         // ajax
     outro
 
 ## 目录规范
