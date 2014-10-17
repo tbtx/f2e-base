@@ -4,10 +4,10 @@ define("request.config", function() {
     var key = "tokenName",
 
         random = function() {
-            return String(Math.random()).slice(2);
+            return Math.random().toString(36).substring(2, 15);
         },
 
-        token = random() + random() + random(),
+        token = random() + random(),
 
         generateToken = function() {
             cookie.set(_config(key), token, "", "", "/");
@@ -90,8 +90,11 @@ define("request", ["jquery"], function($) {
                     // 有result返回result，没有result返回response
                     // 返回result时加一层result来兼容之前的写法
                     if (result) {
+                        result.code = code;
+                        result.msg = response.msg;
+                        result.result = extend(true, isArray(result) ? [] : {}, result);
+
                         response = result;
-                        response.result = extend(true, isArray(response) ? [] : {}, response);
                     }
                 }
 

@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Mon Sep 29 2014 16:32:23 GMT+0800 (中国标准时间)
+ * @buildTime:  Fri Oct 17 2014 10:48:03 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -2114,15 +2114,13 @@ Loader.config({
 });
 
 if (!_config("debug")) {
+    var scriptstamp = Math.floor(Date.now() / 3600000);
     Loader.config({
         // 每小时更新时间戳
         map: [
             function(uri) {
-                // if (S.inArray(["msg", "position", "request"], uri.slice(staticUrl.length, uri.length - 3))) {
-                //     return;
-                // }
                 if (uri.indexOf("t=") === -1) {
-                    return uri.replace(/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000));
+                    return uri.replace(/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + scriptstamp);
                 }
             }
         ]
@@ -2158,6 +2156,8 @@ if (jQuery) {
     define("$", jQueryFactory);
 }
 
+define("tbtx", S);
+
 var preloadConfig = {
         broadcast: {
             module: "msg"
@@ -2181,6 +2181,8 @@ each(preloadConfig, function(config, name) {
             var fn = exports[name];
             if (isFunction(fn)) {
                 fn.apply(S, args);
+
+                S[name] = fn;
             }
         });
     };
@@ -2341,10 +2343,10 @@ define("request.config", function() {
     var key = "tokenName",
 
         random = function() {
-            return String(Math.random()).slice(2);
+            return Math.random().toString(36).substring(2, 15);
         },
 
-        token = random() + random() + random(),
+        token = random() + random(),
 
         generateToken = function() {
             cookie.set(_config(key), token, "", "", "/");
@@ -2427,8 +2429,11 @@ define("request", ["jquery"], function($) {
                     // 有result返回result，没有result返回response
                     // 返回result时加一层result来兼容之前的写法
                     if (result) {
+                        result.code = code;
+                        result.msg = response.msg;
+                        result.result = extend(true, isArray(result) ? [] : {}, result);
+
                         response = result;
-                        response.result = extend(true, isArray(response) ? [] : {}, response);
                     }
                 }
 

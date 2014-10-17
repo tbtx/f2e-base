@@ -69,15 +69,13 @@ Loader.config({
 });
 
 if (!_config("debug")) {
+    var scriptstamp = Math.floor(Date.now() / 3600000);
     Loader.config({
         // 每小时更新时间戳
         map: [
             function(uri) {
-                // if (S.inArray(["msg", "position", "request"], uri.slice(staticUrl.length, uri.length - 3))) {
-                //     return;
-                // }
                 if (uri.indexOf("t=") === -1) {
-                    return uri.replace(/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + Math.floor(Date.now() / 3600000));
+                    return uri.replace(/^(.*\.(?:css|js))(.*)$/i, "$1?t=" + scriptstamp);
                 }
             }
         ]
@@ -113,6 +111,8 @@ if (jQuery) {
     define("$", jQueryFactory);
 }
 
+define("tbtx", S);
+
 var preloadConfig = {
         broadcast: {
             module: "msg"
@@ -136,6 +136,8 @@ each(preloadConfig, function(config, name) {
             var fn = exports[name];
             if (isFunction(fn)) {
                 fn.apply(S, args);
+
+                S[name] = fn;
             }
         });
     };
