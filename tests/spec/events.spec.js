@@ -31,4 +31,22 @@ describe('events', function() {
             expect(counter).toEqual(0);
         });
     });
+
+    describe("one", function() {
+        it("should trigger the event only once", function() {
+
+            var counter = 0;
+
+            S.one("hello", function(data) {
+                counter++;
+            });
+
+            expect(counter).toEqual(0);
+            S.trigger("hello", "data1");
+            expect(counter).toEqual(1);
+
+            S.trigger("hello", "data2");
+            expect(counter).toEqual(1);
+        });
+    });
 });

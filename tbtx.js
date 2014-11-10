@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Fri Oct 17 2014 10:48:03 GMT+0800 (中国标准时间)
+ * @buildTime:  Mon Nov 10 2014 10:36:38 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -1204,6 +1204,14 @@ S.on = function(name, callback) {
     var list = events[name] || (events[name] = []);
     list.push(callback);
     return S;
+};
+
+S.one = function(name, callback) {
+    var _callback = function(data) {
+        S.off(name, _callback);
+        callback(data);
+    };
+    return S.on(name, _callback);
 };
 
 // Remove event. If `callback` is undefined, remove all callbacks for the

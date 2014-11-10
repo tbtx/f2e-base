@@ -10,6 +10,14 @@ S.on = function(name, callback) {
     return S;
 };
 
+S.one = function(name, callback) {
+    var _callback = function(data) {
+        S.off(name, _callback);
+        callback(data);
+    };
+    return S.on(name, _callback);
+};
+
 // Remove event. If `callback` is undefined, remove all callbacks for the
 // event. If `event` and `callback` are both undefined, remove all callbacks
 // for all events
