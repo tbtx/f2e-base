@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Mon Nov 10 2014 10:36:38 GMT+0800 (中国标准时间)
+ * @buildTime:  Wed Nov 12 2014 13:34:59 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -2390,14 +2390,7 @@ require("request.config");
 
 define("request", ["jquery"], function($) {
 
-    var defaultDeferred = {
-            done: noop,
-            fail: noop,
-            always: noop,
-            then: noop
-        },
-
-        config = _config("request"),
+    var config = _config("request"),
 
         code = config.code,
         msg = config.msg,
@@ -2412,6 +2405,8 @@ define("request", ["jquery"], function($) {
             if (typeof url === "object") {
                 options = extend(options, url);
                 successCode = data;
+                data = options.data;
+                url = options.url;
             }
 
             successCode = successCode || code.success;

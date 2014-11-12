@@ -43,14 +43,7 @@ require("request.config");
 
 define("request", ["jquery"], function($) {
 
-    var defaultDeferred = {
-            done: noop,
-            fail: noop,
-            always: noop,
-            then: noop
-        },
-
-        config = _config("request"),
+    var config = _config("request"),
 
         code = config.code,
         msg = config.msg,
@@ -65,6 +58,8 @@ define("request", ["jquery"], function($) {
             if (typeof url === "object") {
                 options = extend(options, url);
                 successCode = data;
+                data = options.data;
+                url = options.url;
             }
 
             successCode = successCode || code.success;
