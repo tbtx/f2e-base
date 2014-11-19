@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Wed Nov 12 2014 13:34:59 GMT+0800 (中国标准时间)
+ * @buildTime:  Tue Nov 18 2014 10:33:29 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
