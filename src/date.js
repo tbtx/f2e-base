@@ -6,9 +6,37 @@
  * new Date(year, month, day[, hour[, minute[, second[, millisecond]]]])
  */
 
-var rformat = /y|m|d|h|i|s/gi,
-    rdate = /^(?:number|date)$/,
-    rnewdate = /^(?:number|string)$/;
+var rformatDate = /y|m|d|h|i|s/gi,
+    rnumberDate = /^\d{13}$/,
+    // from moment
+    riso = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
+
+// 判断参数是否是日期格式
+// 包括数字，日期
+// iso日期字符串
+function isDateFormat(val) {
+    return rnumberDate.test(val) || riso.test(val)  || isDate(val);
+}
+
+// 解析一个日期, 返回日期对象
+function parseDate(val) {
+    var match;
+
+    if (isDate(val)) {
+        return val;
+    }
+
+    if (rnumberDate.test(val)) {
+        return new Date(+val);
+    }
+
+    match = riso.exec(val);
+    if (match) {
+        return new Date(match[0].replace(/-/g, "/").replace("T", " "));
+    }
+
+    return new Date();
+}
 
 /*
  * 将日期格式化成字符串
@@ -31,21 +59,21 @@ var rformat = /y|m|d|h|i|s/gi,
  */
 function formatDate(format, date) {
     // 交换参数
-    if (rdate.test(type(format))) {
+    if (isDateFormat(format)) {
         date = [format, format = date][0];
     }
 
     format = format || "Y-m-d h:i:s";
     date = normalizeDate(date);
 
-    return format.replace(rformat, function(k) {
+    return format.replace(rformatDate, function(k) {
         return date[k];
     });
 }
 
 // date转对象
 function normalizeDate(date) {
-    date = makeDate(date);
+    date = parseDate(date);
 
     var o = {
             Y: date.getFullYear(),
@@ -59,22 +87,12 @@ function normalizeDate(date) {
 
     each(o, function(v, k) {
         // 统一结果为字符串
-        v += "";
-        ret[k] = v;
+        ret[k] = v + "";
 
         ret[k.toLowerCase()] = padding2(v).slice(-2);
     });
 
     return ret;
-}
-
-// 字符串/数字 -> Date
-function makeDate(date) {
-    if (isDate(date)) {
-        date = +date;
-    }
-
-    return rnewdate.test(type(date)) ? new Date(date) : new Date();
 }
 
 function padding2(str) {
