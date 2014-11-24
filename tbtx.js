@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Sun Nov 23 2014 17:22:42 GMT+0800 (中国标准时间)
+ * @buildTime:  Mon Nov 24 2014 10:28:40 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -1701,10 +1701,11 @@ Module.prototype = {
 
         mod.status = STATUS.LOADING;
 
-        var uris = mod.resolve(),
+        var uris = mod.resolve();
+        trigger("load", uris);
 
-            // 未加载的依赖数
-            len = mod._remain = uris.length,
+        // 未加载的依赖数
+        var len = mod._remain = uris.length,
             m,
             i,
             uri = mod.uri;
@@ -1726,25 +1727,37 @@ Module.prototype = {
             return;
         }
 
+        // for (i = 0; i < len; i++) {
+        //     m = cachedMods[uris[i]];
+
+        //     // 模块尚未define及加载
+        //     if (m.status < STATUS.FETCHING) {
+        //         m.fetch();
+        //     }
+        //     // 模块define过
+        //     else if (m.status === STATUS.SAVED) {
+        //         m.load();
+        //     }
+        // }
+
+        var requestCache = {};
+
         for (i = 0; i < len; i++) {
             m = cachedMods[uris[i]];
 
-            // 模块尚未define及加载
             if (m.status < STATUS.FETCHING) {
-                m.fetch();
-            }
-            // 模块define过
-            else if (m.status === STATUS.SAVED) {
+                m.fetch(requestCache);
+            } else if (m.status === STATUS.SAVED) {
                 m.load();
             }
         }
 
         // Send all requests at last to avoid cache bug in IE6-9. Issues#808
-        // for (var requestUri in requestCache) {
-        //     if (requestCache.hasOwnProperty(requestUri)) {
-        //         requestCache[requestUri]();
-        //     }
-        // }
+        for (var requestUri in requestCache) {
+            if (requestCache.hasOwnProperty(requestUri)) {
+                requestCache[requestUri]();
+            }
+        }
     },
 
     onload: function() {
@@ -1825,37 +1838,45 @@ Module.prototype = {
         return exports;
     },
 
-    fetch: function() {
+    fetch: function(requestCache) {
         var mod = this,
             uri = mod.uri;
 
         mod.status = STATUS.FETCHING;
+        var eventData = { uri: uri };
+        trigger("fetch", eventData);
+        var requestUri = eventData.requestUri || uri;
 
         // Empty uri or a non-AMD module
-        if (!uri || fetchedList[uri]) {
+        if (!requestUri || fetchedList[requestUri]) {
             mod.load();
             return;
         }
 
-        if (fetchingList[uri]) {
-            callbackList[uri].push(mod);
+        if (fetchingList[requestUri]) {
+            callbackList[requestUri].push(mod);
             return;
         }
 
-        fetchingList[uri] = true;
-        callbackList[uri] = [mod];
+        fetchingList[requestUri] = true;
+        callbackList[requestUri] = [mod];
 
 
-        sendRequest();
+        // sendRequest();
+        if (requestCache) {
+            requestCache[requestUri] = sendRequest;
+        } else {
+            sendRequest();
+        }
 
         function sendRequest() {
-            request(uri, onRequest, data.charset);
+            request(requestUri, onRequest, data.charset);
         }
 
 
         function onRequest() {
-            delete fetchingList[uri];
-            fetchedList[uri] = true;
+            delete fetchingList[requestUri];
+            fetchedList[requestUri] = true;
 
             // Save meta data of anonymous module
             if (anonymousMeta) {
@@ -1864,8 +1885,8 @@ Module.prototype = {
             }
 
             // Call callbacks
-            var m, mods = callbackList[uri];
-            delete callbackList[uri];
+            var m, mods = callbackList[requestUri];
+            delete callbackList[requestUri];
             while ((m = mods.shift())) m.load();
         }
     }
