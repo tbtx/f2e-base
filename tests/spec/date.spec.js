@@ -14,6 +14,18 @@ describe('date', function() {
         });
     });
 
+    describe("isoDate", function() {
+        it("should format the date", function() {
+            expect(S
+                .formatDate("Y-m-d", "2014-11-26T11:22:23")).toEqual("2014-11-26");
+            expect(S
+                .formatDate("2014-11-26T11:22:23", "Y-m-d")).toEqual("2014-11-26");
+            expect(S
+                .formatDate("2014-11-26T11:22:23", "Y-m-d h:i:s")).toEqual("2014-11-26 11:22:23");
+
+        });
+    });
+
     describe("normalizeDate", function() {
         it("should get the object of a date", function() {
             var date = new Date(1383272557027);
