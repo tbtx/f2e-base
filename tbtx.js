@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Tue Dec 02 2014 14:56:05 GMT+0800 (中国标准时间)
+ * @buildTime:  Tue Dec 02 2014 15:48:23 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -939,17 +939,30 @@ var encode = encodeURIComponent,
         uri = uri || location.href;
 
         var a = document.createElement('a'),
-            protocol;
+            protocol,
+            path,
+            port;
 
         a.href = uri;
         protocol = a.protocol;
         protocol = protocol.slice(0, protocol.length - 1);
 
+        path = a.pathname;
+        // IE10 pathname返回不带/
+        if (path.charAt(0) != "/") {
+            path = "/" + path;
+        }
+
+        port = a.port;
+        if (port == 80) {
+            port = "";
+        }
+
         return {
             scheme: protocol,
             domain: a.hostname,
-            port: a.port,
-            path: a.pathname,
+            port: port,
+            path: path,
             query: a.search.slice(1),
             fragment: a.hash.slice(1)
         };
@@ -2254,7 +2267,8 @@ var MILLISECONDS_OF_DAY = 24 * 60 * 60 * 1000,
 var rformatDate = /y|m|d|h|i|s/gi,
     rnumberDate = /^\d{13}$/,
     // from moment
-    riso = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
+    riso = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
+    rdate = /\d{4}-\d{2}-\d{2}/;
 
 // 判断参数是否是日期格式
 // 包括数字，日期
@@ -2265,7 +2279,8 @@ function isDateFormat(val) {
 
 // 解析一个日期, 返回日期对象
 function parseDate(val) {
-    var match;
+    var match,
+        matchYmd;
 
     if (isDate(val)) {
         return val;
@@ -2276,8 +2291,10 @@ function parseDate(val) {
     }
 
     match = riso.exec(val);
-    if (match) {
-        return new Date(match[0].replace(/-/g, "/").replace("T", " "));
+    matchYmd = rdate.exec(val);
+    if (match && matchYmd) {
+        // 暂时只支持 2014-11-26T11:22:23这种4位年的日期
+        return new Date(matchYmd[0].replace(/-/g, "/") + " " + match[7]);
     }
 
     return new Date();

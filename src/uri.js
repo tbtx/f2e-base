@@ -72,17 +72,30 @@ var encode = encodeURIComponent,
         uri = uri || location.href;
 
         var a = document.createElement('a'),
-            protocol;
+            protocol,
+            path,
+            port;
 
         a.href = uri;
         protocol = a.protocol;
         protocol = protocol.slice(0, protocol.length - 1);
 
+        path = a.pathname;
+        // IE10 pathname返回不带/
+        if (path.charAt(0) != "/") {
+            path = "/" + path;
+        }
+
+        port = a.port;
+        if (port == 80) {
+            port = "";
+        }
+
         return {
             scheme: protocol,
             domain: a.hostname,
-            port: a.port,
-            path: a.pathname,
+            port: port,
+            path: path,
             query: a.search.slice(1),
             fragment: a.hash.slice(1)
         };
