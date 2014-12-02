@@ -1,3 +1,6 @@
+/**
+ * combo
+ */
 (function(S) {
 
     var Module = S.Module;

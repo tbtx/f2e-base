@@ -68,44 +68,24 @@ var encode = encodeURIComponent,
         return ret;
     },
 
-    ruri = new RegExp([
-        "^",
-        "(?:",
-            "([^:/?#]+)", // scheme
-        ":)?",
-        "(?://",
-            "(?:([^/?#]*)@)?", // credentials
-            "([^/?#:@]*)", // domain
-            "(?::([0-9]+))?", // port
-        ")?",
-        "([^?#]+)?", // path
-        "(?:\\?([^#]*))?", // query
-        "(?:#(.*))?", // fragment
-        "$",
-    ].join("")),
-
-    uriInfo = {
-        scheme: 1,
-        credentials: 2,
-        domain: 3,
-        port: 4,
-        path: 5,
-        query: 6,
-        fragment: 7
-    },
-
     getComponents = function(uri) {
         uri = uri || location.href;
 
-        var m = uri.match(ruri) || [],
-            ret = {};
+        var a = document.createElement('a'),
+            protocol;
 
-        each(uriInfo, function(index, key) {
-            // 默认为""
-            ret[key] = m[index] || "";
-        });
+        a.href = uri;
+        protocol = a.protocol;
+        protocol = protocol.slice(0, protocol.length - 1);
 
-        return ret;
+        return {
+            scheme: protocol,
+            domain: a.hostname,
+            port: a.port,
+            path: a.pathname,
+            query: a.search.slice(1),
+            fragment: a.hash.slice(1)
+        };
     },
 
     Query = function(query) {
@@ -137,25 +117,15 @@ var encode = encodeURIComponent,
         return uri;
     },
 
+    ruri = /^(http|file|\/|\.)/,
+
+    /**
+     * 简单判断
+     * 以http,file,/和.开头的为uri
+     */
     isUri = function(val) {
         val += "";
-
-        var first = val.charAt(0),
-            match;
-
-        // root and relative
-        if (first === "/" || first === ".") {
-            return true;
-        }
-
-        match = ruri.exec(val);
-        // scheme
-        if (match) {
-            // http://a.com
-            // file:/// -> no domain
-            return !!((match[1] && match[3]) || (match[1] && match[5]));
-        }
-        return false;
+        return ruri.test(val);
     };
 
 
@@ -246,10 +216,6 @@ Uri.prototype = {
 
         if (domain) {
             ret.push("//");
-            if (credentials) {
-                ret.push(credentials);
-                ret.push("@");
-            }
 
             ret.push(encode(domain));
 
