@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Tue Dec 02 2014 15:48:23 GMT+0800 (中国标准时间)
+ * @buildTime:  Fri Dec 05 2014 13:20:53 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -2368,25 +2368,25 @@ extend({
 });
 
 
-define("request.config", function() {
+var REQUEST_CONFIG = "request.config";
 
-    var key = "tokenName",
+define(REQUEST_CONFIG, function() {
 
-        random = function() {
+    var random = function() {
             return Math.random().toString(36).substring(2, 15);
         },
 
         token = random() + random(),
 
         generateToken = function() {
-            cookie.set(_config(key), token, "", "", "/");
+            cookie.set(_config("tokenName"), token, "", new Date(Date.now() + 10000), "/");
             return token;
         };
 
     // 默认蜜儿
-    _config(key, "MIIEE_JTOKEN");
-
     _config({
+        tokenName: "MIIEE_JTOKEN",
+
         request: {
             code: {
                 fail: -1,
@@ -2405,45 +2405,45 @@ define("request.config", function() {
         }
     });
 
-    S.generateToken = generateToken;
+    return generateToken;
 });
 
-require("request.config");
+require(REQUEST_CONFIG);
 
-define("request", ["jquery"], function($) {
+define("request", ["jquery", REQUEST_CONFIG], function($, generateToken) {
 
     var config = _config("request"),
-
         code = config.code,
         msg = config.msg,
 
         request = function(url, data, successCode) {
-            var options = {
-                method: "post",
-                dataType: "json",
-                timeout: 10000
-            };
+            var ret = $.Deferred(),
+                options = {
+                    method: "post",
+                    dataType: "json",
+                    timeout: 10000
+                };
 
             if (typeof url === "object") {
                 options = extend(options, url);
                 successCode = data;
-                data = options.data;
-                url = options.url;
+            } else {
+                extend(options, {
+                    url: url,
+                    data: data
+                });
             }
 
             successCode = successCode || code.success;
-            data = data || {};
-            url = url.trim();
+            data = options.data || {};
+            url = S.addQueryParam(options.url.trim(), "_", Date.now());
             if (isString(data)) {
                 data = unparam(data);
             }
 
-            data.jtoken = S.generateToken();
-            url = S.addQueryParam(url, "_", Date.now());
+            data.jtoken = generateToken();
             options.url = url;
             options.data = data;
-
-            var ret = $.Deferred();
 
             $.ajax(options).done(function(response) {
                 var code, result;
