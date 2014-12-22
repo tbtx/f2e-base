@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Fri Dec 05 2014 13:20:53 GMT+0800 (中国标准时间)
+ * @buildTime:  Mon Dec 22 2014 11:08:04 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -1239,7 +1239,10 @@ var trigger = S.trigger = function(name, data) {
 
 
 // thanks modernizr
-var element = document.createElement("tbtx"),
+var createElement = function(type) {
+        return document.createElement(type);
+    },
+    element = createElement("tbtx"),
     style = element.style,
     spliter = " ",
     omPrefixes = "Webkit Moz O ms",
@@ -1279,13 +1282,13 @@ var element = document.createElement("tbtx"),
         mobile: mobile,
         pad: pad,
         phone: phone,
-        placeholder: "placeholder" in document.createElement("input")
+        placeholder: "placeholder" in createElement("input"),
+        canvas: (function() {
+            var elem = createElement("canvas");
+            return !!(elem.getContext && elem.getContext("2d"));
+        })()
     };
 
-// .add("canvas", function() {
-//     var elem = document.createElement("canvas");
-//     return !!(elem.getContext && elem.getContext("2d"));
-// })
 
 extend({
     support: support,
@@ -2368,53 +2371,97 @@ extend({
 });
 
 
-var REQUEST_CONFIG = "request.config";
+var randomToken = function() {
+        return Math.random().toString(36).substring(2, 15);
+    },
 
-define(REQUEST_CONFIG, function() {
+    // 互斥锁
+    isTokenLock = 0,
 
-    var random = function() {
-            return Math.random().toString(36).substring(2, 15);
+    token = randomToken() + randomToken(),
+
+    generateToken = function() {
+        cookie.set(_config("tokenName"), token, "", "", "/");
+        return token;
+    };
+
+// 默认蜜儿
+_config({
+    tokenName: "MIIEE_JTOKEN",
+
+    request: {
+        code: {
+            fail: -1,
+            success: 100
         },
-
-        token = random() + random(),
-
-        generateToken = function() {
-            cookie.set(_config("tokenName"), token, "", new Date(Date.now() + 10000), "/");
-            return token;
-        };
-
-    // 默认蜜儿
-    _config({
-        tokenName: "MIIEE_JTOKEN",
-
-        request: {
-            code: {
-                fail: -1,
-                success: 100
-            },
-            msg: {
-                def: "请求失败！请重试！",
-                0: "无法连接到服务器！",
-                // "301": "请求被重定向!",
-                // "302": "请求被临时重定向！",
-                500: "服务器出错!",
-                timeout: "请求超时！请检查网络连接！",
-                // "abort": "请求被终止！",
-                parsererror: "服务器出错或数据解析出错！"
-            }
+        msg: {
+            def: "请求失败！请重试！",
+            0: "无法连接到服务器！请检查网络连接！",
+            500: "服务器出错!",
+            timeout: "请求超时！",
+            abort: "请求被终止！",
+            parsererror: "服务器出错或数据解析出错！"
         }
-    });
-
-    return generateToken;
+    }
 });
 
-require(REQUEST_CONFIG);
+S.generateToken = generateToken;
 
-define("request", ["jquery", REQUEST_CONFIG], function($, generateToken) {
+define("request", ["jquery"], function($) {
 
     var config = _config("request"),
         code = config.code,
         msg = config.msg,
+
+        /**
+         * 解决后端删除jtoken后ajax cookie没有token
+         * 每次同时只处理一个request 请求
+         */
+        send = function(options, successCode, defer) {
+            if (isTokenLock) {
+                setTimeout(function() {
+                    send(options, successCode, defer);
+                }, 50);
+                return false;
+            }
+
+            isTokenLock = 1;
+            options.data.jtoken = generateToken();
+            $.ajax(options)
+            .done(function(response) {
+                var code, result;
+                if (response) {
+                    code = response.code;
+                    result = response.result;
+
+                    // 有result返回result，没有result返回response
+                    // 返回result时加一层result来兼容之前的写法
+                    if (result) {
+                        result.code = code;
+                        result.msg = response.msg;
+                        result.result = extend(true, isArray(result) ? [] : {}, result);
+
+                        response = result;
+                    }
+                }
+
+                if (code === successCode) {
+                    defer.resolve(response, options);
+                } else {
+                    defer.reject(code, response, options);
+                }
+            })
+            .fail(function(xhr, status, err) {
+                defer.reject(code.fail, {
+                    code: code.fail,
+                    url: url,
+                    msg: msg[xhr.status] || msg[status] || msg.def
+                });
+            })
+            .always(function() {
+                isTokenLock = 0;
+            });
+        },
 
         request = function(url, data, successCode) {
             var ret = $.Deferred(),
@@ -2441,40 +2488,10 @@ define("request", ["jquery", REQUEST_CONFIG], function($, generateToken) {
                 data = unparam(data);
             }
 
-            data.jtoken = generateToken();
             options.url = url;
             options.data = data;
 
-            $.ajax(options).done(function(response) {
-                var code, result;
-                if (response) {
-                    code = response.code;
-                    result = response.result;
-
-                    // 有result返回result，没有result返回response
-                    // 返回result时加一层result来兼容之前的写法
-                    if (result) {
-                        result.code = code;
-                        result.msg = response.msg;
-                        result.result = extend(true, isArray(result) ? [] : {}, result);
-
-                        response = result;
-                    }
-                }
-
-                if (code === successCode) {
-                    ret.resolve(response, options);
-                } else {
-                    ret.reject(code, response, options);
-                }
-            }).fail(function(xhr, status, err) {
-                ret.reject(code.fail, {
-                    code: code.fail,
-                    url: url,
-                    msg: msg[xhr.status] || msg[status] || msg.def
-                });
-            });
-
+            send(options, successCode, ret);
             return ret;
         };
 

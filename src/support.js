@@ -1,6 +1,9 @@
 
 // thanks modernizr
-var element = document.createElement("tbtx"),
+var createElement = function(type) {
+        return document.createElement(type);
+    },
+    element = createElement("tbtx"),
     style = element.style,
     spliter = " ",
     omPrefixes = "Webkit Moz O ms",
@@ -40,13 +43,13 @@ var element = document.createElement("tbtx"),
         mobile: mobile,
         pad: pad,
         phone: phone,
-        placeholder: "placeholder" in document.createElement("input")
+        placeholder: "placeholder" in createElement("input"),
+        canvas: (function() {
+            var elem = createElement("canvas");
+            return !!(elem.getContext && elem.getContext("2d"));
+        })()
     };
 
-// .add("canvas", function() {
-//     var elem = document.createElement("canvas");
-//     return !!(elem.getContext && elem.getContext("2d"));
-// })
 
 extend({
     support: support,
