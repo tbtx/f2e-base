@@ -94,7 +94,7 @@ define("request", ["jquery"], function($) {
         request = function(url, data, successCode) {
             var ret = $.Deferred(),
                 options = {
-                    method: "post",
+                    type: "post",
                     dataType: "json",
                     timeout: 10000
                 };

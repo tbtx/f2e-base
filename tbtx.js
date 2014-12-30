@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Mon Dec 22 2014 11:08:04 GMT+0800 (中国标准时间)
+ * @buildTime:  Tue Dec 30 2014 17:21:17 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -2060,7 +2060,7 @@ extend({
  * 只写常用的
  * @type {[type]}
  */
-var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
+var staticUrl = S.staticUrl = data.base || realpath(loaderDir + "../../../"),
 
     paths = {},
 
@@ -2466,7 +2466,7 @@ define("request", ["jquery"], function($) {
         request = function(url, data, successCode) {
             var ret = $.Deferred(),
                 options = {
-                    method: "post",
+                    type: "post",
                     dataType: "json",
                     timeout: 10000
                 };
