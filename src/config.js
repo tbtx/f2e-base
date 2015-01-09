@@ -4,7 +4,7 @@
  * 只写常用的
  * @type {[type]}
  */
-var staticUrl = S.staticUrl = data.base || realpath(loaderDir + "../../../"),
+var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
 
     paths = {},
 

@@ -35,10 +35,11 @@ var createElement = function(type) {
     mobile = !!ua.match(/AppleWebKit.*Mobile.*/) || touch,
     pad = !!ua.match(/iPad/i),
     phone = mobile && !pad,
+    transform = testPropsAll("transform"),
 
     support = {
         transition: testPropsAll("transition"),
-        transform: testPropsAll("transform"),
+        transform: transform,
         touch: touch,
         mobile: mobile,
         pad: pad,
@@ -47,7 +48,26 @@ var createElement = function(type) {
         canvas: (function() {
             var elem = createElement("canvas");
             return !!(elem.getContext && elem.getContext("2d"));
-        })()
+        })(),
+
+        testTranslate3d: function() {
+            if (!transform) {
+                return false;
+            }
+
+            var el = createElement('p'),
+                has3d,
+                prefixedTransform = prefixed("transform");
+
+            document.body.insertBefore(el, null);
+            el.style[prefixedTransform] = 'translate3d(1px,1px,1px)';
+
+            has3d = getComputedStyle(el).getPropertyValue(dasherize(prefixedTransform));
+
+            document.body.removeChild(el);
+
+            return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
+        }
     };
 
 

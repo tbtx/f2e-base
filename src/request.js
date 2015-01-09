@@ -82,7 +82,7 @@ define("request", ["jquery"], function($) {
             .fail(function(xhr, status, err) {
                 defer.reject(code.fail, {
                     code: code.fail,
-                    url: url,
+                    url: options.url,
                     msg: msg[xhr.status] || msg[status] || msg.def
                 });
             })
@@ -120,7 +120,7 @@ define("request", ["jquery"], function($) {
             options.data = data;
 
             send(options, successCode, ret);
-            return ret;
+            return ret.promise();
         };
 
     return request;
