@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Fri Jan 09 2015 11:53:13 GMT+0800 (中国标准时间)
+ * @buildTime:  Fri Jan 09 2015 15:19:32 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -750,6 +750,7 @@ extend({
     isNotEmptyString: isNotEmptyString,
 
     ucfirst: ucfirst,
+    dasherize: dasherize,
 
     random: function(min, max) {
         var array, seed;

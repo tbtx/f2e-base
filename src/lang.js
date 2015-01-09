@@ -635,6 +635,7 @@ extend({
     isNotEmptyString: isNotEmptyString,
 
     ucfirst: ucfirst,
+    dasherize: dasherize,
 
     random: function(min, max) {
         var array, seed;
