@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Fri Jan 09 2015 15:19:33 GMT+0800 (中国标准时间)
+ * @buildTime:  Tue Jan 13 2015 21:26:52 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -13,7 +13,7 @@ var location = global.location,
 
     documentElement = document.documentElement,
 
-    head = document.head || document.getElementsByTagName("head")[0] || documentElement,
+    head = document.head || document.getElementsByTagName("head")[0],
 
     isSupportConsole = global.console && console.log,
 
@@ -123,6 +123,8 @@ var AP = Array.prototype,
 
     FP = Function.prototype,
 
+    OP = Object.prototype,
+
     class2type = {},
 
     toString = class2type.toString,
@@ -134,8 +136,6 @@ var AP = Array.prototype,
     hasOwnProperty = function(o, p) {
         return hasOwn.call(o, p);
     },
-
-    rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
 
     //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
     rword = /[^, ]+/g,
@@ -262,30 +262,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     },
 
     isPlainObject = function(object) {
-        // Must be an Object.
-        // Because of IE, we also have to check the presence of the constructor property.
-        // Make sure that Dom nodes and window objects don't pass through, as well
-        if (!isObject(object) || object.nodeType || isWindow(object)) {
-            return false;
-        }
-
-        var key, constructor;
-
-        try {
-            // Not own constructor property must be Object
-            if ((constructor = object.constructor) && !hasOwnProperty(object, "constructor") && !hasOwnProperty(constructor.prototype, "isPrototypeOf")) {
-                return false;
-            }
-        } catch (e) {
-            // IE8,9 Will throw exceptions on certain host objects
-            return false;
-        }
-
-        // Own properties are enumerated firstly, so to speed up,
-        // if last one is own, then all properties are own.
-        for (key in object) {}
-
-        return key === undefined || hasOwnProperty(object, key);
+        return isObject(object) && Object.getPrototypeOf(object) === OP;
     },
 
     makeArray = function(o) {
@@ -455,6 +432,16 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return str.charAt(0).toUpperCase() + str.substring(1);
     },
 
+    // 转为下划线风格
+    underscored = function(str) {
+        return str.replace(/([a-z\d])([A-Z])/g, "$1_$2").replace(/\-/g, "_").toLowerCase();
+    },
+
+    // 转为连字符风格
+    dasherize = function(str) {
+        return underscored(str).replace(/_/g, "-");
+    },
+
     htmlEntities = {
         "&amp;": "&",
         "&gt;": ">",
@@ -524,6 +511,7 @@ extend({
     isNotEmptyString: isNotEmptyString,
 
     ucfirst: ucfirst,
+    dasherize: dasherize,
 
     random: function(min, max) {
         var array, seed;
@@ -970,9 +958,9 @@ S.on = function(name, callback) {
 };
 
 S.one = function(name, callback) {
-    var _callback = function(data) {
+    var _callback = function() {
         S.off(name, _callback);
-        callback(data);
+        callback.apply(S, arguments);
     };
     return S.on(name, _callback);
 };
@@ -1005,8 +993,9 @@ S.off = function(name, callback) {
 
 // Emit event, firing all bound callbacks. Callbacks receive the same
 // arguments as `emit` does, apart from the event name
-var trigger = S.trigger = function(name, data) {
-    var list = events[name];
+var trigger = S.trigger = function(name) {
+    var list = events[name],
+        args = slice.call(arguments, 1);
 
     if (list) {
         // Copy callback lists to prevent modification
@@ -1014,7 +1003,7 @@ var trigger = S.trigger = function(name, data) {
 
         // Execute event callbacks, use index because it's the faster.
         for (var i = 0, len = list.length; i < len; i++) {
-            list[i](data);
+            list[i].apply(S, args);
         }
     }
 

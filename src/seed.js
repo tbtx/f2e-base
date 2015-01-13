@@ -5,7 +5,7 @@ var location = global.location,
 
     documentElement = document.documentElement,
 
-    head = document.head || document.getElementsByTagName("head")[0] || documentElement,
+    head = document.head || document.getElementsByTagName("head")[0],
 
     isSupportConsole = global.console && console.log,
 

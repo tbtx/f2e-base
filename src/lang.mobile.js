@@ -8,6 +8,8 @@ var AP = Array.prototype,
 
     FP = Function.prototype,
 
+    OP = Object.prototype,
+
     class2type = {},
 
     toString = class2type.toString,
@@ -19,8 +21,6 @@ var AP = Array.prototype,
     hasOwnProperty = function(o, p) {
         return hasOwn.call(o, p);
     },
-
-    rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
 
     //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
     rword = /[^, ]+/g,
@@ -147,30 +147,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     },
 
     isPlainObject = function(object) {
-        // Must be an Object.
-        // Because of IE, we also have to check the presence of the constructor property.
-        // Make sure that Dom nodes and window objects don't pass through, as well
-        if (!isObject(object) || object.nodeType || isWindow(object)) {
-            return false;
-        }
-
-        var key, constructor;
-
-        try {
-            // Not own constructor property must be Object
-            if ((constructor = object.constructor) && !hasOwnProperty(object, "constructor") && !hasOwnProperty(constructor.prototype, "isPrototypeOf")) {
-                return false;
-            }
-        } catch (e) {
-            // IE8,9 Will throw exceptions on certain host objects
-            return false;
-        }
-
-        // Own properties are enumerated firstly, so to speed up,
-        // if last one is own, then all properties are own.
-        for (key in object) {}
-
-        return key === undefined || hasOwnProperty(object, key);
+        return isObject(object) && Object.getPrototypeOf(object) === OP;
     },
 
     makeArray = function(o) {
@@ -340,6 +317,16 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return str.charAt(0).toUpperCase() + str.substring(1);
     },
 
+    // 转为下划线风格
+    underscored = function(str) {
+        return str.replace(/([a-z\d])([A-Z])/g, "$1_$2").replace(/\-/g, "_").toLowerCase();
+    },
+
+    // 转为连字符风格
+    dasherize = function(str) {
+        return underscored(str).replace(/_/g, "-");
+    },
+
     htmlEntities = {
         "&amp;": "&",
         "&gt;": ">",
@@ -409,6 +396,7 @@ extend({
     isNotEmptyString: isNotEmptyString,
 
     ucfirst: ucfirst,
+    dasherize: dasherize,
 
     random: function(min, max) {
         var array, seed;

@@ -13,6 +13,14 @@ describe('events', function() {
             expect(counter).toEqual(0);
             S.trigger("hello");
             expect(counter).toEqual(1);
+
+            var sum = 0;
+            S.on("argsMoreThanOne", function(a, b) {
+                sum = a + b;
+            });
+            S.trigger("argsMoreThanOne", 2, 3);
+
+            expect(sum).toEqual(5);
         });
     });
 

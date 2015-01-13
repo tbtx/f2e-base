@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Fri Jan 09 2015 15:19:32 GMT+0800 (中国标准时间)
+ * @buildTime:  Tue Jan 13 2015 21:26:52 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -13,7 +13,7 @@ var location = global.location,
 
     documentElement = document.documentElement,
 
-    head = document.head || document.getElementsByTagName("head")[0] || documentElement,
+    head = document.head || document.getElementsByTagName("head")[0],
 
     isSupportConsole = global.console && console.log,
 
@@ -1197,9 +1197,9 @@ S.on = function(name, callback) {
 };
 
 S.one = function(name, callback) {
-    var _callback = function(data) {
+    var _callback = function() {
         S.off(name, _callback);
-        callback(data);
+        callback.apply(S, arguments);
     };
     return S.on(name, _callback);
 };
@@ -1232,8 +1232,9 @@ S.off = function(name, callback) {
 
 // Emit event, firing all bound callbacks. Callbacks receive the same
 // arguments as `emit` does, apart from the event name
-var trigger = S.trigger = function(name, data) {
-    var list = events[name];
+var trigger = S.trigger = function(name) {
+    var list = events[name],
+        args = slice.call(arguments, 1);
 
     if (list) {
         // Copy callback lists to prevent modification
@@ -1241,7 +1242,7 @@ var trigger = S.trigger = function(name, data) {
 
         // Execute event callbacks, use index because it's the faster.
         for (var i = 0, len = list.length; i < len; i++) {
-            list[i](data);
+            list[i].apply(S, args);
         }
     }
 
