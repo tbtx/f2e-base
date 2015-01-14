@@ -36,13 +36,10 @@ var AP = Array.prototype,
      * return false终止循环
      * 原生every必须return true or false
      */
-    each = function(object, fn, context) {
+    each = function(object, fn) {
         var i = 0,
             length = object.length;
 
-        if (context) {
-            fn = fn.bind(context);
-        }
         if (length === +length) {
             for (; i < length; i++) {
                 if (fn(object[i], i, object) === false) {
@@ -98,13 +95,9 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
      * 单例模式
      * return only one instance
      * @param  {Function} fn      the function to return the instance
-     * @param  {object}   context
      * @return {Function}
      */
-    singleton = function(fn, context) {
-        if (context) {
-            fn = fn.bind(context);
-        }
+    singleton = function(fn) {
         return memoize(fn, function() {
             return 1;
         });
@@ -116,7 +109,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
      * reserve 是否保留{{ var }}来进行多次替换, 默认不保留，即替换为空
      */
     substitute = function(str, o, reserve) {
-        if (!isString(str) && !isArray(o) && !isPlainObject(o)) {
+        if (!isString(str) || (!isArray(o) && !isPlainObject(o))) {
             return str;
         }
 
@@ -372,8 +365,6 @@ each(htmlEntities, function(entity, k) {
 extend({
 
     each: each,
-
-    mix: extend,
 
     extend: extend,
 

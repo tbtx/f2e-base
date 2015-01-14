@@ -26,7 +26,7 @@ describe("uri", function() {
         });
     });
 
-    describe('Query', function() {
+    xdescribe('Query', function() {
         it("should get the info of a query str", function() {
             var str = "spm=a310i.2181413.5731757.9.Jmv67O&pcid=8101&banner=nvzhuang";
             var q = new S.Query(str);

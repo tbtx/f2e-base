@@ -12,8 +12,7 @@ describe("seed", function() {
     }
 
     describe("config", function() {
-        var Config = S.Config,
-            fns = Config.fns;
+        var Config = S.Config;
 
         it("should set a config", function() {
             S.config("a", "a");
@@ -34,24 +33,24 @@ describe("seed", function() {
             expect(Config.d).toEqual("d");
         });
 
-        it("should get a config with fn", function() {
-            fns.path = function() {
-                return "my path";
-            };
-            expect(S.config("path")).toEqual("my path");
-        });
+        // it("should get a config with fn", function() {
+        //     fns.path = function() {
+        //         return "my path";
+        //     };
+        //     expect(S.config("path")).toEqual("my path");
+        // });
 
-        it("should set a config with fn", function() {
-            fns.v = function(val) {
-                if (val) {
-                    Config.v = "my " + val;
-                } else {
-                    return "getter";
-                }
-            };
-            S.config("v", "v");
-            expect(Config.v).toEqual("my v");
-            expect(S.config("v")).toEqual("getter");
-        });
+        // it("should set a config with fn", function() {
+        //     fns.v = function(val) {
+        //         if (val) {
+        //             Config.v = "my " + val;
+        //         } else {
+        //             return "getter";
+        //         }
+        //     };
+        //     S.config("v", "v");
+        //     expect(Config.v).toEqual("my v");
+        //     expect(S.config("v")).toEqual("getter");
+        // });
     });
 });

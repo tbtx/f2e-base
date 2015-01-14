@@ -4,7 +4,7 @@
 var events = S.events = {};
 
 // Bind event
-S.on = function(name, callback) {
+var on = S.on = function(name, callback) {
     var list = events[name] || (events[name] = []);
     list.push(callback);
     return S;

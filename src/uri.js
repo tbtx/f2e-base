@@ -289,9 +289,6 @@ function isValidParamValue(val) {
 });
 
 extend({
-    Query: Query,
-    Uri: Uri,
-
     urlEncode: encode,
     urlDecode: decode,
 

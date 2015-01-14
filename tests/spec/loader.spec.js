@@ -49,7 +49,7 @@ describe("loader", function() {
         });
     });
 
-    describe("register", function() {
+    xdescribe("register", function() {
         var ready;
         it("should register the mod if the mod is in env", function() {
             runs(function() {

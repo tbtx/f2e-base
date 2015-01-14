@@ -24,7 +24,7 @@ var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
         },
 
         gallery: {
-            jquery: support.phone ? "2.1.1" : "1.11.1",
+            jquery: support.mobile ? "2.1.1" : "1.11.1",
             handlebars: "1.3.0",
             json: "2"
         },
@@ -80,35 +80,6 @@ if (!_config("debug")) {
             }
         ]
     });
-}
-
-"alias map paths".replace(rword, function(name) {
-    ConfigFns[name] = function(val) {
-        if (val) {
-            var cfg = {};
-            cfg[name] = val;
-            Loader.config(cfg);
-        } else {
-            return data[name];
-        }
-    };
-});
-
-
-var jQuery = global.jQuery,
-    jQueryFactory,
-    JSON = global.JSON;
-
-if (JSON) {
-    define("json", JSON);
-}
-
-if (jQuery) {
-    jQueryFactory = function() {
-        return jQuery;
-    };
-    define("jquery", jQueryFactory);
-    define("$", jQueryFactory);
 }
 
 define("tbtx", S);

@@ -7,6 +7,8 @@ var location = global.location,
 
     head = document.head || document.getElementsByTagName("head")[0],
 
+    body,
+
     isSupportConsole = global.console && console.log,
 
     noop = function() {},
@@ -16,48 +18,27 @@ var location = global.location,
     },
 
     /**
-     * 配置getter/setter
-     * @type {Object}
-     */
-    ConfigFns = {},
-
-    /**
      * 配置对象
      * @type {Object}
      */
     Config = {
-        debug: location.search.indexOf("debug") !== -1 ? true : false,
-        fns: ConfigFns
+        debug: location.search.indexOf("debug") !== -1 ? true : false
     },
 
     _config = function(key, value) {
-        var self = S,
-            Config = self.Config,
-            fns = Config.fns,
-            fn,
-            ret = self;
+        var ret = S;
 
         if (isString(key)) {
-            fn = fns[key];
             // get config
             if (value === undefined) {
-                ret = fn ? fn.call(self) : Config[key];
+                ret = Config[key];
             } else { // set config
-                if (fn) {
-                    ret = fn.call(self, value);
-                } else {
-                    Config[key] = value;
-                }
+                Config[key] = value;
             }
         } else {
             // Object config
             each(key, function(v, k) {
-                fn = fns[k];
-                if (fn) {
-                    fn.call(self, v);
-                } else {
-                    Config[k] = v;
-                }
+                Config[k] = v;
             });
         }
 

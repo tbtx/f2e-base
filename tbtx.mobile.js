@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Tue Jan 13 2015 21:26:52 GMT+0800 (中国标准时间)
+ * @buildTime:  Thu Jan 15 2015 00:26:14 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -15,6 +15,8 @@ var location = global.location,
 
     head = document.head || document.getElementsByTagName("head")[0],
 
+    body,
+
     isSupportConsole = global.console && console.log,
 
     noop = function() {},
@@ -24,48 +26,27 @@ var location = global.location,
     },
 
     /**
-     * 配置getter/setter
-     * @type {Object}
-     */
-    ConfigFns = {},
-
-    /**
      * 配置对象
      * @type {Object}
      */
     Config = {
-        debug: location.search.indexOf("debug") !== -1 ? true : false,
-        fns: ConfigFns
+        debug: location.search.indexOf("debug") !== -1 ? true : false
     },
 
     _config = function(key, value) {
-        var self = S,
-            Config = self.Config,
-            fns = Config.fns,
-            fn,
-            ret = self;
+        var ret = S;
 
         if (isString(key)) {
-            fn = fns[key];
             // get config
             if (value === undefined) {
-                ret = fn ? fn.call(self) : Config[key];
+                ret = Config[key];
             } else { // set config
-                if (fn) {
-                    ret = fn.call(self, value);
-                } else {
-                    Config[key] = value;
-                }
+                Config[key] = value;
             }
         } else {
             // Object config
             each(key, function(v, k) {
-                fn = fns[k];
-                if (fn) {
-                    fn.call(self, v);
-                } else {
-                    Config[k] = v;
-                }
+                Config[k] = v;
             });
         }
 
@@ -151,13 +132,10 @@ var AP = Array.prototype,
      * return false终止循环
      * 原生every必须return true or false
      */
-    each = function(object, fn, context) {
+    each = function(object, fn) {
         var i = 0,
             length = object.length;
 
-        if (context) {
-            fn = fn.bind(context);
-        }
         if (length === +length) {
             for (; i < length; i++) {
                 if (fn(object[i], i, object) === false) {
@@ -213,13 +191,9 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
      * 单例模式
      * return only one instance
      * @param  {Function} fn      the function to return the instance
-     * @param  {object}   context
      * @return {Function}
      */
-    singleton = function(fn, context) {
-        if (context) {
-            fn = fn.bind(context);
-        }
+    singleton = function(fn) {
         return memoize(fn, function() {
             return 1;
         });
@@ -231,7 +205,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
      * reserve 是否保留{{ var }}来进行多次替换, 默认不保留，即替换为空
      */
     substitute = function(str, o, reserve) {
-        if (!isString(str) && !isArray(o) && !isPlainObject(o)) {
+        if (!isString(str) || (!isArray(o) && !isPlainObject(o))) {
             return str;
         }
 
@@ -487,8 +461,6 @@ each(htmlEntities, function(entity, k) {
 extend({
 
     each: each,
-
-    mix: extend,
 
     extend: extend,
 
@@ -928,9 +900,6 @@ function isValidParamValue(val) {
 });
 
 extend({
-    Query: Query,
-    Uri: Uri,
-
     urlEncode: encode,
     urlDecode: decode,
 
@@ -951,7 +920,7 @@ extend({
 var events = S.events = {};
 
 // Bind event
-S.on = function(name, callback) {
+var on = S.on = function(name, callback) {
     var list = events[name] || (events[name] = []);
     list.push(callback);
     return S;
@@ -1010,16 +979,24 @@ var trigger = S.trigger = function(name) {
     return S;
 };
 
-
 // thanks modernizr
 var createElement = function(type) {
         return document.createElement(type);
     },
-    element = createElement("tbtx"),
-    style = element.style,
-    spliter = " ",
-    omPrefixes = "Webkit Moz O ms",
-    cssomPrefixes = omPrefixes.split(spliter),
+
+    splitter = " ",
+    supportElem = createElement("tbtx"),
+    supportStyl = supportElem.style,
+    inputElem = createElement("input"),
+
+    /**
+     * css 使用 -webkit-box-sizing
+     * dom使用boxSizing
+     */
+    // prefixes = ' -webkit- -moz- -o- -ms- '.split(splitter),
+    omPrefixes = 'Webkit Moz O ms',
+    cssomPrefixes = omPrefixes.split(splitter),
+    // domPrefixes = omPrefixes.toLowerCase().split(splitter),
 
     prefixed = function(prop) {
         return testPropsAll(prop, "pfx");
@@ -1030,7 +1007,7 @@ var createElement = function(type) {
 
         for (i in props) {
             prop = props[i];
-            if (style[prop] !== undefined) {
+            if (supportStyl[prop] !== undefined) {
                 return prefixed == "pfx" ? prop : true;
             }
         }
@@ -1038,49 +1015,77 @@ var createElement = function(type) {
     },
     testPropsAll = function(prop, prefixed) {
         var ucProp = ucfirst(prop),
-            props = (prop + spliter + cssomPrefixes.join(ucProp + spliter) + ucProp).split(spliter);
+            props = (prop + splitter + cssomPrefixes.join(ucProp + splitter) + ucProp).split(splitter);
 
         return testProps(props, prefixed);
     },
 
-    touch = "ontouchstart" in documentElement,
-    mobile = !!ua.match(/AppleWebKit.*Mobile.*/) || touch,
-    pad = !!ua.match(/iPad/i),
-    phone = mobile && !pad,
-    transform = testPropsAll("transform"),
+    transform = prefixed("transform"),
+    transition = prefixed("transition"),
+
+    testBodyTimer = setInterval(function() {
+        body = document.body;
+
+        if (body) {
+            trigger("body.ready", body);
+            clearInterval(testBodyTimer);
+        }
+    }, 50),
+
+    testTranslate3d = function() {
+        var el = createElement('p'),
+            has3d;
+
+        body.insertBefore(el, null);
+        el.style[transform] = 'translate3d(1px,1px,1px)';
+
+        has3d = getComputedStyle(el).getPropertyValue(dasherize(transform));
+
+        body.removeChild(el);
+
+        return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
+    },
 
     support = {
-        transition: testPropsAll("transition"),
+        touch: "ontouchstart" in documentElement,
+        pad: !!ua.match(/iPad/i),
+
+        transition: transition,
         transform: transform,
-        touch: touch,
-        mobile: mobile,
-        pad: pad,
-        phone: phone,
-        placeholder: "placeholder" in createElement("input"),
-        canvas: (function() {
-            var elem = createElement("canvas");
-            return !!(elem.getContext && elem.getContext("2d"));
-        })(),
 
-        testTranslate3d: function() {
-            if (!transform) {
-                return false;
-            }
+        placeholder: "placeholder" in inputElem,
 
-            var el = createElement('p'),
-                has3d,
-                prefixedTransform = prefixed("transform");
-
-            document.body.insertBefore(el, null);
-            el.style[prefixedTransform] = 'translate3d(1px,1px,1px)';
-
-            has3d = getComputedStyle(el).getPropertyValue(dasherize(prefixedTransform));
-
-            document.body.removeChild(el);
-
-            return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
+        add: function(name, factory) {
+            var s = this;
+            s[name] = isFunction(factory) ? factory.call(s) : factory;
+            return s;
         }
     };
+
+support.add("mobile", function() {
+    return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
+}).add("phone", function() {
+    return this.mobile && !this.pad;
+}).add("canvas", function() {
+    var elem = createElement("canvas");
+    return !!(elem.getContext && elem.getContext("2d"));
+});
+
+if (support.transform) {
+    on("body.ready", function() {
+        support.translate3d = testTranslate3d();
+    });
+} else {
+    support.translate3d = false;
+}
+
+var transEndEventNames = {
+    WebkitTransition : 'webkitTransitionEnd',
+    MozTransition    : 'transitionend',
+    OTransition      : 'oTransitionEnd otransitionend',
+    transition       : 'transitionend'
+};
+support.transitionEnd = transition ? transEndEventNames[transition]: "";
 
 
 extend({
@@ -1873,7 +1878,7 @@ var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
         },
 
         gallery: {
-            jquery: support.phone ? "2.1.1" : "1.11.1",
+            jquery: support.mobile ? "2.1.1" : "1.11.1",
             handlebars: "1.3.0",
             json: "2"
         },
@@ -1929,35 +1934,6 @@ if (!_config("debug")) {
             }
         ]
     });
-}
-
-"alias map paths".replace(rword, function(name) {
-    ConfigFns[name] = function(val) {
-        if (val) {
-            var cfg = {};
-            cfg[name] = val;
-            Loader.config(cfg);
-        } else {
-            return data[name];
-        }
-    };
-});
-
-
-var jQuery = global.jQuery,
-    jQueryFactory,
-    JSON = global.JSON;
-
-if (JSON) {
-    define("json", JSON);
-}
-
-if (jQuery) {
-    jQueryFactory = function() {
-        return jQuery;
-    };
-    define("jquery", jQueryFactory);
-    define("$", jQueryFactory);
 }
 
 define("tbtx", S);
