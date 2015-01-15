@@ -42,29 +42,6 @@ var createElement = function(type) {
     transform = prefixed("transform"),
     transition = prefixed("transition"),
 
-    testBodyTimer = setInterval(function() {
-        body = document.body;
-
-        if (body) {
-            trigger("body.ready", body);
-            clearInterval(testBodyTimer);
-        }
-    }, 50),
-
-    testTranslate3d = function() {
-        var el = createElement('p'),
-            has3d;
-
-        body.insertBefore(el, null);
-        el.style[transform] = 'translate3d(1px,1px,1px)';
-
-        has3d = getComputedStyle(el).getPropertyValue(dasherize(transform));
-
-        body.removeChild(el);
-
-        return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
-    },
-
     support = {
         touch: "ontouchstart" in documentElement,
         pad: !!ua.match(/iPad/i),
@@ -73,6 +50,25 @@ var createElement = function(type) {
         transform: transform,
 
         placeholder: "placeholder" in inputElem,
+
+        testTranslate3d: function() {
+            var body = document.body;
+            if (!transform || !body) {
+                return false;
+            }
+
+            var el = createElement('p'),
+                has3d;
+
+            body.insertBefore(el, null);
+            el.style[transform] = 'translate3d(1px,1px,1px)';
+
+            has3d = getComputedStyle(el).getPropertyValue(dasherize(transform));
+
+            body.removeChild(el);
+
+            return (has3d && has3d.length > 0 && has3d !== "none");
+        },
 
         add: function(name, factory) {
             var s = this;
@@ -90,14 +86,6 @@ support.add("mobile", function() {
     return !!(elem.getContext && elem.getContext("2d"));
 });
 
-if (support.transform) {
-    on("body.ready", function() {
-        support.translate3d = testTranslate3d();
-    });
-} else {
-    support.translate3d = false;
-}
-
 var transEndEventNames = {
     WebkitTransition : 'webkitTransitionEnd',
     MozTransition    : 'transitionend',
@@ -105,7 +93,6 @@ var transEndEventNames = {
     transition       : 'transitionend'
 };
 support.transitionEnd = transition ? transEndEventNames[transition]: "";
-
 
 extend({
     support: support,

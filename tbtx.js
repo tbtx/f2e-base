@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Thu Jan 15 2015 00:26:14 GMT+0800 (中国标准时间)
+ * @buildTime:  Thu Jan 15 2015 17:54:28 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -14,8 +14,6 @@ var location = global.location,
     documentElement = document.documentElement,
 
     head = document.head || document.getElementsByTagName("head")[0],
-
-    body,
 
     isSupportConsole = global.console && console.log,
 
@@ -132,10 +130,13 @@ var AP = Array.prototype,
      * return false终止循环
      * 原生every必须return true or false
      */
-    each = function(object, fn) {
+    each = function(object, fn, context) {
         var i = 0,
             length = object.length;
 
+        if (context) {
+            fn = fn.bind(context);
+        }
         if (length === +length) {
             for (; i < length; i++) {
                 if (fn(object[i], i, object) === false) {
@@ -701,6 +702,7 @@ extend({
 
     each: each,
 
+    mix: extend,
     extend: extend,
 
     isWindow: isWindow,
@@ -1067,7 +1069,8 @@ Uri.prototype = {
             scheme = uri.scheme,
             domain = uri.domain,
             path = uri.path,
-            port = uri.port,
+            // fix port "0" bug
+            port = parseInt(uri.port, 10),
             fragment = uri.fragment,
             query = uri.query.toString(),
             credentials = uri.credentials;
@@ -1262,29 +1265,6 @@ var createElement = function(type) {
     transform = prefixed("transform"),
     transition = prefixed("transition"),
 
-    testBodyTimer = setInterval(function() {
-        body = document.body;
-
-        if (body) {
-            trigger("body.ready", body);
-            clearInterval(testBodyTimer);
-        }
-    }, 50),
-
-    testTranslate3d = function() {
-        var el = createElement('p'),
-            has3d;
-
-        body.insertBefore(el, null);
-        el.style[transform] = 'translate3d(1px,1px,1px)';
-
-        has3d = getComputedStyle(el).getPropertyValue(dasherize(transform));
-
-        body.removeChild(el);
-
-        return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
-    },
-
     support = {
         touch: "ontouchstart" in documentElement,
         pad: !!ua.match(/iPad/i),
@@ -1293,6 +1273,25 @@ var createElement = function(type) {
         transform: transform,
 
         placeholder: "placeholder" in inputElem,
+
+        testTranslate3d: function() {
+            var body = document.body;
+            if (!transform || !body) {
+                return false;
+            }
+
+            var el = createElement('p'),
+                has3d;
+
+            body.insertBefore(el, null);
+            el.style[transform] = 'translate3d(1px,1px,1px)';
+
+            has3d = getComputedStyle(el).getPropertyValue(dasherize(transform));
+
+            body.removeChild(el);
+
+            return (has3d && has3d.length > 0 && has3d !== "none");
+        },
 
         add: function(name, factory) {
             var s = this;
@@ -1310,14 +1309,6 @@ support.add("mobile", function() {
     return !!(elem.getContext && elem.getContext("2d"));
 });
 
-if (support.transform) {
-    on("body.ready", function() {
-        support.translate3d = testTranslate3d();
-    });
-} else {
-    support.translate3d = false;
-}
-
 var transEndEventNames = {
     WebkitTransition : 'webkitTransitionEnd',
     MozTransition    : 'transitionend',
@@ -1325,7 +1316,6 @@ var transEndEventNames = {
     transition       : 'transitionend'
 };
 support.transitionEnd = transition ? transEndEventNames[transition]: "";
-
 
 extend({
     support: support,

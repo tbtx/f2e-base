@@ -217,7 +217,8 @@ Uri.prototype = {
             scheme = uri.scheme,
             domain = uri.domain,
             path = uri.path,
-            port = uri.port,
+            // fix port "0" bug
+            port = parseInt(uri.port, 10),
             fragment = uri.fragment,
             query = uri.query.toString(),
             credentials = uri.credentials;

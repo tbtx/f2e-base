@@ -36,10 +36,13 @@ var AP = Array.prototype,
      * return false终止循环
      * 原生every必须return true or false
      */
-    each = function(object, fn) {
+    each = function(object, fn, context) {
         var i = 0,
             length = object.length;
 
+        if (context) {
+            fn = fn.bind(context);
+        }
         if (length === +length) {
             for (; i < length; i++) {
                 if (fn(object[i], i, object) === false) {
@@ -366,6 +369,7 @@ extend({
 
     each: each,
 
+    mix: extend,
     extend: extend,
 
     isWindow: isWindow,

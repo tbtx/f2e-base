@@ -7,8 +7,6 @@ var location = global.location,
 
     head = document.head || document.getElementsByTagName("head")[0],
 
-    body,
-
     isSupportConsole = global.console && console.log,
 
     noop = function() {},
