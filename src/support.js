@@ -51,39 +51,24 @@ var createElement = function(type) {
 
         placeholder: "placeholder" in inputElem,
 
-        testTranslate3d: function() {
-            var body = document.body;
-            if (!transform || !body) {
-                return false;
-            }
-
-            var el = createElement('p'),
-                has3d;
-
-            body.insertBefore(el, null);
-            el.style[transform] = 'translate3d(1px,1px,1px)';
-
-            has3d = getComputedStyle(el).getPropertyValue(dasherize(transform));
-
-            body.removeChild(el);
-
-            return (has3d && has3d.length > 0 && has3d !== "none");
-        },
-
-        add: function(name, factory) {
-            var s = this;
-            s[name] = isFunction(factory) ? factory.call(s) : factory;
-            return s;
-        }
+        translate3d: testPropsAll('perspective')
     };
 
-support.add("mobile", function() {
-    return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
-}).add("phone", function() {
-    return this.mobile && !this.pad;
-}).add("canvas", function() {
-    var elem = createElement("canvas");
-    return !!(elem.getContext && elem.getContext("2d"));
+each({
+    mobile: function() {
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
+    },
+
+    phone: function() {
+        return this.mobile && !this.pad;
+    },
+
+    canvas: function() {
+        var elem = createElement("canvas");
+        return !!(elem.getContext && elem.getContext("2d"));
+    }
+}, function(factory, name) {
+    support[name] = factory.call(support);
 });
 
 var transEndEventNames = {

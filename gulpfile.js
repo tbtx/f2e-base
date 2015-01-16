@@ -33,7 +33,7 @@ gulp.task('main', function() {
         .pipe(plugins.uglify())
         .pipe(gulp.dest('.'));
 
-    modules = ['intro', 'seed', 'lang.mobile', 'uri', 'events', 'support', 'loader', 'config', 'cookie', 'date', 'request', 'outro'];
+    modules = ['intro', 'seed', 'lang.mobile', 'uri', 'events', 'support', 'loader', 'config.mobile', 'cookie', 'date', 'request', 'outro'];
     gulp.src(modules.map(function(module) {
             return './src/' + module + '.js';
         }))

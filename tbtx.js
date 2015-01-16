@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Thu Jan 15 2015 17:54:28 GMT+0800 (中国标准时间)
+ * @buildTime:  Fri Jan 16 2015 14:57:39 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -656,6 +656,13 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return underscored(str).replace(/_/g, "-");
     },
 
+    // result = function(object, property, context) {
+    //     context = context || object;
+
+    //     var value = object[property];
+    //     return isFunction(value) ? value.call(context) : value;
+    // },
+
     htmlEntities = {
         "&amp;": "&",
         "&gt;": ">",
@@ -1274,39 +1281,24 @@ var createElement = function(type) {
 
         placeholder: "placeholder" in inputElem,
 
-        testTranslate3d: function() {
-            var body = document.body;
-            if (!transform || !body) {
-                return false;
-            }
-
-            var el = createElement('p'),
-                has3d;
-
-            body.insertBefore(el, null);
-            el.style[transform] = 'translate3d(1px,1px,1px)';
-
-            has3d = getComputedStyle(el).getPropertyValue(dasherize(transform));
-
-            body.removeChild(el);
-
-            return (has3d && has3d.length > 0 && has3d !== "none");
-        },
-
-        add: function(name, factory) {
-            var s = this;
-            s[name] = isFunction(factory) ? factory.call(s) : factory;
-            return s;
-        }
+        translate3d: testPropsAll('perspective')
     };
 
-support.add("mobile", function() {
-    return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
-}).add("phone", function() {
-    return this.mobile && !this.pad;
-}).add("canvas", function() {
-    var elem = createElement("canvas");
-    return !!(elem.getContext && elem.getContext("2d"));
+each({
+    mobile: function() {
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
+    },
+
+    phone: function() {
+        return this.mobile && !this.pad;
+    },
+
+    canvas: function() {
+        var elem = createElement("canvas");
+        return !!(elem.getContext && elem.getContext("2d"));
+    }
+}, function(factory, name) {
+    support[name] = factory.call(support);
 });
 
 var transEndEventNames = {
@@ -2087,7 +2079,7 @@ extend({
  * 只写常用的
  * @type {[type]}
  */
-var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
+var staticUrl = realpath(loaderDir + "../../../"),
 
     paths = {},
 
@@ -2166,6 +2158,10 @@ if (!_config("debug")) {
 }
 
 define("tbtx", S);
+
+if (global.JSON) {
+    define("json", global.JSON);
+}
 
 var preloadConfig = {
         broadcast: {

@@ -323,6 +323,13 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return underscored(str).replace(/_/g, "-");
     },
 
+    // result = function(object, property, context) {
+    //     context = context || object;
+
+    //     var value = object[property];
+    //     return isFunction(value) ? value.call(context) : value;
+    // },
+
     htmlEntities = {
         "&amp;": "&",
         "&gt;": ">",

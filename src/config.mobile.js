@@ -14,8 +14,7 @@ var staticUrl = realpath(loaderDir + "../../../"),
 
         component: {
             switchable: "1.0.3",
-            validator: "0.9.7",
-            popup: "1.0.0"
+            validator: "0.9.7"
         },
 
         plugin: {
@@ -24,19 +23,14 @@ var staticUrl = realpath(loaderDir + "../../../"),
         },
 
         gallery: {
-            jquery: support.mobile ? "2.1.1" : "1.11.1",
+            jquery: "2.1.1",
             handlebars: "1.3.0",
-            json: "2"
+            store: "1.3.17"
         },
 
         arale: {
             base: "1.1.1",
-            widget: "1.1.1",
-            position: "1.0.1"
-        },
-
-        dist: {
-            msg: "1.0.0"
+            widget: "1.1.1"
         }
     },
 
@@ -83,37 +77,4 @@ if (!_config("debug")) {
 }
 
 define("tbtx", S);
-
-if (global.JSON) {
-    define("json", global.JSON);
-}
-
-var preloadConfig = {
-        broadcast: {
-            module: "msg"
-        },
-        pin: {
-            module: "position"
-        },
-        center: {
-            module: "position"
-        }
-    };
-
-// 某些没有return的模块接口可以提前写入
-each(preloadConfig, function(config, name) {
-    var module = config.module;
-
-    S[name] = function() {
-        var args = arguments;
-
-        require(module, function(exports) {
-            var fn = exports[name];
-            if (isFunction(fn)) {
-                fn.apply(S, args);
-
-                S[name] = fn;
-            }
-        });
-    };
-});
+define("json", global.JSON);

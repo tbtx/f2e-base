@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Thu Jan 15 2015 17:54:28 GMT+0800 (中国标准时间)
+ * @buildTime:  Fri Jan 16 2015 14:57:39 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -416,6 +416,13 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     dasherize = function(str) {
         return underscored(str).replace(/_/g, "-");
     },
+
+    // result = function(object, property, context) {
+    //     context = context || object;
+
+    //     var value = object[property];
+    //     return isFunction(value) ? value.call(context) : value;
+    // },
 
     htmlEntities = {
         "&amp;": "&",
@@ -1035,39 +1042,24 @@ var createElement = function(type) {
 
         placeholder: "placeholder" in inputElem,
 
-        testTranslate3d: function() {
-            var body = document.body;
-            if (!transform || !body) {
-                return false;
-            }
-
-            var el = createElement('p'),
-                has3d;
-
-            body.insertBefore(el, null);
-            el.style[transform] = 'translate3d(1px,1px,1px)';
-
-            has3d = getComputedStyle(el).getPropertyValue(dasherize(transform));
-
-            body.removeChild(el);
-
-            return (has3d && has3d.length > 0 && has3d !== "none");
-        },
-
-        add: function(name, factory) {
-            var s = this;
-            s[name] = isFunction(factory) ? factory.call(s) : factory;
-            return s;
-        }
+        translate3d: testPropsAll('perspective')
     };
 
-support.add("mobile", function() {
-    return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
-}).add("phone", function() {
-    return this.mobile && !this.pad;
-}).add("canvas", function() {
-    var elem = createElement("canvas");
-    return !!(elem.getContext && elem.getContext("2d"));
+each({
+    mobile: function() {
+        return !!ua.match(/AppleWebKit.*Mobile.*/) || this.touch;
+    },
+
+    phone: function() {
+        return this.mobile && !this.pad;
+    },
+
+    canvas: function() {
+        var elem = createElement("canvas");
+        return !!(elem.getContext && elem.getContext("2d"));
+    }
+}, function(factory, name) {
+    support[name] = factory.call(support);
 });
 
 var transEndEventNames = {
@@ -1848,7 +1840,7 @@ extend({
  * 只写常用的
  * @type {[type]}
  */
-var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
+var staticUrl = realpath(loaderDir + "../../../"),
 
     paths = {},
 
@@ -1858,8 +1850,7 @@ var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
 
         component: {
             switchable: "1.0.3",
-            validator: "0.9.7",
-            popup: "1.0.0"
+            validator: "0.9.7"
         },
 
         plugin: {
@@ -1868,19 +1859,14 @@ var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
         },
 
         gallery: {
-            jquery: support.mobile ? "2.1.1" : "1.11.1",
+            jquery: "2.1.1",
             handlebars: "1.3.0",
-            json: "2"
+            store: "1.3.17"
         },
 
         arale: {
             base: "1.1.1",
-            widget: "1.1.1",
-            position: "1.0.1"
-        },
-
-        dist: {
-            msg: "1.0.0"
+            widget: "1.1.1"
         }
     },
 
@@ -1927,37 +1913,7 @@ if (!_config("debug")) {
 }
 
 define("tbtx", S);
-
-var preloadConfig = {
-        broadcast: {
-            module: "msg"
-        },
-        pin: {
-            module: "position"
-        },
-        center: {
-            module: "position"
-        }
-    };
-
-// 某些没有return的模块接口可以提前写入
-each(preloadConfig, function(config, name) {
-    var module = config.module;
-
-    S[name] = function() {
-        var args = arguments;
-
-        require(module, function(exports) {
-            var fn = exports[name];
-            if (isFunction(fn)) {
-                fn.apply(S, args);
-
-                S[name] = fn;
-            }
-        });
-    };
-});
-
+define("json", global.JSON);
 
 var MILLISECONDS_OF_DAY = 24 * 60 * 60 * 1000,
 
