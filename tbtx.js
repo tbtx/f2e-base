@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Fri Jan 16 2015 14:57:39 GMT+0800 (中国标准时间)
+ * @buildTime:  Fri Feb 06 2015 15:36:32 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -633,7 +633,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return true;
     },
 
-    cidGenerator = function(prefix) {
+    _cid = function(prefix) {
         prefix = prefix || 0;
 
         var counter = 0;
@@ -655,13 +655,6 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     dasherize = function(str) {
         return underscored(str).replace(/_/g, "-");
     },
-
-    // result = function(object, property, context) {
-    //     context = context || object;
-
-    //     var value = object[property];
-    //     return isFunction(value) ? value.call(context) : value;
-    // },
 
     htmlEntities = {
         "&amp;": "&",
@@ -725,8 +718,7 @@ extend({
     memoize: memoize,
     singleton: singleton,
 
-    cidGenerator: cidGenerator,
-    uniqueCid: cidGenerator(),
+    uniqueCid: _cid(),
 
     isNotEmptyString: isNotEmptyString,
 
@@ -919,7 +911,7 @@ var encode = encodeURIComponent,
                 try {
                     val = decode(val);
                 } catch (e) {
-                    error(e);
+                    error(e + val);
                 }
             }
             ret[key] = val;
@@ -927,7 +919,7 @@ var encode = encodeURIComponent,
         return ret;
     },
 
-    getComponents = function(uri) {
+    parseUri = function(uri) {
         uri = uri || location.href;
 
         var a = document.createElement('a'),
@@ -967,7 +959,7 @@ var encode = encodeURIComponent,
 
     Uri = function(uriStr) {
         var uri = this,
-            components = getComponents(uriStr);
+            components = parseUri(uriStr);
 
         each(components, function(v, key) {
 
@@ -1157,7 +1149,7 @@ extend({
 
     isUri: isUri,
 
-    parseUri: getComponents,
+    parseUri: parseUri,
 
     getFragment: function(uri) {
         return new Uri(uri).getFragment();
@@ -1324,7 +1316,7 @@ extend({
 */
 var Loader = S.Loader = {},
     data = Loader.data = {},
-    cid = cidGenerator(),
+    cid = _cid(),
 
     DIRNAME_RE = /[^?#]*\//,
     DOT_RE = /\/\.\//g,
@@ -2159,34 +2151,33 @@ if (!_config("debug")) {
 
 define("tbtx", S);
 
-if (global.JSON) {
-    define("json", global.JSON);
+if (typeof JSON !== undefined + "") {
+    define("json", JSON);
+}
+if (typeof jQuery !== undefined + "") {
+    define("jquery", function() {
+        return jQuery;
+    });
 }
 
+
 var preloadConfig = {
-        broadcast: {
-            module: "msg"
-        },
-        pin: {
-            module: "position"
-        },
-        center: {
-            module: "position"
-        }
-    };
+    broadcast: "msg",
+    pin: "position",
+    center: "position"
+};
 
 // 某些没有return的模块接口可以提前写入
-each(preloadConfig, function(config, name) {
-    var module = config.module;
+each(preloadConfig, function(module, name) {
 
     S[name] = function() {
         var args = arguments;
 
         require(module, function(exports) {
             var fn = exports[name];
+
             if (isFunction(fn)) {
                 fn.apply(S, args);
-
                 S[name] = fn;
             }
         });
@@ -2360,6 +2351,7 @@ function padding2(str) {
 }
 
 extend({
+    parseDate: parseDate,
     normalizeDate: normalizeDate,
     formatDate: formatDate
 });

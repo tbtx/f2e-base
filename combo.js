@@ -325,6 +325,6 @@
     // }
 
     // define("seajs/seajs-combo/1.0.1/seajs-combo-debug", [], {});
-    define("base/2.5/js/cmobo", [], {});
+    define("base/2.5/js/combo", [], {});
 
 })(tbtx);

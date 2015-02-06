@@ -105,6 +105,7 @@ function padding2(str) {
 }
 
 extend({
+    parseDate: parseDate,
     normalizeDate: normalizeDate,
     formatDate: formatDate
 });

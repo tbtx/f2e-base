@@ -7,7 +7,7 @@
 */
 var Loader = S.Loader = {},
     data = Loader.data = {},
-    cid = cidGenerator(),
+    cid = _cid(),
 
     DIRNAME_RE = /[^?#]*\//,
     DOT_RE = /\/\.\//g,

@@ -84,34 +84,33 @@ if (!_config("debug")) {
 
 define("tbtx", S);
 
-if (global.JSON) {
-    define("json", global.JSON);
+if (typeof JSON !== undefined + "") {
+    define("json", JSON);
+}
+if (typeof jQuery !== undefined + "") {
+    define("jquery", function() {
+        return jQuery;
+    });
 }
 
+
 var preloadConfig = {
-        broadcast: {
-            module: "msg"
-        },
-        pin: {
-            module: "position"
-        },
-        center: {
-            module: "position"
-        }
-    };
+    broadcast: "msg",
+    pin: "position",
+    center: "position"
+};
 
 // 某些没有return的模块接口可以提前写入
-each(preloadConfig, function(config, name) {
-    var module = config.module;
+each(preloadConfig, function(module, name) {
 
     S[name] = function() {
         var args = arguments;
 
         require(module, function(exports) {
             var fn = exports[name];
+
             if (isFunction(fn)) {
                 fn.apply(S, args);
-
                 S[name] = fn;
             }
         });

@@ -300,7 +300,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return true;
     },
 
-    cidGenerator = function(prefix) {
+    _cid = function(prefix) {
         prefix = prefix || 0;
 
         var counter = 0;
@@ -322,13 +322,6 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     dasherize = function(str) {
         return underscored(str).replace(/_/g, "-");
     },
-
-    // result = function(object, property, context) {
-    //     context = context || object;
-
-    //     var value = object[property];
-    //     return isFunction(value) ? value.call(context) : value;
-    // },
 
     htmlEntities = {
         "&amp;": "&",
@@ -392,8 +385,7 @@ extend({
     memoize: memoize,
     singleton: singleton,
 
-    cidGenerator: cidGenerator,
-    uniqueCid: cidGenerator(),
+    uniqueCid: _cid(),
 
     isNotEmptyString: isNotEmptyString,
 

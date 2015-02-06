@@ -60,7 +60,7 @@ var encode = encodeURIComponent,
                 try {
                     val = decode(val);
                 } catch (e) {
-                    error(e);
+                    error(e + val);
                 }
             }
             ret[key] = val;
@@ -68,7 +68,7 @@ var encode = encodeURIComponent,
         return ret;
     },
 
-    getComponents = function(uri) {
+    parseUri = function(uri) {
         uri = uri || location.href;
 
         var a = document.createElement('a'),
@@ -108,7 +108,7 @@ var encode = encodeURIComponent,
 
     Uri = function(uriStr) {
         var uri = this,
-            components = getComponents(uriStr);
+            components = parseUri(uriStr);
 
         each(components, function(v, key) {
 
@@ -298,7 +298,7 @@ extend({
 
     isUri: isUri,
 
-    parseUri: getComponents,
+    parseUri: parseUri,
 
     getFragment: function(uri) {
         return new Uri(uri).getFragment();
