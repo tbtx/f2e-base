@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Wed Feb 11 2015 02:59:43 GMT+0800 (中国标准时间)
+ * @buildTime:  Wed Feb 11 2015 03:11:41 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -1226,18 +1226,17 @@ function id2Uri(id, refUri) {
 }
 
 var cwd = dirname(location.href),
-    // scripts = document.scripts,
-    // loaderScript = scripts[scripts.length - 1],
-    // combo之后tbtx可能不在最前，直接写死算了
-    loaderDir = "http://static.tianxia.taobao.com/tbtx/base/2.5/js/";
+    scripts = document.scripts,
+    loaderSrc = getScriptAbsoluteSrc(scripts[scripts.length - 1] || cwd),
+    loaderDir = loaderSrc.indexOf("static.tianxia.taobao.com") > -1 ? "http://static.tianxia.taobao.com/tbtx/base/2.5/js/" : dirname(loaderSrc);
     // loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
 
-// function getScriptAbsoluteSrc(node) {
-//     return node.hasAttribute ? // non-IE6/7
-//         node.src :
-//         // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
-//         node.getAttribute("src", 4);
-// }
+function getScriptAbsoluteSrc(node) {
+    return node.hasAttribute ? // non-IE6/7
+        node.src :
+        // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
+        node.getAttribute("src", 4);
+}
 
 
 /**
