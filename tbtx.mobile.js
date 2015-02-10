@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Fri Feb 06 2015 15:36:32 GMT+0800 (中国标准时间)
+ * @buildTime:  Tue Feb 10 2015 16:57:52 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -159,7 +159,7 @@ var AP = Array.prototype,
     };
 });
 
-var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
+var isArray = S.isArray = Array.isArray,
     isFunction = S.isFunction,
     isObject = S.isObject,
     isString = S.isString,

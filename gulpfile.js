@@ -28,7 +28,7 @@ gulp.task('main', function() {
             pkg: pkg,
             buildTime: new Date().toLocaleString()
         }))
-        .pipe(gulp.dest('.'));
+        .pipe(gulp.dest('.'))
         .pipe(plugins.concat('tbtx.min.js'))
         .pipe(plugins.uglify())
         .pipe(gulp.dest('.'));
@@ -42,7 +42,7 @@ gulp.task('main', function() {
             pkg: pkg,
             buildTime: new Date().toLocaleString()
         }))
-        .pipe(gulp.dest('.'));
+        .pipe(gulp.dest('.'))
         .pipe(plugins.concat('tbtx.mobile.min.js'))
         .pipe(plugins.uglify())
         .pipe(gulp.dest('.'));
