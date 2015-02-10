@@ -4,6 +4,7 @@
  * 只写常用的
  * @type {[type]}
  */
+
 var staticUrl = realpath(loaderDir + "../../../"),
 
     paths = {},

@@ -156,16 +156,18 @@ function id2Uri(id, refUri) {
 }
 
 var cwd = dirname(location.href),
-    scripts = document.scripts,
-    loaderScript = scripts[scripts.length - 1],
-    loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
+    // scripts = document.scripts,
+    // loaderScript = scripts[scripts.length - 1],
+    // combo之后tbtx可能不在最前，直接写死算了
+    loaderDir = "http://static.tianxia.taobao.com/tbtx/base/2.5/js/";
+    // loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
 
-function getScriptAbsoluteSrc(node) {
-    return node.hasAttribute ? // non-IE6/7
-        node.src :
-        // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
-        node.getAttribute("src", 4);
-}
+// function getScriptAbsoluteSrc(node) {
+//     return node.hasAttribute ? // non-IE6/7
+//         node.src :
+//         // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
+//         node.getAttribute("src", 4);
+// }
 
 
 /**
