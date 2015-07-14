@@ -60,7 +60,7 @@ each({
     },
 
     phone: function() {
-        return this.mobile && !this.pad;
+        return this.mobile && !this.pad && screen.width < 800;
     },
 
     canvas: function() {

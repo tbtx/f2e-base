@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Wed Feb 11 2015 03:11:41 GMT+0800 (中国标准时间)
+ * @buildTime:  Tue Jul 14 2015 15:51:16 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -1282,7 +1282,7 @@ each({
     },
 
     phone: function() {
-        return this.mobile && !this.pad;
+        return this.mobile && !this.pad && screen.width < 800;
     },
 
     canvas: function() {
@@ -1466,9 +1466,7 @@ function id2Uri(id, refUri) {
 
 var cwd = dirname(location.href),
     scripts = document.scripts,
-    loaderSrc = getScriptAbsoluteSrc(scripts[scripts.length - 1] || cwd),
-    loaderDir = loaderSrc.indexOf("static.tianxia.taobao.com") > -1 ? "http://static.tianxia.taobao.com/tbtx/base/2.5/js/" : dirname(loaderSrc);
-    // loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
+    loaderDir = dirname(getScriptAbsoluteSrc(scripts[scripts.length - 1]) || cwd);
 
 function getScriptAbsoluteSrc(node) {
     return node.hasAttribute ? // non-IE6/7
@@ -2053,7 +2051,7 @@ Loader.resolve = id2Uri;
 var define = global.define = Module.define;
 var require = global.require = function(ids, callback) {
     Module.require(ids, callback, data.cwd + "_require_" + cid());
-    return S;
+    // return S;
 };
 
 extend({
@@ -2073,7 +2071,8 @@ extend({
  * @type {[type]}
  */
 
-var staticUrl = realpath(loaderDir + "../../../"),
+
+var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
 
     paths = {},
 
@@ -2082,7 +2081,7 @@ var staticUrl = realpath(loaderDir + "../../../"),
     aliasConfig = {
 
         component: {
-            switchable: "1.0.3",
+            switchable: "1.0.4",
             validator: "0.9.7",
             popup: "1.0.0"
         },
@@ -2095,7 +2094,8 @@ var staticUrl = realpath(loaderDir + "../../../"),
         gallery: {
             jquery: support.mobile ? "2.1.1" : "1.11.1",
             handlebars: "1.3.0",
-            json: "2"
+            json: "2",
+            hammer: "2.0.4"
         },
 
         arale: {
@@ -2363,15 +2363,14 @@ var randomToken = function() {
         return Math.random().toString(36).substring(2, 15);
     },
 
-    // 互斥锁
-    isTokenLock = 0,
-
     token = randomToken() + randomToken(),
 
     generateToken = function() {
         cookie.set(_config("tokenName"), token, "", "", "/");
         return token;
     };
+
+S.generateToken = generateToken;
 
 // 默认蜜儿
 _config({
@@ -2393,13 +2392,13 @@ _config({
     }
 });
 
-S.generateToken = generateToken;
-
 define("request", ["jquery"], function($) {
 
     var config = _config("request"),
         code = config.code,
         msg = config.msg,
+         // 互斥锁
+        isTokenLock = 0,
 
         /**
          * 解决后端删除jtoken后ajax cookie没有token

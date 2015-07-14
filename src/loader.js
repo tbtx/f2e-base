@@ -157,9 +157,7 @@ function id2Uri(id, refUri) {
 
 var cwd = dirname(location.href),
     scripts = document.scripts,
-    loaderSrc = getScriptAbsoluteSrc(scripts[scripts.length - 1] || cwd),
-    loaderDir = loaderSrc.indexOf("static.tianxia.taobao.com") > -1 ? "http://static.tianxia.taobao.com/tbtx/base/2.5/js/" : dirname(loaderSrc);
-    // loaderDir = dirname(getScriptAbsoluteSrc(loaderScript) || cwd);
+    loaderDir = dirname(getScriptAbsoluteSrc(scripts[scripts.length - 1]) || cwd);
 
 function getScriptAbsoluteSrc(node) {
     return node.hasAttribute ? // non-IE6/7
@@ -744,7 +742,7 @@ Loader.resolve = id2Uri;
 var define = global.define = Module.define;
 var require = global.require = function(ids, callback) {
     Module.require(ids, callback, data.cwd + "_require_" + cid());
-    return S;
+    // return S;
 };
 
 extend({

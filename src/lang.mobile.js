@@ -65,7 +65,7 @@ var AP = Array.prototype,
     };
 });
 
-var isArray = S.isArray = Array.isArray,
+var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     isFunction = S.isFunction,
     isObject = S.isObject,
     isString = S.isString,

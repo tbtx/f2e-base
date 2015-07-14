@@ -3,15 +3,14 @@ var randomToken = function() {
         return Math.random().toString(36).substring(2, 15);
     },
 
-    // 互斥锁
-    isTokenLock = 0,
-
     token = randomToken() + randomToken(),
 
     generateToken = function() {
         cookie.set(_config("tokenName"), token, "", "", "/");
         return token;
     };
+
+S.generateToken = generateToken;
 
 // 默认蜜儿
 _config({
@@ -33,13 +32,13 @@ _config({
     }
 });
 
-S.generateToken = generateToken;
-
 define("request", ["jquery"], function($) {
 
     var config = _config("request"),
         code = config.code,
         msg = config.msg,
+         // 互斥锁
+        isTokenLock = 0,
 
         /**
          * 解决后端删除jtoken后ajax cookie没有token

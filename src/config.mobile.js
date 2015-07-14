@@ -13,28 +13,31 @@ var staticUrl = realpath(loaderDir + "../../../"),
     aliasConfig = {
 
         component: {
-            switchable: "1.0.3",
+            switchable: "1.0.4",
             validator: "0.9.7",
             popup: "1.0.0"
         },
 
         plugin: {
-            lazyload: "1.8.4",
+            lazyload: "2.8.4",
             easing: "1.3"
         },
 
         gallery: {
             jquery: "2.1.1",
-            handlebars: "1.3.0"
+            handlebars: "1.3.0",
+            hammer: "2.0.4"
         },
 
         arale: {
             base: "1.1.1",
-            widget: "1.1.1"
+            widget: "1.1.1",
+
+            position: "1.0.1"
         },
 
         dist: {
-            msg: "2.0.0"
+            msg: "1.0.0"
         }
     },
 

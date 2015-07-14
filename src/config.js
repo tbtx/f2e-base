@@ -5,7 +5,8 @@
  * @type {[type]}
  */
 
-var staticUrl = realpath(loaderDir + "../../../"),
+
+var staticUrl = S.staticUrl = realpath(loaderDir + "../../../"),
 
     paths = {},
 
@@ -14,7 +15,7 @@ var staticUrl = realpath(loaderDir + "../../../"),
     aliasConfig = {
 
         component: {
-            switchable: "1.0.3",
+            switchable: "1.0.4",
             validator: "0.9.7",
             popup: "1.0.0"
         },
@@ -27,7 +28,8 @@ var staticUrl = realpath(loaderDir + "../../../"),
         gallery: {
             jquery: support.mobile ? "2.1.1" : "1.11.1",
             handlebars: "1.3.0",
-            json: "2"
+            json: "2",
+            hammer: "2.0.4"
         },
 
         arale: {
