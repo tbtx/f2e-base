@@ -144,6 +144,8 @@ function addBase(id, refUri) {
 function id2Uri(id, refUri) {
     if (!id) return "";
 
+    id = id.replace('http://static.tianxia.taobao.com/tbtx/', staticUrl);
+
     id = parseAlias(id);
     id = parsePaths(id);
     id = parseVars(id);

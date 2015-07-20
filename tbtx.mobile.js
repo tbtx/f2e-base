@@ -3,7 +3,7 @@
  * @author:     shiyi_tbtx
  * @email:      tb_dongshuang.xiao@taobao.com
  * @version:    v2.5.0
- * @buildTime:  Tue Jul 14 2015 15:51:16 GMT+0800 (中国标准时间)
+ * @buildTime:  Thu Jul 16 2015 17:36:30 GMT+0800 (中国标准时间)
  */
 (function(global, document, S, undefined) {
 
@@ -1213,6 +1213,8 @@ function addBase(id, refUri) {
 
 function id2Uri(id, refUri) {
     if (!id) return "";
+
+    id = id.replace('http://static.tianxia.taobao.com/tbtx/', staticUrl);
 
     id = parseAlias(id);
     id = parsePaths(id);
