@@ -3,36 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>tbtx test</title>
+    <link rel="stylesheet" href="./lib/mocha.css">
     <script src="../tbtx.js"></script>
-    <link rel="stylesheet" href="lib/jasmine/1.3.1/jasmine.css">
-    <script src="lib/jasmine/1.3.1/jasmine.js"></script>
-    <script src="lib/jasmine/1.3.1/jasmine-html.js"></script>
 
 </head>
 
 <body>
+<div id="mocha"></div>
 
+<script src="./lib/mocha.js"></script>
+<script src="./lib/chai.js"></script>
+<script>mocha.setup('bdd')</script>
+
+<script>
+    var expect = chai.expect;
+    var S = tbtx;
+</script>
 <script src="spec/seed.spec.js"></script>
 <script src="spec/lang.spec.js"></script>
-<script src="spec/uri.spec.js"></script>
+<!-- <script src="spec/uri.spec.js"></script>
 <script src="spec/events.spec.js"></script>
 <script src="spec/loader.spec.js"></script>
 <script src="spec/cookie.spec.js"></script>
 <script src="spec/date.spec.js"></script>
-<script src="spec/request.spec.js"></script>
+<script src="spec/request.spec.js"></script> -->
+
+
 <script>
-var jasmineEnv = jasmine.getEnv();
-jasmineEnv.updateInterval = 1000;
-
-var htmlReporter = new jasmine.HtmlReporter();
-jasmineEnv.addReporter(htmlReporter);
-
-jasmineEnv.specFilter = function(spec) {
-    return htmlReporter.specFilter(spec);
-};
-
-jasmineEnv.execute();
-
+    mocha.checkLeaks();
+    mocha.run();
 </script>
 </body>
 </html>

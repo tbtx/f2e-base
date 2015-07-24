@@ -1,36 +1,52 @@
+var S = exports;
 
 /**
 * 语言扩展
 */
-var AP = Array.prototype,
-
-    SP = String.prototype,
-
-    FP = Function.prototype,
-
-    class2type = {},
+var class2type = {},
 
     toString = class2type.toString,
 
     hasOwn = class2type.hasOwnProperty,
 
-    slice = AP.slice,
-
     hasOwnProperty = function(o, p) {
         return hasOwn.call(o, p);
     },
 
-    rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
+    noop = function() {},
 
-    //切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
+    error = function (msg) {
+        throw isError(msg) ? msg : new Error(msg);
+    },
+
+    cidCounter = 0,
+
+    isSupportConsole = global.console && console.log,
+
+    // 切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
     rword = /[^, ]+/g,
 
     // 是否是复杂类型
     // rcomplexType = /^(?:object|array)$/,
 
+    // 删除标签
     rtags = /<[^>]+>/img,
 
-    rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/mg,
+    // 简单的模板替换
+    rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/mg;
+
+'Boolean Number String Function Array Date RegExp Object Error'.replace(rword, function(name, lc) {
+    class2type['[object ' + name + ']'] = (lc = name.toLowerCase());
+    S['is' + name] = function(o) {
+        return type(o) === lc;
+    };
+});
+
+var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
+    isFunction = S.isFunction,
+    isObject = S.isObject,
+    isString = S.isString,
+    isError = S.isError,
 
     /**
      * return false终止循环
@@ -56,240 +72,6 @@ var AP = Array.prototype,
                 }
             }
         }
-    };
-
-/**
- * Object.keys
- * 不支持enum bug
- */
-if (!Object.keys) {
-    Object.keys = function(o) {
-        var ret = [],
-            p;
-
-        for (p in o) {
-            if (hasOwnProperty(o, p)) {
-                ret.push(p);
-            }
-        }
-
-        return ret;
-    };
-}
-
-if (!FP.bind) {
-    FP.bind = function(context) {
-        var args = slice.call(arguments, 1),
-            fn = this,
-            noop = function() {},
-            ret = function() {
-                return fn.apply(this instanceof noop? this : context || global, args.concat(slice.call(arguments)));
-            };
-
-        noop.prototype = fn.prototype;
-        ret.prototype = new noop();
-        return ret;
-    };
-}
-
-/**
- * Date.now
- */
-if (!Date.now) {
-    Date.now = function() {
-        return +new Date();
-    };
-}
-
-if (!SP.trim) {
-    SP.trim = function() {
-        return this.replace(rtrim, "");
-    };
-}
-
-if (!SP.startsWith) {
-    SP.startsWith = function(search) {
-        return this.lastIndexOf(search, 0) === 0;
-    };
-}
-
-if (!SP.endsWith) {
-    SP.endsWith = function(search) {
-        var index = this.length - search.length;
-        return index >= 0 && this.indexOf(search, index) === index;
-    };
-}
-
-
-/*
- * array shim
- * Array.prototype.every
- * Array.prototype.filter
- * Array.prototype.forEach
- * Array.prototype.indexOf
- * Array.prototype.lastIndexOf
- * Array.prototype.map
- * Array.prototype.some
- * Array.prototype.reduce
- * Array.prototype.reduceRight
- * Array.isArray
- */
-if (!AP.forEach) {
-    AP.forEach = function(fn, context) {
-        var i = 0,
-            length = this.length;
-
-        for (; i < length; i++) {
-            fn.call(context, this[i], i, this);
-        }
-    };
-}
-
-if (!AP.map) {
-    AP.map = function(fn, context) {
-        var ret = [],
-            i = 0,
-            length = this.length;
-
-        for (; i < length; i++) {
-            ret.push(fn.call(context, this[i], i, this));
-        }
-        return ret;
-    };
-}
-
-if (!AP.filter) {
-    AP.filter = function(fn, context) {
-        var ret = [],
-            i = 0,
-            length = this.length,
-            item;
-
-        for (; i < length; i++) {
-            item = this[i];
-            if (fn.call(context, item, i, this)) {
-                ret.push(item);
-            }
-        }
-        return ret;
-    };
-}
-
-if (!AP.some) {
-    AP.some = function(fn, context) {
-        var i = 0,
-            length = this.length;
-
-        for (; i < length; i++) {
-            if (fn.call(context, this[i], i, this)) {
-                return true;
-            }
-        }
-        return false;
-    };
-}
-
-if (!AP.every) {
-    AP.every = function(fn, context) {
-        var i = 0,
-            length = this.length;
-
-        for (; i < length; i++) {
-            if (!fn.call(context, this[i], i, this)) {
-                return false;
-            }
-        }
-        return true;
-    };
-}
-
-if (!AP.indexOf) {
-    AP.indexOf = function(searchElement, fromIndex) {
-        var ret = -1,
-            i,
-            length = this.length;
-
-        i = fromIndex * 1 || 0;
-        i = i >= 0 ? i : Math.max(0, length + i);
-
-        for (; i < length; i++) {
-            if (this[i] === searchElement) {
-                return i;
-            }
-        }
-        return ret;
-    };
-}
-
-if (!AP.lastIndexOf) {
-    AP.lastIndexOf = function(searchElement, fromIndex) {
-        var ret = -1,
-            length = this.length,
-            i = length - 1;
-
-        fromIndex = fromIndex * 1 || length - 1;
-        i = Math.min(i, fromIndex);
-
-        for (; i > -1; i--) {
-            if (this[i] === searchElement) {
-                return i;
-            }
-        }
-        return ret;
-    };
-}
-
-if (!AP.reduce) {
-    AP.reduce = function(fn, initialValue) {
-        var previous = initialValue,
-            i = 0,
-            length = this.length;
-
-        if (initialValue === undefined) {
-            previous = this[0];
-            i = 1;
-        }
-
-        for (; i < length; i++) {
-            previous = fn(previous, this[i], i, this);
-        }
-        return previous;
-    };
-}
-
-if (!AP.reduceRight) {
-    AP.reduceRight = function(fn, initialValue) {
-        var length = this.length,
-            i = length - 1,
-            previous = initialValue;
-
-        if (initialValue === undefined) {
-            previous = this[length - 1];
-            i--;
-        }
-        for (; i > -1; i--) {
-            previous = fn(previous, this[i], i, this);
-        }
-        return previous;
-    };
-}
-
-"Boolean Number String Function Array Date RegExp Object Error".replace(rword, function(name, lc) {
-    class2type["[object " + name + "]"] = (lc = name.toLowerCase());
-    S["is" + name] = function(o) {
-        return type(o) === lc;
-    };
-});
-
-var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
-    isFunction = S.isFunction,
-    isObject = S.isObject,
-    isString = S.isString,
-    isError = S.isError,
-    isDate = S.isDate,
-
-    isNotEmptyString = function(val) {
-        return isString(val) && val !== "";
     },
 
     memoize = function(fn, hasher) {
@@ -323,34 +105,16 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     },
 
     /**
-     * {{ name }} -> {{ o[name] }}
-     * \{{}} -> \{{}}
-     * reserve 是否保留{{ var }}来进行多次替换, 默认不保留，即替换为空
-     */
-    substitute = function(str, o, reserve) {
-        if (!isString(str) || (!isArray(o) && !isPlainObject(o))) {
-            return str;
-        }
-
-        return str.replace(rsubstitute, function(match, name) {
-            if (match.charAt(0) === '\\') {
-                return match.slice(1);
-            }
-            return (o[name] == null) ? reserve ? match : "" : o[name];
-        });
-    },
-
-    /**
      * jQuery type()
      */
     type = function(object) {
         if (object == null ) {
-            return object + "";
+            return object + '';
         }
 
         var t = typeof object;
-        return t === "object" || t === "function" ?
-            class2type[toString.call(object)] || "object" :
+        return t === 'object' || t === 'function' ?
+            class2type[toString.call(object)] || 'object' :
             t;
     },
 
@@ -370,7 +134,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
 
         try {
             // Not own constructor property must be Object
-            if ((constructor = object.constructor) && !hasOwnProperty(object, "constructor") && !hasOwnProperty(constructor.prototype, "isPrototypeOf")) {
+            if ((constructor = object.constructor) && !hasOwnProperty(object, 'constructor') && !hasOwnProperty(constructor.prototype, 'isPrototypeOf')) {
                 return false;
             }
         } catch (e) {
@@ -399,7 +163,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
             lengthType = type(length),
             oType = type(o);
 
-        if (lengthType !== "number" || typeof o.nodeName === "string" || isWindow(o) || oType === "string" || oType === "function" && !("item" in o && lengthType === "number")) {
+        if (lengthType !== 'number' || typeof o.nodeName === 'string' || isWindow(o) || oType === 'string' || oType === 'function' && !('item' in o && lengthType === 'number')) {
             return [o];
         }
         for (; i < length; i++) {
@@ -416,7 +180,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
             deep = false;
 
         // Handle a deep copy situation
-        if (typeof target === "boolean") {
+        if (typeof target === 'boolean') {
             deep = target;
 
             // skip the boolean and the target
@@ -425,7 +189,7 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         }
 
         // Handle case when target is a string or something (possible in deep copy)
-        if (typeof target !== "object" && !isFunction(target)) {
+        if (typeof target !== 'object' && !isFunction(target)) {
             target = {};
         }
 
@@ -472,6 +236,49 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return target;
     },
 
+     /**
+     * [later description]
+     * @param  {Function} fn       要执行的函数
+     * @param  {number}   when     延迟时间
+     * @param  {boolean}   periodic 是否周期执行
+     * @param  {object}   context  context
+     * @param  {Array}   data     传递的参数
+     * @return {object}            timer，cancel and interval
+     */
+    later = function(fn, when, periodic, context, data) {
+        when = when || 0;
+        var m = fn,
+            d = makeArray(data),
+            f,
+            r;
+
+        if (isString(fn)) {
+            m = context[fn];
+        }
+
+        if (!m) {
+            error('later: method undefined');
+        }
+
+        f = function() {
+            m.apply(context, d);
+        };
+
+        r = (periodic) ? setInterval(f, when) : setTimeout(f, when);
+
+        return {
+            id: r,
+            interval: periodic,
+            cancel: function() {
+                if (this.interval) {
+                    clearInterval(r);
+                } else {
+                    clearTimeout(r);
+                }
+            }
+        };
+    },
+
     /**
      * 判断两个变量是否相等
      * 数字特殊情况不做判断 如0 == -0
@@ -497,18 +304,18 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         }
 
         switch (aType) {
-            case "array":
-            case "object":
+            case 'array':
+            case 'object':
                 return compareObject(a, b);
             /**
-             * new String("a")
+             * new String('a')
              */
-            case "string":
+            case 'string':
                 return a == String(b);
-            case "number":
+            case 'number':
                 return ret;
-            case "date":
-            case "boolean":
+            case 'date':
+            case 'boolean':
                 return +a == +b;
         }
 
@@ -539,27 +346,9 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         return true;
     },
 
-    _cid = function(prefix) {
-        prefix = prefix || 0;
-
-        var counter = 0;
-        return function() {
-            return prefix + counter++;
-        };
-    },
-
-    ucfirst = function(str) {
-        return str.charAt(0).toUpperCase() + str.substring(1);
-    },
-
     // 转为下划线风格
     underscored = function(str) {
-        return str.replace(/([a-z\d])([A-Z])/g, "$1_$2").replace(/\-/g, "_").toLowerCase();
-    },
-
-    // 转为连字符风格
-    dasherize = function(str) {
-        return underscored(str).replace(/_/g, "-");
+        return str.replace(/([a-z\d])([A-Z])/g, '$1_$2').replace(/\-/g, '_').toLowerCase();
     },
 
     htmlEntities = {
@@ -573,63 +362,74 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     },
     reverseEntities = {},
     getEscapeReg = singleton(function() {
-        var str = "";
+        var str = '';
         each(htmlEntities, function(entity) {
-            str += entity + "|";
+            str += entity + '|';
         });
         str = str.slice(0, -1);
-        return new RegExp(str, "g");
+        return new RegExp(str, 'g');
     }),
     getUnEscapeReg = singleton(function() {
-        var str = "";
+        var str = '';
         each(reverseEntities, function(entity) {
-            str += entity + "|";
+            str += entity + '|';
         });
-        str += "&#(\\d{1,5});";
+        str += '&#(\\d{1,5});';
 
-        return new RegExp(str, "g");
-    }),
-    escapeHtml = function(text) {
-        return (text + "").replace(getEscapeReg(), function(all) {
-            return reverseEntities[all];
-        });
-    },
-    unEscapeHtml = function(text) {
-        return (text + "").replace(getUnEscapeReg(), function(all) {
-            return htmlEntities[all];
-        });
-    };
+        return new RegExp(str, 'g');
+    });
 
 each(htmlEntities, function(entity, k) {
     reverseEntities[entity] = k;
 });
 
-extend({
+extend(S, {
 
+    noop: noop,
+    error: error,
     each: each,
-
-    mix: extend,
     extend: extend,
-
-    isWindow: isWindow,
-
-    isPlainObject: isPlainObject,
-
-    isEqual: isEqual,
-
     type: type,
-
     makeArray: makeArray,
-
     memoize: memoize,
     singleton: singleton,
 
-    uniqueCid: _cid(),
+    /**
+     * 在log环境下输出log信息，避免因为忘记删除log语句而引发错误
+     * @param  {String} msg 消息
+     * @param  {String} src 消息来源，可选
+     */
+    log: isSupportConsole ? function(msg, src) {
+        if (src) {
+            msg = src + ": " + msg;
+        }
+        console.log(msg);
 
-    isNotEmptyString: isNotEmptyString,
+        return this;
+    } : noop,
 
-    ucfirst: ucfirst,
-    dasherize: dasherize,
+    isWindow: isWindow,
+    isPlainObject: isPlainObject,
+    isEqual: isEqual,
+
+    uniqueCid: function() {
+        return cidCounter++;
+    },
+
+    ucfirst: function(str) {
+        return str.charAt(0).toUpperCase() + str.substring(1);
+    },
+
+    // 转为连字符风格
+    dasherize: function(str) {
+        return underscored(str).replace(/_/g, '-');
+    },
+    // 转为驼峰
+    camelize: function(str){
+        return str.replace(/[-_][^-_]/g, function(match) {
+            return match.charAt(1).toUpperCase();
+        });
+    },
 
     random: function(min, max) {
         var array, seed;
@@ -647,48 +447,7 @@ extend({
         return array ? array[seed] : seed;
     },
 
-    /**
-     * [later description]
-     * @param  {Function} fn       要执行的函数
-     * @param  {number}   when     延迟时间
-     * @param  {boolean}   periodic 是否周期执行
-     * @param  {object}   context  context
-     * @param  {Array}   data     传递的参数
-     * @return {object}            timer，cancel and interval
-     */
-    later: function(fn, when, periodic, context, data) {
-        when = when || 0;
-        var m = fn,
-            d = makeArray(data),
-            f,
-            r;
-
-        if (isString(fn)) {
-            m = context[fn];
-        }
-
-        if (!m) {
-            S.error("later: method undefined");
-        }
-
-        f = function() {
-            m.apply(context, d);
-        };
-
-        r = (periodic) ? setInterval(f, when) : setTimeout(f, when);
-
-        return {
-            id: r,
-            interval: periodic,
-            cancel: function() {
-                if (this.interval) {
-                    clearInterval(r);
-                } else {
-                    clearTimeout(r);
-                }
-            }
-        };
-    },
+    later: later,
 
     /**
      * 在underscore里面有实现，这个版本借鉴的是kissy
@@ -722,7 +481,7 @@ extend({
         var timer = null,
             f = function() {
                 f.stop();
-                timer = S.later(fn, ms, 0, context, arguments);
+                timer = later(fn, ms, 0, context, arguments);
             };
 
         f.stop = function() {
@@ -734,23 +493,43 @@ extend({
         return f;
     },
 
-    substitute: substitute,
+    /**
+     * {{ name }} -> {{ o[name] }}
+     * \{{}} -> \{{}}
+     * reserve 是否保留{{ var }}来进行多次替换, 默认不保留，即替换为空
+     */
+    substitute: function(str, o, reserve) {
+        if (!isString(str) || (!isArray(o) && !isPlainObject(o))) {
+            return str;
+        }
+
+        return str.replace(rsubstitute, function(match, name) {
+            if (match.charAt(0) === '\\') {
+                return match.slice(1);
+            }
+            return (o[name] == null) ? (reserve ? match : '') : o[name];
+        });
+    },
 
     /**
      * 对字符串进行截断处理
      */
     truncate: function(str, length, truncation) {
-        str += "";
-        truncation = truncation || "...";
+        str += '';
+        truncation = truncation || '...';
 
         return str.length > length ? str.slice(0, length - truncation.length) + truncation : str;
     },
 
-    stripTags: function(str) {
-        return (str + "").replace(rtags, "");
+    escapeHtml: function(str) {
+        return (str + '').replace(getEscapeReg(), function(all) {
+            return reverseEntities[all];
+        });
     },
-
-    escapeHtml: escapeHtml,
-    unEscapeHtml: unEscapeHtml
+    unEscapeHtml: function(str) {
+        return (str + '').replace(getUnEscapeReg(), function(all) {
+            return htmlEntities[all];
+        });
+    }
 });
 

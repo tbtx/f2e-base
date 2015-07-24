@@ -1,5 +1,9 @@
 describe('lang', function() {
-    var S = tbtx;
+    describe("noop", function() {
+        it("should have a noop method", function() {
+            expect(S.noop).to.exist;
+        });
+    });
 
     describe("each", function() {
         var array = [1, 2, 3, 4];
@@ -9,7 +13,7 @@ describe('lang', function() {
             S.each(array, function() {
                 counter++;
             });
-            expect(counter).toEqual(4);
+            expect(counter).to.equal(4);
         });
 
         it("should break the each if the function return false", function() {
@@ -18,7 +22,7 @@ describe('lang', function() {
                 counter++;
                 return false;
             });
-            expect(counter).toEqual(1);
+            expect(counter).to.equal(1);
         });
 
         it("should each an object", function() {
@@ -33,40 +37,27 @@ describe('lang', function() {
                 map.push(v);
             });
 
-            expect(map.indexOf("a") > -1).toBeTruthy();
-            expect(map.indexOf("b") > -1).toBeTruthy();
-            expect(map.indexOf("c") > -1).toBeTruthy();
-            expect(map.indexOf("d") > -1).toBeTruthy();
+            expect(map.indexOf("a") > -1).to.be.true;
+            expect(map.indexOf("b") > -1).to.be.true;
+            expect(map.indexOf("c") > -1).to.be.true;
+            expect(map.indexOf("d") > -1).to.be.true;
         });
 
-        xit("should each with a context", function() {
+        it("should each with a context", function() {
             var context = {
                 name: "context"
             };
-            var name;
             S.each(array, function(v, k) {
-                name = this.name;
-                return false;
+                expect(this.name).to.equal("context");
             }, context);
-
-            expect(name).toEqual("context");
         });
     });
 
     describe("isWindow", function() {
         it("should tell if the object is window", function() {
-            expect(S.isWindow(window)).toBeTruthy();
-            expect(S.isWindow({})).toBeFalsy();
-            expect(S.isWindow(document.documentElement)).toBeFalsy();
-        });
-    });
-
-    describe('isNotEmptyString', function() {
-        it("should be true if the param is string and is not empty", function() {
-            expect(S.isNotEmptyString('abc')).toBeTruthy();
-            expect(S.isNotEmptyString('')).toBeFalsy();
-
-            expect(S.isNotEmptyString({})).toBeFalsy();
+            expect(S.isWindow(window)).to.be.true;
+            expect(S.isWindow({})).to.be.false;
+            expect(S.isWindow(document.documentElement)).to.be.false;
         });
     });
 
@@ -77,7 +68,9 @@ describe('lang', function() {
                     val: val
                 };
             });
-            expect(f(1)).toBe(f(1));
+            expect(f(1)).to.equal(f(1));
+            expect(f(2)).to.equal(f(2));
+            expect(f({})).to.equal(f({}));
         });
     });
 
@@ -94,8 +87,8 @@ describe('lang', function() {
             });
             getNull();
             getNull();
-            expect(getInstance()).toBe(getInstance());
-            expect(counter).toEqual(2);
+            expect(getInstance()).to.equal(getInstance());
+            expect(counter).to.equal(2);
         });
     });
 
@@ -106,9 +99,11 @@ describe('lang', function() {
                 age: 18
             };
             var t = "<a {{name}} {{age}}>";
-            expect(S.substitute(t, o)).toEqual("<a alex 18>");
+            expect(S.substitute(t, o)).to.equal("<a alex 18>");
+        });
 
-            expect(S.substitute("{{ name }}", {}, true)).toEqual("{{ name }}");
+        it("should reverse the {{}} if the reverse param is true", function() {
+            expect(S.substitute("{{ name }}", {}, true)).to.equal("{{ name }}");
         });
     });
 
@@ -117,22 +112,22 @@ describe('lang', function() {
             var globalName;
             var f = function(name) {
                 globalName = name;
-                expect(globalName).toEqual(name);
+                expect(globalName).to.equal(name);
             };
             var r = S.later(f, 2000, false, window, ["alex"]);
-            expect(globalName).toBeUndefined();
+            expect(globalName).to.be.an("undefined");
         });
     });
 
     describe("ucfirst", function() {
         it("should ucpercase the first letter", function() {
-            expect(S.ucfirst("abc")).toEqual("Abc");
+            expect(S.ucfirst("abc")).to.equal("Abc");
         });
     });
 
     describe("extend", function() {
         it("should implement the jquery extend", function() {
-            expect(S.extend({}, {a: 1}, {b: 2})).toEqual({
+            expect(S.extend({}, {a: 1}, {b: 2})).to.eql({
                 a: 1,
                 b: 2
             });
@@ -141,7 +136,7 @@ describe('lang', function() {
                 b: 1
             }}, {a: {
                 c: 2
-            }})).toEqual({
+            }})).to.eql({
                 a: {
                     c: 2
                 }
@@ -151,7 +146,7 @@ describe('lang', function() {
                 b: 1
             }}, {a: {
                 c: 2
-            }})).toEqual({
+            }})).to.eql({
                 a: {
                     b: 1,
                     c: 2
@@ -162,56 +157,55 @@ describe('lang', function() {
 
     describe("type", function() {
         it("should get the type of the argument", function() {
-            expect(S.type("")).toEqual("string");
-            expect(S.type(123)).toEqual("number");
-            expect(S.type(function(){})).toEqual("function");
-            expect(S.type([])).toEqual("array");
-            expect(S.type({})).toEqual("object");
-            expect(S.type(/abc/)).toEqual("regexp");
-            expect(S.type(new Date())).toEqual("date");
-            expect(S.type(true)).toEqual("boolean");
+            expect(S.type("")).to.equal("string");
+            expect(S.type(123)).to.equal("number");
+            expect(S.type(function(){})).to.equal("function");
+            expect(S.type([])).to.equal("array");
+            expect(S.type({})).to.equal("object");
+            expect(S.type(/abc/)).to.equal("regexp");
+            expect(S.type(new Date())).to.equal("date");
+            expect(S.type(true)).to.equal("boolean");
         });
     });
 
     describe('isPlainObject', function() {
         it("should test if a object is a plain object", function() {
-            expect(S.isPlainObject(S.global)).toBeFalsy();
-            expect(S.isPlainObject({})).toBeTruthy();
+            expect(S.isPlainObject({})).to.be.true;
 
             var f = function(){};
             var a = new f();
-            expect(S.isPlainObject(a)).toBeFalsy();
+            expect(S.isPlainObject(a)).to.be.false;
 
             var head = document.head || document.getElementsByTagName('head')[0];
-            expect(S.isPlainObject(head)).toBeFalsy();
+            expect(S.isPlainObject(head)).to.be.false;
         });
     });
 
     describe("isEqual", function() {
         it("should test if two variable isEqual", function() {
-            expect(S.isEqual(1, 1)).toBeTruthy();
-            expect(S.isEqual(1, 2)).toBeFalsy();
-            expect(S.isEqual(null, undefined)).toBeFalsy();
-            expect(S.isEqual(null, null)).toBeTruthy();
-            expect(S.isEqual(undefined, undefined)).toBeTruthy();
+            expect(S.isEqual(1, 1)).to.be.true;
+            expect(S.isEqual(1, 2)).to.be.false;
+            expect(S.isEqual(null, undefined)).to.be.false;
+            expect(S.isEqual(null, null)).to.be.true;
+            expect(S.isEqual(undefined, undefined)).to.be.true;
 
-            expect(S.isEqual("a", "b")).toBeFalsy();
-            expect(S.isEqual("b", "b")).toBeTruthy();
-            expect(S.isEqual("a", new String("a"))).toBeTruthy();
+            expect(S.isEqual("a", "b")).to.be.false;
+            expect(S.isEqual("b", "b")).to.be.true;
+            expect(S.isEqual("a", new String("a"))).to.be.true;
 
-            expect(S.isEqual(true, true)).toBeTruthy();
-            expect(S.isEqual(true, false)).toBeFalsy();
+            expect(S.isEqual(true, true)).to.be.true;
+            expect(S.isEqual(true, false)).to.be.false;
 
             var t = new Date();
-            expect(S.isEqual(t, t)).toBeTruthy();
+            expect(S.isEqual(t, t)).to.be.true;
 
-            expect(S.isEqual([1, 2, 3], [3, 2, 1])).toBeFalsy();
-            expect(S.isEqual([1, 2, 3], [1, 2, 3])).toBeTruthy();
-            expect(S.isEqual([1, 2, 3, 4], [1, 2, 3])).toBeFalsy();
+            expect(S.isEqual([1, 2, 3], [3, 2, 1])).to.be.false;
+            expect(S.isEqual([1, 2, 3], [1, 2, 3])).to.be.true;
+            expect(S.isEqual([1, 2, 3, 4], [1, 2, 3])).to.be.false;
 
-            expect(S.isEqual({a: 1, b: 2}, {a: 1, b: 2})).toBeTruthy();
-            expect(S.isEqual({a: 1, b: 2}, {a: 2, b: 1})).toBeFalsy();
-            expect(S.isEqual({b: 2, a: 1}, {a: 1, b: 2})).toBeTruthy();
+            expect(S.isEqual({a: 1, b: 2}, {a: 1, b: 2})).to.be.true;
+            expect(S.isEqual({a: 1, b: 2}, {a: 2, b: 1})).to.be.false;
+            expect(S.isEqual({b: 2, a: 1}, {a: 1, b: 2})).to.be.true;
         });
     });
 
@@ -220,36 +214,55 @@ describe('lang', function() {
             var f = function() {
                 return S.makeArray(arguments);
             };
-            expect(f(1, 2, 3)).toEqual([1, 2, 3]);
-            expect(S.makeArray(null)).toEqual([]);
+            expect(f(1, 2, 3)).to.eql([1, 2, 3]);
+            expect(S.makeArray(null)).to.eql([]);
+            expect(S.makeArray([1, 2, 3])).to.eql([1, 2, 3]);
         });
     });
 
-    describe('startsWith, endsWith', function() {
-        it("should get true if the string startsWith the prefix", function() {
-            expect("hello".startsWith('hello')).toBeTruthy();
-            expect("hello".startsWith('ahello')).toBeFalsy();
-        });
-
-        it("should get true if the string endsWith the suffix", function() {
-            expect("hello".endsWith('hello')).toBeTruthy();
-            expect("hello".endsWith('ahello')).toBeFalsy();
+    describe("uniqueCid", function() {
+        it("should get an unique cid", function() {
+            expect(S.uniqueCid()).to.be.a("number");
+            expect(S.uniqueCid()).to.not.equal(S.uniqueCid());
         });
     });
 
     describe('escape, unEscape', function() {
-        it("should escape success", function() {
-            expect(S.escapeHtml("<>")).toEqual("&lt;&gt;");
+        it("should escape a string", function() {
+            expect(S.escapeHtml("<>")).to.equal("&lt;&gt;");
         });
-        it("should unEscape success", function() {
-            expect(S.unEscapeHtml("&lt;&gt;")).toEqual("<>");
+        it("should unEscape s string", function() {
+            expect(S.unEscapeHtml("&lt;&gt;")).to.equal("<>");
         });
     });
 
     describe("truncate", function() {
         it("should truncate a string", function() {
-            expect(S.truncate("abcdefghi", 8)).toEqual("abcde...");
-            expect(S.truncate("abcdefghi", 8, "xxx")).toEqual("abcdexxx");
+            expect(S.truncate("abcdefghi", 8)).to.equal("abcde...");
+            expect(S.truncate("abcdefghi", 8, "xxx")).to.equal("abcdexxx");
+        });
+    });
+
+    describe("dasherize/camelize", function() {
+
+        it("should dasherize the string", function() {
+            expect(tbtx.dasherize("GoodLike")).to.equal("good-like");
+
+            expect(tbtx.dasherize("good_like")).to.equal("good-like");
+            expect(tbtx.dasherize("good-like")).to.equal("good-like");
+        });
+
+        it("should camelize the string", function() {
+            expect(tbtx.camelize("GoodLike")).to.equal("GoodLike");
+            expect(tbtx.camelize("good_like")).to.equal("goodLike");
+            expect(tbtx.camelize("good-like")).to.equal("goodLike");
+        });
+    });
+
+    describe("random", function() {
+        it("should get a random result from an array", function() {
+            var array = [1, 2, 3, 4];
+            expect(array.indexOf(tbtx.random(array)) > -1).to.be.true;
         });
     });
 });

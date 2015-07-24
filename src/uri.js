@@ -1,3 +1,5 @@
+var lang = require("lang"),
+    each = lang.each;
 
 /**
 * Uri 相关
@@ -289,7 +291,7 @@ function isValidParamValue(val) {
     };
 });
 
-extend({
+module.exports = {
     urlEncode: encode,
     urlDecode: decode,
 
@@ -303,4 +305,4 @@ extend({
     getFragment: function(uri) {
         return new Uri(uri).getFragment();
     }
-});
+};

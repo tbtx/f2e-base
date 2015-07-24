@@ -1,56 +1,34 @@
 describe("seed", function() {
-    var S = tbtx;
 
     it("should have a version", function() {
-        expect(S.version).not.toBeNull();
+        expect(S.version).to.exist;
     });
 
-    if (window) {
-        it("should get the global", function() {
-            expect(S.global).toBe(window);
-        });
-    }
-
     describe("config", function() {
-        var Config = S.Config;
 
-        it("should set a config", function() {
-            S.config("a", "a");
-            expect(Config.a).toEqual("a");
+        before(function() {
+            // runs before all tests in this block
+            // S.__data.config = {};
         });
 
-        it("should get a config", function() {
-            S.config("b", "b");
-            expect(S.config("b")).toEqual("b");
+        after(function() {
+            // S.__data.config = {};
+            // runs after all tests in this block
+        });
+
+        it("should set/get a config", function() {
+            S.config("k", "v");
+            expect(S.config("k")).to.equal("v");
         });
 
         it("should set a object config", function() {
             S.config({
-                c: "c",
-                d: "d"
+                k1: "v1",
+                k2: "v2"
             });
-            expect(Config.c).toEqual("c");
-            expect(Config.d).toEqual("d");
+            expect(S.config("k1")).to.equal("v1");
+            expect(S.config("k2")).to.equal("v2");
         });
 
-        // it("should get a config with fn", function() {
-        //     fns.path = function() {
-        //         return "my path";
-        //     };
-        //     expect(S.config("path")).toEqual("my path");
-        // });
-
-        // it("should set a config with fn", function() {
-        //     fns.v = function(val) {
-        //         if (val) {
-        //             Config.v = "my " + val;
-        //         } else {
-        //             return "getter";
-        //         }
-        //     };
-        //     S.config("v", "v");
-        //     expect(Config.v).toEqual("my v");
-        //     expect(S.config("v")).toEqual("getter");
-        // });
     });
 });
