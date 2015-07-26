@@ -2,8 +2,7 @@
  * loader module
  */
 
-var isString = isType("String"),
-    isFunction = isType("Function"),
+var isFunction = isType("Function"),
     noop = function() {},
     head = document.head || document.getElementsByTagName('head')[0],
     baseElement = head.getElementsByTagName("base")[0],

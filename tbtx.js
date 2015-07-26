@@ -891,8 +891,7 @@ this["tbtx"] =
 	            // fix port '0' bug
 	            port = parseInt(uri.port, 10),
 	            fragment = uri.fragment,
-	            query = uri.query.toString(),
-	            credentials = uri.credentials;
+	            query = uri.query.toString();
 
 	        if (scheme) {
 	            ret.push(scheme);
@@ -1380,8 +1379,7 @@ this["tbtx"] =
 	 * loader module
 	 */
 
-	var isString = isType("String"),
-	    isFunction = isType("Function"),
+	var isFunction = isType("Function"),
 	    noop = function() {},
 	    head = document.head || document.getElementsByTagName('head')[0],
 	    baseElement = head.getElementsByTagName("base")[0],
@@ -1546,13 +1544,11 @@ this["tbtx"] =
 
 /***/ },
 /* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	/**
 	 * support
 	 */
-
-	var each = __webpack_require__(1).each;
 	var ua = navigator.userAgent;
 
 	// thanks modernizr
@@ -1562,7 +1558,6 @@ this["tbtx"] =
 
 	    splitter = ' ',
 	    supportElem = getElement('tbtx'),
-	    inputElem = getElement('input'),
 	    canvasElem = getElement('canvas');
 	    supportStyl = supportElem.style,
 

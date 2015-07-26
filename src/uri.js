@@ -236,8 +236,7 @@ Uri.prototype = {
             // fix port '0' bug
             port = parseInt(uri.port, 10),
             fragment = uri.fragment,
-            query = uri.query.toString(),
-            credentials = uri.credentials;
+            query = uri.query.toString();
 
         if (scheme) {
             ret.push(scheme);

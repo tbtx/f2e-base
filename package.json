@@ -12,6 +12,6 @@
     "webpack": "^1.10.1"
   },
   "scripts": {
-    "webpack": "webpack --progress --colors --watch"
+    "webpack": "webpack -d --progress --colors --watch"
   }
 }

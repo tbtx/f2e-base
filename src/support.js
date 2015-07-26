@@ -1,8 +1,6 @@
 /**
  * support
  */
-
-var each = require('./lang').each;
 var ua = navigator.userAgent;
 
 // thanks modernizr
@@ -12,7 +10,6 @@ var getElement = function(type) {
 
     splitter = ' ',
     supportElem = getElement('tbtx'),
-    inputElem = getElement('input'),
     canvasElem = getElement('canvas');
     supportStyl = supportElem.style,
 
