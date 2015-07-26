@@ -1,5 +1,10 @@
-var lang = require("lang"),
-    each = lang.each;
+var lang = require('./lang'),
+    each = lang.each,
+    isArray = lang.isArray,
+    endsWith =  lang.endsWith,
+    makeArray = lang.makeArray,
+
+    app = {};
 
 /**
 * Uri 相关
@@ -7,36 +12,58 @@ var lang = require("lang"),
 var encode = encodeURIComponent,
 
     decode = function(s) {
-        return decodeURIComponent(s.replace(/\+/g, " "));
+        return decodeURIComponent((s + '').replace(/\+/g, ' '));
     },
 
-    param = function(o, sep, eq) {
-        sep = sep || "&";
-        eq = eq || "=";
+    param = function(o, sep, eq, serializeArray) {
+        sep = sep || '&';
+        eq = eq || '=';
+        if (serializeArray === undefined) {
+            serializeArray = true;
+        }
 
-        var buf = [];
-        each(o, function(val, key) {
+        var buf = [], key, i, v, len, val;
+
+        for (key in o) {
+
+            val = o[key];
             key = encode(key);
+
+            // val is valid non-array value
             if (isValidParamValue(val)) {
                 buf.push(key);
                 if (val !== undefined) {
-                    buf.push(eq, encode(val));
+                    buf.push(eq, encode(val + ''));
                 }
                 buf.push(sep);
             }
-        });
+            // val is not empty array
+            else if (isArray(val) && val.length) {
+                for (i = 0, len = val.length; i < len; ++i) {
+                    v = val[i];
+                    if (isValidParamValue(v)) {
+                        buf.push(key, (serializeArray ? encode('[]') : ''));
+                        if (v !== undefined) {
+                            buf.push(eq, encode(v + ''));
+                        }
+                        buf.push(sep);
+                    }
+                }
+            }
+            // ignore other cases, including empty array, Function, RegExp, Date etc.
 
+        }
         buf.pop();
-        return buf.join("");
+        return buf.join('');
     },
 
     /**
      * query字符串转为对象
      */
     unparam = function(str, sep, eq) {
-        str = (str + "").trim();
-        sep = sep || "&";
-        eq = eq || "=";
+        str = (str + '').trim();
+        sep = sep || '&';
+        eq = eq || '=';
 
         var ret = {},
             eqIndex,
@@ -64,8 +91,19 @@ var encode = encodeURIComponent,
                 } catch (e) {
                     error(e + val);
                 }
+                if (endsWith(key, '[]')) {
+                    key = key.substring(0, key.length - 2);
+                }
             }
-            ret[key] = val;
+            if (key in ret) {
+                if (isArray(ret[key])) {
+                    ret[key].push(val);
+                } else {
+                    ret[key] = [ret[key], val];
+                }
+            } else {
+                ret[key] = val;
+            }
         }
         return ret;
     },
@@ -84,13 +122,13 @@ var encode = encodeURIComponent,
 
         path = a.pathname;
         // IE10 pathname返回不带/
-        if (path.charAt(0) != "/") {
-            path = "/" + path;
+        if (path.charAt(0) !== '/') {
+            path = '/' + path;
         }
 
         port = a.port;
         if (port == 80) {
-            port = "";
+            port = '';
         }
 
         return {
@@ -113,33 +151,19 @@ var encode = encodeURIComponent,
             components = parseUri(uriStr);
 
         each(components, function(v, key) {
-
-            if (key === "query") {
-                // need encoded content
-                uri.query = new Query(v);
-            } else {
-                // https://github.com/kissyteam/kissy/issues/298
-                try {
-                    v = decode(v);
-                } catch (e) {
-                    error(e);
-                }
-                // need to decode to get data structure in memory
-                uri[key] = v;
-            }
+            uri[key] = key === 'query' ? new Query(v) : decode(v);
         });
 
         return uri;
     },
 
-    ruri = /^(http|file|\/|\.)/,
+    ruri = /^(http|file|\/)/,
 
     /**
      * 简单判断
-     * 以http,file,/和.开头的为uri
+     * 以http,file,/开头的为uri
      */
     isUri = function(val) {
-        val += "";
         return ruri.test(val);
     };
 
@@ -165,12 +189,9 @@ Query.prototype = {
         var query = this,
             map = query._map;
 
-        if (isString(key)) {
+        if (typeof key === 'string') {
             map[key] = value;
         } else {
-            if (key instanceof Query) {
-                key = key.get();
-            }
             each(key, function(v, k) {
                 map[k] = v;
             });
@@ -205,21 +226,14 @@ Query.prototype = {
     }
 };
 
-Query.prototype.add = Query.prototype.set;
-
 Uri.prototype = {
-
-    getFragment: function() {
-        return this.fragment;
-    },
-
     toString: function() {
         var ret = [],
             uri = this,
             scheme = uri.scheme,
             domain = uri.domain,
             path = uri.path,
-            // fix port "0" bug
+            // fix port '0' bug
             port = parseInt(uri.port, 10),
             fragment = uri.fragment,
             query = uri.query.toString(),
@@ -227,16 +241,16 @@ Uri.prototype = {
 
         if (scheme) {
             ret.push(scheme);
-            ret.push(":");
+            ret.push(':');
         }
 
         if (domain) {
-            ret.push("//");
+            ret.push('//');
 
             ret.push(encode(domain));
 
             if (port) {
-                ret.push(":");
+                ret.push(':');
                 ret.push(port);
             }
         }
@@ -246,16 +260,16 @@ Uri.prototype = {
         }
 
         if (query) {
-            ret.push("?");
+            ret.push('?');
             ret.push(query);
         }
 
         if (fragment) {
-            ret.push("#");
+            ret.push('#');
             ret.push(fragment);
         }
 
-        return ret.join("");
+        return ret.join('');
     }
 };
 
@@ -263,15 +277,15 @@ Uri.prototype = {
 function isValidParamValue(val) {
     var t = typeof val;
     // If the type of val is null, undefined, number, string, boolean, return TRUE.
-    return val === null || (t !== "object" && t !== "function");
+    return val === null || (t !== 'object' && t !== 'function');
 }
 
 /**
  * get/set/remove/add QueryParam
  * uri, args... or args.., uri
  */
-"add get remove set".replace(rword, function(name) {
-    S[name + "QueryParam"] = function() {
+'add get remove set'.replace(lang.rword, function(name) {
+    app[name + 'QueryParam'] = function() {
         var args = makeArray(arguments),
             length = args.length,
             uriStr;
@@ -285,16 +299,15 @@ function isValidParamValue(val) {
 
         var uri = new Uri(uriStr),
             query = uri.query,
-            ret = query[name].apply(query, args);
+            ret = query[name === 'add' ? 'set' : name].apply(query, args);
 
-        return ret === query ? uri.toString() : ret || "";
+        return ret === query ? uri.toString() : ret || '';
     };
 });
 
-module.exports = {
+lang.extend(app, {
     urlEncode: encode,
     urlDecode: decode,
-
     param: param,
     unparam: unparam,
 
@@ -302,7 +315,9 @@ module.exports = {
 
     parseUri: parseUri,
 
-    getFragment: function(uri) {
-        return new Uri(uri).getFragment();
+    getHash: function(uri) {
+        return parseUri(uri).fragment;
     }
-};
+});
+
+module.exports = app;

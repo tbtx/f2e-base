@@ -1,24 +1,23 @@
 describe('cookie', function() {
-    var S = tbtx,
-        cookie = S.cookie;
+    var cookie = S.cookie;
 
-    if (location.protocol == "file:") {
+    if (location.protocol.indexOf("file") > -1) {
         return;
     }
 
     describe("get/set", function() {
         it("should get/set the cookie", function() {
-            cookie.set("abc", "abc");
-            expect(cookie.get("abc")).toEqual("abc");
+            cookie.set("cookie1", "abc");
+            expect(cookie.get("cookie1")).to.eql("abc");
         });
     });
 
     describe("get/remove", function() {
         it("should remove the cookie", function() {
-
-            cookie.set("abc", "abc");
-            cookie.remove("abc");
-            expect(cookie.get("abc")).toBeUndefined();
+            cookie.set("cookie2", "abc");
+            expect(cookie.get("cookie2")).to.eql("abc");
+            cookie.remove("cookie2");
+            expect(cookie.get("cookie2")).to.be(undefined);
         });
     });
 });

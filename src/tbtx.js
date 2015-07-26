@@ -3,9 +3,17 @@ var lang = require('./lang'),
 
 var modules = [
     lang,
-    require('./seed')
+    require('./seed'),
+    require('./uri'),
+    {
+        cookie: require('./cookie')
+    },
+    require('./date'),
+    require('./events'),
+    require('./loader'),
+    require('./support')
 ];
 
-modules.forEach(function(m) {
-    extend(exports, m);
-});
+for (var i = 0; i < modules.length; i++) {
+    extend(exports, modules[i]);
+};

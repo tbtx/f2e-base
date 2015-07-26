@@ -9,7 +9,7 @@ module.exports = {
         filename: '[name].js',
 
         library: 'tbtx',
-        libraryTarget: 'umd'
+        libraryTarget: 'this'
     },
 
     module: {

@@ -1,16 +1,15 @@
-describe("loader", function() {
+describe("support", function() {
+    var support = S.support;
 
-    describe("request", function() {
-        it("should request a script", function() {
-            S.request("http://cdn.staticfile.org/jquery/1.9.1/jquery.min.js", function() {
-                expect(typeof jQuery).not.to.be(undefined);
-            });
+    describe("props", function() {
+        it("should have some props", function() {
+            expect(support).have.property('canvas');
+            expect(support).have.property('ios');
+            expect(support).have.property('android');
+            expect(support).have.property('transition');
+            expect(support).have.property('transform');
         });
 
-        it("should request a css", function() {
-            S.request("http://cdn.staticfile.org/animate.css/3.2.0/animate.css", function() {
-            });
-        });
     });
 
     // function loadScript(url, callback) {

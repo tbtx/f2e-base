@@ -1,4 +1,4 @@
-var S = exports;
+var app = {};
 
 /**
 * 语言扩展
@@ -9,44 +9,33 @@ var class2type = {},
 
     hasOwn = class2type.hasOwnProperty,
 
+    isSupportConsole = global.console && console.log,
+
     hasOwnProperty = function(o, p) {
         return hasOwn.call(o, p);
     },
 
     noop = function() {},
 
-    error = function (msg) {
-        throw isError(msg) ? msg : new Error(msg);
-    },
-
-    cidCounter = 0,
-
-    isSupportConsole = global.console && console.log,
+    counter = 0,
 
     // 切割字符串为一个个小块，以空格或逗号分开它们，结合replace实现字符串的forEach
     rword = /[^, ]+/g,
 
-    // 是否是复杂类型
-    // rcomplexType = /^(?:object|array)$/,
-
-    // 删除标签
-    rtags = /<[^>]+>/img,
-
     // 简单的模板替换
-    rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/mg;
+    rsubstitute = /\\?\{\{\s*([^{}\s]+)\s*\}\}/g;
 
 'Boolean Number String Function Array Date RegExp Object Error'.replace(rword, function(name, lc) {
     class2type['[object ' + name + ']'] = (lc = name.toLowerCase());
-    S['is' + name] = function(o) {
+    app['is' + name] = function(o) {
         return type(o) === lc;
     };
 });
 
-var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
-    isFunction = S.isFunction,
-    isObject = S.isObject,
-    isString = S.isString,
-    isError = S.isError,
+var isArray = Array.isArray = app.isArray = Array.isArray || app.isArray,
+    isFunction = app.isFunction,
+    isObject = app.isObject,
+    isString = app.isString,
 
     /**
      * return false终止循环
@@ -118,15 +107,44 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
             t;
     },
 
-    isWindow = function(object) {
-        return object != null && object == object.window;
+    makeArray = function(object) {
+        if (object == null) {
+            return [];
+        }
+        if (isArray(object)) {
+            return object;
+        }
+
+        var length = object.length,
+            lengthType = type(length),
+            oType = type(object);
+
+        if (lengthType !== 'number' ||
+            // form.elements in ie78 has nodeName 'form'
+            // then caution select
+            // o.nodeName
+            // window
+            object.alert ||
+            oType === 'string' ||
+            // https://github.com/ariya/phantomjs/issues/11478
+            (oType === 'function' && !('item' in object && lengthType === 'number'))
+        ) {
+            return [object];
+        }
+
+        var ret = [],
+            i = 0;
+        for (; i < length; i++) {
+            ret[i] = object[i];
+        }
+        return ret;
     },
 
     isPlainObject = function(object) {
         // Must be an Object.
         // Because of IE, we also have to check the presence of the constructor property.
         // Make sure that Dom nodes and window objects don't pass through, as well
-        if (!isObject(object) || object.nodeType || isWindow(object)) {
+        if (!isObject(object) || object.nodeType || object.window === object) {
             return false;
         }
 
@@ -147,29 +165,6 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         for (key in object) {}
 
         return key === undefined || hasOwnProperty(object, key);
-    },
-
-    makeArray = function(o) {
-        if (o == null) {
-            return [];
-        }
-        if (isArray(o)) {
-            return o;
-        }
-
-        var ret = [],
-            i = 0,
-            length = o.length,
-            lengthType = type(length),
-            oType = type(o);
-
-        if (lengthType !== 'number' || typeof o.nodeName === 'string' || isWindow(o) || oType === 'string' || oType === 'function' && !('item' in o && lengthType === 'number')) {
-            return [o];
-        }
-        for (; i < length; i++) {
-            ret[i] = o[i];
-        }
-        return ret;
     },
 
     extend = function() {
@@ -194,10 +189,10 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
         }
 
         // extend itself if only one argument is passed
-        if (i === length) {
-            target = S;
-            i--;
-        }
+        // if (i === length) {
+        //     target = S;
+        //     i--;
+        // }
 
         for (; i < length; i++) {
             // Only deal with non-null/undefined values
@@ -256,15 +251,11 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
             m = context[fn];
         }
 
-        if (!m) {
-            error('later: method undefined');
-        }
-
         f = function() {
             m.apply(context, d);
         };
 
-        r = (periodic) ? setInterval(f, when) : setTimeout(f, when);
+        r = periodic ? setInterval(f, when) : setTimeout(f, when);
 
         return {
             id: r,
@@ -311,12 +302,12 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
              * new String('a')
              */
             case 'string':
-                return a == String(b);
+                return a === String(b);
             case 'number':
                 return ret;
             case 'date':
             case 'boolean':
-                return +a == +b;
+                return +a === +b;
         }
 
         return ret;
@@ -352,13 +343,14 @@ var isArray = Array.isArray = S.isArray = Array.isArray || S.isArray,
     },
 
     htmlEntities = {
-        "&amp;": "&",
-        "&gt;": ">",
-        "&lt;": "<",
-        "&#x60;": "`",
-        "&#x2F;": "/",
-        "&quot;": '"',
-        "&#x27;": "'"
+        '&amp;': '&',
+        '&gt;': '>',
+        '&lt;': '<',
+        '&#x60;': '`',
+        '&#x2F;': '/',
+        '&quot;': '"',
+        /*jshint quotmark:false*/
+        '&#x27;': "'"
     },
     reverseEntities = {},
     getEscapeReg = singleton(function() {
@@ -383,10 +375,9 @@ each(htmlEntities, function(entity, k) {
     reverseEntities[entity] = k;
 });
 
-extend(S, {
-
+extend(app, {
+    rword: rword,
     noop: noop,
-    error: error,
     each: each,
     extend: extend,
     type: type,
@@ -401,25 +392,25 @@ extend(S, {
      */
     log: isSupportConsole ? function(msg, src) {
         if (src) {
-            msg = src + ": " + msg;
+            msg = src + ': ' + msg;
         }
         console.log(msg);
 
         return this;
     } : noop,
 
-    isWindow: isWindow,
     isPlainObject: isPlainObject,
     isEqual: isEqual,
 
     uniqueCid: function() {
-        return cidCounter++;
+        return counter++;
     },
 
     ucfirst: function(str) {
         return str.charAt(0).toUpperCase() + str.substring(1);
     },
 
+    underscored: underscored,
     // 转为连字符风格
     dasherize: function(str) {
         return underscored(str).replace(/_/g, '-');
@@ -453,7 +444,6 @@ extend(S, {
      * 在underscore里面有实现，这个版本借鉴的是kissy
      */
     throttle: function(fn, ms, context) {
-        context = context || this;
         ms = ms || 150;
 
         if (ms === -1) {
@@ -466,13 +456,12 @@ extend(S, {
             var now = Date.now();
             if (now - last > ms) {
                 last = now;
-                fn.apply(context, arguments);
+                fn.apply(context || this, arguments);
             }
         };
     },
 
     debounce: function(fn, ms, context) {
-        context = context || this;
         ms = ms || 150;
 
         if (ms === -1) {
@@ -481,7 +470,7 @@ extend(S, {
         var timer = null,
             f = function() {
                 f.stop();
-                timer = later(fn, ms, 0, context, arguments);
+                timer = later(fn, ms, 0, context || this, arguments);
             };
 
         f.stop = function() {
@@ -530,6 +519,16 @@ extend(S, {
         return (str + '').replace(getUnEscapeReg(), function(all) {
             return htmlEntities[all];
         });
+    },
+
+    startsWith: function(str, prefix) {
+        return str.lastIndexOf(prefix, 0) === 0;
+    },
+
+    endsWith: function(str, suffix) {
+        var index = str.length - suffix.length;
+        return index >= 0 && str.indexOf(suffix, index) === index;
     }
 });
 
+module.exports = app;

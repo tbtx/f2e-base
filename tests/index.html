@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>tbtx test</title>
     <link rel="stylesheet" href="./lib/mocha.css">
+    <!--[if lt IE 9]>
+        <script src="./lib/es5-shim.min.js"></script>
+    <![endif]-->
     <script src="../tbtx.js"></script>
 
 </head>
@@ -12,22 +15,20 @@
 <div id="mocha"></div>
 
 <script src="./lib/mocha.js"></script>
-<script src="./lib/chai.js"></script>
+<script src="./lib/expect.js"></script>
 <script>mocha.setup('bdd')</script>
 
 <script>
-    var expect = chai.expect;
     var S = tbtx;
 </script>
 <script src="spec/seed.spec.js"></script>
 <script src="spec/lang.spec.js"></script>
-<!-- <script src="spec/uri.spec.js"></script>
+<script src="spec/uri.spec.js"></script>
 <script src="spec/events.spec.js"></script>
 <script src="spec/loader.spec.js"></script>
 <script src="spec/cookie.spec.js"></script>
 <script src="spec/date.spec.js"></script>
-<script src="spec/request.spec.js"></script> -->
-
+<script src="spec/support.spec.js"></script>
 
 <script>
     mocha.checkLeaks();
