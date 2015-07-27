@@ -12,7 +12,11 @@ var lang = require('./lang'),
 var encode = encodeURIComponent,
 
     decode = function(s) {
-        return decodeURIComponent((s + '').replace(/\+/g, ' '));
+        try {
+            return decodeURIComponent(s.replace(/\+/g, ' '));
+        } catch (err) {
+            return s;
+        }
     },
 
     param = function(o, sep, eq, serializeArray) {
@@ -85,12 +89,8 @@ var encode = encodeURIComponent,
             } else {
                 // remember to decode key!
                 key = decode(pairs[i].substring(0, eqIndex));
-                val = pairs[i].substring(eqIndex + 1);
-                try {
-                    val = decode(val);
-                } catch (e) {
-                    error(e + val);
-                }
+                val = decode(pairs[i].substring(eqIndex + 1));
+
                 if (endsWith(key, '[]')) {
                     key = key.substring(0, key.length - 2);
                 }
