@@ -16,7 +16,12 @@
 
 <script src="./lib/mocha.js"></script>
 <script src="./lib/expect.js"></script>
-<script>mocha.setup('bdd')</script>
+<script>
+mocha.setup({
+    ui: 'bdd',
+    globals: ['_']
+})
+</script>
 
 <script>
     var S = tbtx;
@@ -31,7 +36,7 @@
 <script src="spec/support.spec.js"></script>
 
 <script>
-    mocha.checkLeaks();
+    // mocha.checkLeaks();
     mocha.run();
 </script>
 </body>

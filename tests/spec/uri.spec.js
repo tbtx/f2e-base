@@ -55,7 +55,7 @@ describe("uri", function() {
             expect( S.getQueryParam(url) ).to.eql(target);
             expect( S.getQueryParam("name", url) ).to.eql("1213");
 
-            expect( S.getQueryParam()).to.eql({});
+            expect( S.getQueryParam("http://www.taobao.com")).to.eql({});
             expect( S.getQueryParam("name") ).to.eql('');
 
             expect( S.getQueryParam("name", "abc") ).to.eql('');

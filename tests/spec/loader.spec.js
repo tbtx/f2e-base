@@ -2,8 +2,9 @@ describe("loader", function() {
 
     describe("request", function() {
         it("should request a script", function() {
-            S.request("http://cdn.staticfile.org/jquery/1.9.1/jquery.min.js", function() {
-                expect(typeof jQuery).not.to.be(undefined);
+            expect(typeof _).to.be("undefined");
+            S.request("http://cdn.staticfile.org/underscore.js/1.7.0/underscore-min.js", function() {
+                expect(typeof _).not.to.be("undefined");
             });
         });
 
